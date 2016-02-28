@@ -6,7 +6,7 @@
   <groupId>net.dempsy</groupId>
   <artifactId>dempsy-commons</artifactId>
   <version>1.0-SNAPSHOT</version>
-  <name>Dempsy Parent aggregator</name>
+  <name>Dempsy Commons Parent Pom Aggregator</name>
   <packaging>pom</packaging>
 
   <parent>
@@ -24,9 +24,9 @@
   </licenses>
 
   <scm>
-    <connection>scm:git:git@github.com:Dempsy/dempsy-utils.git</connection>
-    <developerConnection>scm:git:git@github.com:Dempsy/dempsy-utils.git</developerConnection>
-    <url>git@github.com:Dempsy/dempsy-utils.git</url>
+    <connection>scm:git:git@github.com:Dempsy/dempsy-commons.git</connection>
+    <developerConnection>scm:git:git@github.com:Dempsy/dempsy-commons.git</developerConnection>
+    <url>git@github.com:Dempsy/dempsy-commons.git</url>
   </scm>
 
   <modules>
