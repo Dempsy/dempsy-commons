@@ -16,8 +16,12 @@
 
 package net.dempsy.serialization.kryo;
 
+import static com.nokia.dempsy.util.SafeString.objectDescription;
+
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.slf4j.Logger;
@@ -27,25 +31,51 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.KryoException;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import com.nokia.dempsy.util.SafeString;
+import com.nokia.dempsy.util.io.MessageBufferInput;
+import com.nokia.dempsy.util.io.MessageBufferOutput;
 
-import net.dempsy.serialization.SerializationException;
 import net.dempsy.serialization.Serializer;
 
 /**
  * This is the implementation of the Kryo based serialization for Dempsy. It can be configured with registered classes using Spring by passing a list of {@link Registration} instances to the constructor.
  */
-public class KryoSerializer implements Serializer {
+public class KryoSerializer extends Serializer {
     private static Logger logger = LoggerFactory.getLogger(KryoSerializer.class);
 
-    private static class KryoHolder {
-        public Kryo kryo = new Kryo();
-        public Output output = new Output(1024, 1024 * 1024 * 1024);
-        public Input input = new Input();
+    private static final byte[] park = new byte[0];
+
+    public class Holder implements AutoCloseable {
+        public final Kryo kryo;
+        public final Output output = new Output(0, -1);
+        public final Input input = new Input();
+        private ClassLoader oldLoader = null;
+
+        Holder() {
+            kryo = new Kryo();
+        }
+
+        public Holder setClassLoader(final ClassLoader loader) {
+            if (loader != null) {
+                oldLoader = kryo.getClassLoader();
+                kryo.setClassLoader(loader);
+            }
+            return this;
+        }
+
+        @Override
+        public void close() {
+            if (oldLoader != null)
+                kryo.setClassLoader(oldLoader);
+            output.close();
+            input.close();
+            input.setBuffer(park); // clean input
+            output.setBuffer(park, Integer.MAX_VALUE); // clear output
+            kryopool.offer(this);
+        }
     }
 
     // need an object pool of Kryo instances since Kryo is not thread safe
-    private final ConcurrentLinkedQueue<KryoHolder> kryopool = new ConcurrentLinkedQueue<KryoHolder>();
+    private final ConcurrentLinkedQueue<Holder> kryopool = new ConcurrentLinkedQueue<Holder>();
     private List<Registration> registrations = null;
     private KryoOptimizer optimizer = null;
     private boolean requireRegistration = false;
@@ -91,49 +121,47 @@ public class KryoSerializer implements Serializer {
     }
 
     @Override
-    public byte[] serialize(final Object object) throws SerializationException {
-        KryoHolder k = null;
-        try {
-            k = getKryoHolder();
-            k.output.clear();
-            k.kryo.writeClassAndObject(k.output, object);
-            return k.output.toBytes();
+    public <T> void serialize(final T object, final MessageBufferOutput buffer) throws IOException {
+        try (Holder k = getKryoHolder()) {
+            final Output output = k.output;
+            // this will allow kryo to grow the buffer as needed.
+            output.setBuffer(buffer.getBuffer(), Integer.MAX_VALUE);
+            output.setPosition(buffer.getPosition()); // set the position to where we already are.
+            k.kryo.writeClassAndObject(output, object);
+            // if we resized then we need to adjust the message buffer
+            if (output.getBuffer() != buffer.getBuffer())
+                buffer.replace(output.getBuffer());
+            buffer.setPosition(output.position());
         } catch (final KryoException ke) {
-            throw new SerializationException("Failed to serialize.", ke);
-        } catch (final IllegalArgumentException e) // this happens when requiring registration but serializing an unregistered class
-        {
-            throw new SerializationException("Failed to serialize " + SafeString.objectDescription(object) +
+            throw new IOException("Failed to serialize.", ke);
+        } catch (final IllegalArgumentException e) { // this happens when requiring registration but serializing an unregistered class
+            throw new IOException("Failed to serialize " + objectDescription(object) +
                     " (did you require registration and attempt to serialize an unregistered class?)", e);
-        } finally {
-            if (k != null)
-                kryopool.offer(k);
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public <T> T deserialize(final byte[] data, final Class<T> clazz) throws SerializationException {
-        KryoHolder k = null;
-        try {
-            k = getKryoHolder();
-            k.input.setBuffer(data);
-            return (T) (k.kryo.readClassAndObject(k.input));
+    public <T> T deserialize(final MessageBufferInput data, final Class<T> clazz) throws IOException {
+        try (Holder k = getKryoHolder()) {
+            final Input input = k.input;
+            input.setBuffer(data.getBuffer(), data.getPosition(), data.getLimit());
+            @SuppressWarnings("unchecked")
+            final T ret = (T) k.kryo.readClassAndObject(input);
+            data.setPosition(input.position()); // forward to where Kryo finished.
+            return ret;
         } catch (final KryoException ke) {
-            throw new SerializationException("Failed to deserialize.", ke);
-        } catch (final IllegalArgumentException e) // this happens when requiring registration but deserializing an unregistered class
-        {
-            throw new SerializationException("Failed to deserialize. Did you require registration and attempt to deserialize an unregistered class?",
-                    e);
-        } finally {
-            if (k != null)
-                kryopool.offer(k);
+            throw new IOException("Failed to deserialize.", ke);
+        } catch (final IllegalArgumentException e) { // this happens when requiring registration but deserializing an unregistered class
+            throw new IOException("Failed to deserialize. Did you require registration and attempt to deserialize an unregistered class?", e);
         }
     }
 
-    private KryoHolder getKryoHolder() {
-        KryoHolder ret = kryopool.poll();
+    protected Holder getKryoHolder() {
+        Holder ret = kryopool.poll();
+
         if (ret == null) {
-            ret = new KryoHolder();
+            ret = new Holder();
+
             if (requireRegistration)
                 ret.kryo.setRegistrationRequired(requireRegistration);
 
@@ -141,7 +169,7 @@ public class KryoSerializer implements Serializer {
                 try {
                     optimizer.preRegister(ret.kryo);
                 } catch (final Throwable th) {
-                    logger.error("Optimizer for KryoSerializer \"" + SafeString.valueOfClass(optimizer) +
+                    logger.error("Optimizer for KryoSerializer \"" + (optimizer == null ? "[null object]" : optimizer.getClass().getName()) +
                             "\" threw and unepexcted exception.... continuing.", th);
                 }
             }
@@ -151,11 +179,10 @@ public class KryoSerializer implements Serializer {
                     try {
                         if (reg.id == -1)
                             ret.kryo.register(Class.forName(reg.classname));
-                        else
-                            ret.kryo.register(Class.forName(reg.classname), reg.id);
+                        else ret.kryo.register(Class.forName(reg.classname), reg.id);
                     } catch (final ClassNotFoundException cnfe) {
-                        logger.error(
-                                "Cannot register the class " + SafeString.valueOf(reg.classname) + " with Kryo because the class couldn't be found.");
+                        logger.error("Cannot register the class " + Optional.ofNullable(reg.classname).orElse("null")
+                                + " with Kryo because the class couldn't be found.");
                     }
                 }
             }
@@ -164,7 +191,7 @@ public class KryoSerializer implements Serializer {
                 try {
                     optimizer.postRegister(ret.kryo);
                 } catch (final Throwable th) {
-                    logger.error("Optimizer for KryoSerializer \"" + SafeString.valueOfClass(optimizer) +
+                    logger.error("Optimizer for KryoSerializer \"" + (optimizer == null ? "[null object]" : optimizer.getClass().getName()) +
                             "\" threw and unepexcted exception.... continuing.", th);
                 }
             }

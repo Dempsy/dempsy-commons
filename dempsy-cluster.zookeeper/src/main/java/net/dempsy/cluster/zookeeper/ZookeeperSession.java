@@ -34,15 +34,14 @@ import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.nokia.dempsy.util.AutoDisposeSingleThreadScheduler;
 import com.nokia.dempsy.util.SafeString;
+import com.nokia.dempsy.util.executor.AutoDisposeSingleThreadScheduler;
 
 import net.dempsy.cluster.ClusterInfoException;
 import net.dempsy.cluster.ClusterInfoSession;
 import net.dempsy.cluster.ClusterInfoWatcher;
 import net.dempsy.cluster.DirMode;
 import net.dempsy.cluster.DisruptibleSession;
-import net.dempsy.serialization.SerializationException;
 import net.dempsy.serialization.Serializer;
 
 public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession, AutoCloseable {
@@ -104,7 +103,7 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession,
         return (String) callZookeeper("mkdir", path, null, new DirModeObject(mode, data), new ZookeeperCall() {
             @Override
             public Object call(final ZooKeeper cur, final String path, final WatcherProxy watcher, final Object ud) throws KeeperException,
-                    InterruptedException, SerializationException {
+                    InterruptedException, IOException {
                 final DirModeObject userdata = (DirModeObject) ud;
                 final Object info = userdata.value;
 
@@ -118,7 +117,7 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession,
         callZookeeper("rmdir", path, null, null, new ZookeeperCall() {
             @Override
             public Object call(final ZooKeeper cur, final String path, final WatcherProxy watcher, final Object userdata) throws KeeperException,
-                    InterruptedException, SerializationException {
+                    InterruptedException, IOException {
                 cur.delete(path, -1);
                 return null;
             }
@@ -130,7 +129,7 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession,
         final Object ret = callZookeeper("exists", path, watcher, null, new ZookeeperCall() {
             @Override
             public Object call(final ZooKeeper cur, final String path, final WatcherProxy wp, final Object userdata) throws KeeperException,
-                    InterruptedException, SerializationException {
+                    InterruptedException, IOException {
                 return wp == null ? (cur.exists(path, true) == null ? false : true) : (cur.exists(path, wp) == null ? false : true);
             }
         });
@@ -142,7 +141,7 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession,
         return callZookeeper("getData", path, watcher, null, new ZookeeperCall() {
             @Override
             public Object call(final ZooKeeper cur, final String path, final WatcherProxy wp, final Object userdata) throws KeeperException,
-                    InterruptedException, SerializationException {
+                    InterruptedException, IOException {
                 final byte[] ret = wp == null ? cur.getData(path, true, null) : cur.getData(path, wp, null);
 
                 if (ret != null && ret.length > 0)
@@ -157,7 +156,7 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession,
         callZookeeper("mkdir", path, null, info, new ZookeeperCall() {
             @Override
             public Object call(final ZooKeeper cur, final String path, final WatcherProxy watcher, final Object info) throws KeeperException,
-                    InterruptedException, SerializationException {
+                    InterruptedException, IOException {
                 byte[] buf = null;
                 if (info != null)
                     // Serialize to a byte array
@@ -175,7 +174,7 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession,
         return (Collection<String>) callZookeeper("getSubdirs", path, watcher, null, new ZookeeperCall() {
             @Override
             public Object call(final ZooKeeper cur, final String path, final WatcherProxy wp, final Object userdata) throws KeeperException,
-                    InterruptedException, SerializationException {
+                    InterruptedException, IOException {
                 return wp == null ? cur.getChildren(path, true) : cur.getChildren(path, wp);
             }
         });
@@ -286,8 +285,8 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession,
     }
 
     private interface ZookeeperCall {
-        public Object call(ZooKeeper cur, String path, WatcherProxy watcher, Object userdata) throws KeeperException, InterruptedException,
-                SerializationException;
+        public Object call(ZooKeeper cur, String path, WatcherProxy watcher, Object userdata)
+                throws KeeperException, InterruptedException, IOException;
     }
 
     // This is broken out in order to be intercepted in tests
@@ -323,7 +322,7 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession,
                 throw new ClusterInfoException("Zookeeper failed while trying to " + name + " at " + path, e);
             } catch (final InterruptedException e) {
                 throw new ClusterInfoException("Interrupted while trying to " + name + " at " + path, e);
-            } catch (final SerializationException e) {
+            } catch (final IOException e) {
                 throw new ClusterInfoException("Failed to deserialize the object durring a " + name + " call at " + path, e);
             }
         }

@@ -1,5 +1,6 @@
 package net.dempsy.serialization.jackson;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
@@ -10,12 +11,12 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.nokia.dempsy.util.SafeString;
+import com.nokia.dempsy.util.io.MessageBufferInput;
+import com.nokia.dempsy.util.io.MessageBufferOutput;
 
-import net.dempsy.serialization.SerializationException;
 import net.dempsy.serialization.Serializer;
 
-public class JsonSerializer implements Serializer {
+public class JsonSerializer extends Serializer {
     ObjectMapper objectMapper;
 
     public JsonSerializer() {
@@ -37,33 +38,16 @@ public class JsonSerializer implements Serializer {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T deserialize(final byte[] data, final Class<T> clazz) throws SerializationException {
+    public <T> T deserialize(final MessageBufferInput is, final Class<T> clazz) throws IOException {
         ArrayList<T> info = null;
-        if (data != null) {
-            final String jsonData = new String(data);
-            try {
-                info = objectMapper.readValue(jsonData, ArrayList.class);
-            } catch (final Exception e) {
-                throw new SerializationException("Error occured while deserializing data " + jsonData, e);
-            }
-        }
+        info = objectMapper.readValue(is, ArrayList.class);
         return (info != null && info.size() > 0) ? info.get(0) : null;
     }
 
     @Override
-    public byte[] serialize(final Object data) throws SerializationException {
-        String jsonData = null;
-        if (data != null) {
-            final ArrayList<Object> arr = new ArrayList<Object>();
-            arr.add(data);
-            try {
-                jsonData = objectMapper.writeValueAsString(arr);
-            } catch (final Exception e) {
-                throw new SerializationException("Error occured during serializing class " +
-                        SafeString.valueOfClass(data) + " with information " + SafeString.valueOf(data), e);
-            }
-        }
-        return (jsonData != null) ? jsonData.getBytes() : null;
+    public <T> void serialize(final T data, final MessageBufferOutput buf) throws IOException {
+        final ArrayList<Object> arr = new ArrayList<Object>();
+        arr.add(data);
+        objectMapper.writeValue(buf, arr);
     }
-
 }

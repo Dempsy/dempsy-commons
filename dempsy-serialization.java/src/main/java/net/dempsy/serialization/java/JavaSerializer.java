@@ -16,48 +16,34 @@
 
 package net.dempsy.serialization.java;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import net.dempsy.serialization.SerializationException;
+import com.nokia.dempsy.util.io.MessageBufferInput;
+import com.nokia.dempsy.util.io.MessageBufferOutput;
+
 import net.dempsy.serialization.Serializer;
 
-public class JavaSerializer implements Serializer {
+public class JavaSerializer extends Serializer {
 
     @Override
-    public <T> T deserialize(final byte[] data, final Class<T> clazz) throws SerializationException {
-        final ByteArrayInputStream bis = new ByteArrayInputStream(data);
-        InputStream in;
+    public <T> T deserialize(final MessageBufferInput is, final Class<T> clazz) throws IOException {
         try {
-            in = new ObjectInputStream(bis);
+            final InputStream in = new ObjectInputStream(is); // don't want to close the underlying stream
             @SuppressWarnings("unchecked")
             final T readObject = (T) ((ObjectInputStream) in).readObject();
             return readObject;
-        } catch (final IOException e) {
-            throw new SerializationException(e);
-        } catch (final ClassNotFoundException e) {
-            throw new SerializationException(e);
+        } catch (final ClassNotFoundException cnfe) {
+            throw new IOException(cnfe);
         }
     }
 
     @Override
-    public byte[] serialize(final Object object) throws SerializationException {
-        final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream out;
-        try {
-            out = new ObjectOutputStream(bos);
-            out.writeObject(object); // no need to reset the stream since we're tossing it.
-            out.flush();
-        } catch (final IOException e) {
-            throw new SerializationException(e);
-        }
-
-        final byte[] data = bos.toByteArray();
-        return data;
+    public <T> void serialize(final T object, final MessageBufferOutput buf) throws IOException {
+        final ObjectOutputStream out = new ObjectOutputStream(buf);
+        out.writeObject(object); // no need to reset the stream since we're tossing it.
+        out.flush();
     }
-
 }

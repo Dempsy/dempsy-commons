@@ -16,6 +16,11 @@
 
 package net.dempsy.serialization;
 
+import java.io.IOException;
+
+import com.nokia.dempsy.util.io.MessageBufferInput;
+import com.nokia.dempsy.util.io.MessageBufferOutput;
+
 /**
  * <p>
  * In order to support pluggable serialization, Dempsy (the container and the distributor) can be configured with a serialization scheme. Note, the serialize call is used on the output side and the deserialize
@@ -26,8 +31,22 @@ package net.dempsy.serialization;
  *
  * @param <T>
  */
-public interface Serializer {
-    byte[] serialize(Object object) throws SerializationException;
+public abstract class Serializer {
+    public abstract <T> void serialize(T object, MessageBufferOutput buf) throws IOException;
 
-    public <T> T deserialize(byte[] data, Class<T> clazz) throws SerializationException;
+    public abstract <T> T deserialize(MessageBufferInput is, Class<T> clazz) throws IOException;
+
+    public <T> byte[] serialize(final T object) throws IOException {
+        try (MessageBufferOutput out = new MessageBufferOutput()) {
+            serialize(object, out);
+            out.flush();
+            return out.toByteArray();
+        }
+    }
+
+    public <T> T deserialize(final byte[] data, final Class<T> clazz) throws IOException {
+        try (MessageBufferInput is = new MessageBufferInput(data)) {
+            return deserialize(is, clazz);
+        }
+    }
 }
