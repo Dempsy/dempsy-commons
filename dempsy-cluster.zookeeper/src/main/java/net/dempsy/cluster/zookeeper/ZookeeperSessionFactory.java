@@ -20,12 +20,11 @@ import java.io.IOException;
 
 import org.apache.zookeeper.ZooKeeper;
 
-import com.nokia.dempsy.util.SafeString;
-
 import net.dempsy.cluster.ClusterInfoException;
 import net.dempsy.cluster.ClusterInfoSession;
 import net.dempsy.cluster.ClusterInfoSessionFactory;
 import net.dempsy.serialization.Serializer;
+import net.dempsy.util.SafeString;
 
 public class ZookeeperSessionFactory implements ClusterInfoSessionFactory {
     private final String connectString;

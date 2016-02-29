@@ -18,8 +18,8 @@ package net.dempsy.serialization;
 
 import java.io.IOException;
 
-import com.nokia.dempsy.util.io.MessageBufferInput;
-import com.nokia.dempsy.util.io.MessageBufferOutput;
+import net.dempsy.util.io.MessageBufferInput;
+import net.dempsy.util.io.MessageBufferOutput;
 
 /**
  * <p>
@@ -28,8 +28,6 @@ import com.nokia.dempsy.util.io.MessageBufferOutput;
  * </p>
  * 
  * The implementation should be thread safe.
- *
- * @param <T>
  */
 public abstract class Serializer {
     public abstract <T> void serialize(T object, MessageBufferOutput buf) throws IOException;

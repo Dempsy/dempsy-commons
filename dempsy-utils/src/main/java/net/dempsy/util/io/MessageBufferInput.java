@@ -1,4 +1,4 @@
-package com.nokia.dempsy.util.io;
+package net.dempsy.util.io;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -9,12 +9,13 @@ import java.util.Arrays;
  * <p>
  * This is literally a copy of the {@link ByteArrayInputStream} from the runtime library except it's been modified in the following ways:
  * </p>
- * 
+ * <ul>
  * <li>All synchronization has been removed.</li>
  * <li>You can access the underlying buffer directly using {@link MessageBufferOutput#getBuffer()}.</li>
  * <li>There is a {@link MessageBufferInput#clear()} which causes {@link MessageBufferInput#available()} to return '0'.</li>
  * <li>Has a {@link MessageBufferInput#setPosition(int)} method that will set the current position we will be reading from.</li>
  * <li>Has a {@link MessageBufferInput#getPosition()} which identifies the next byte to be read in..</li>
+ * </ul>
  * 
  * <p>
  * Remember, with great power comes great responsibility

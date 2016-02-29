@@ -21,10 +21,9 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import com.nokia.dempsy.util.io.MessageBufferInput;
-import com.nokia.dempsy.util.io.MessageBufferOutput;
-
 import net.dempsy.serialization.Serializer;
+import net.dempsy.util.io.MessageBufferInput;
+import net.dempsy.util.io.MessageBufferOutput;
 
 public class JavaSerializer extends Serializer {
 

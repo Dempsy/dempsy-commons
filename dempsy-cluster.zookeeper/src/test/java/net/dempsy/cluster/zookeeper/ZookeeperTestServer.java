@@ -16,9 +16,9 @@
 
 package net.dempsy.cluster.zookeeper;
 
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.fail;
 import static net.dempsy.utils.test.ConditionPoll.poll;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;

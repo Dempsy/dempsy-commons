@@ -34,15 +34,14 @@ import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.nokia.dempsy.util.SafeString;
-import com.nokia.dempsy.util.executor.AutoDisposeSingleThreadScheduler;
-
 import net.dempsy.cluster.ClusterInfoException;
 import net.dempsy.cluster.ClusterInfoSession;
 import net.dempsy.cluster.ClusterInfoWatcher;
 import net.dempsy.cluster.DirMode;
 import net.dempsy.cluster.DisruptibleSession;
 import net.dempsy.serialization.Serializer;
+import net.dempsy.util.SafeString;
+import net.dempsy.util.executor.AutoDisposeSingleThreadScheduler;
 
 public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession, AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(ZookeeperSession.class);

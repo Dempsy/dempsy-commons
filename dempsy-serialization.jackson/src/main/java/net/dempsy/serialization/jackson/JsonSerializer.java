@@ -11,10 +11,10 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.nokia.dempsy.util.io.MessageBufferInput;
-import com.nokia.dempsy.util.io.MessageBufferOutput;
 
 import net.dempsy.serialization.Serializer;
+import net.dempsy.util.io.MessageBufferInput;
+import net.dempsy.util.io.MessageBufferOutput;
 
 public class JsonSerializer extends Serializer {
     ObjectMapper objectMapper;

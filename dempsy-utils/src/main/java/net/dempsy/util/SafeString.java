@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.nokia.dempsy.util;
+package net.dempsy.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
