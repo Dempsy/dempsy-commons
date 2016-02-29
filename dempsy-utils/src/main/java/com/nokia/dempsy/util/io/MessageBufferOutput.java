@@ -13,14 +13,16 @@ import org.omg.CORBA.DataOutputStream;
  * This is literally a copy of the {@link ByteArrayOutputStream} from the runtime library except it's been modified in the following ways:
  * </p>
  * 
+ * <ul>
  * <li>All synchronization has been removed.</li>
  * <li>The internal buffer's length is cached in a separate variable to avoid repeated dereferencing of the byte[] object</li>
  * <li>You can access the underlying buffer directly using {@link MessageBufferOutput#getBuffer()}.</li>
- * <li>Has a {@link MessageBufferOutput#grow()} method to externally increase the internal buffer size.</li>
- * <li>Has a {@link MessageBufferOutput#replace()} method that will allow replacing the underlying buffer with a different one.</li>
- * <li>Has a {@link MessageBufferOutput#setPosition(int)} method that will set the current output position.</li>
+ * <li>Has a {@link #grow()} method to externally increase the internal buffer size.</li>
+ * <li>Has a {@link #replace(byte[])} method that will allow replacing the underlying buffer with a different one.</li>
+ * <li>Has a {@link #setPosition(int)} method that will set the current output position.</li>
  * <li>The 'size' method is renamed to {@link MessageBufferOutput#getPosition()} for clarity.</li>
  * <li>Various {@link DataOutputStream} write methods have been added.</li>
+ * </ul>
  * 
  * <p>
  * Remember, with great power comes great responsibility
@@ -170,8 +172,6 @@ public class MessageBufferOutput extends OutputStream {
     /**
      * Resets the <code>count</code> field of this byte array output stream to zero, so that all currently accumulated output in the output stream is discarded. The output stream can be used again, reusing the
      * already allocated buffer space.
-     * 
-     * @see java.io.ByteArrayInputStream#position
      */
     public void reset() {
         position = 0;
@@ -190,7 +190,6 @@ public class MessageBufferOutput extends OutputStream {
      * Returns the current position in the buffer where the next byte will be written to.
      * 
      * @return the value of the <code>count</code> field, which is the number of valid bytes in this output stream.
-     * @see java.io.ByteArrayOutputStream#position
      */
     public int getPosition() {
         return position;
@@ -213,7 +212,7 @@ public class MessageBufferOutput extends OutputStream {
     }
 
     /**
-     * Converts the buffer's contents into a string by decoding the bytes using the specified {@link java.nio.charset.Charset charsetName}. The length of the new <tt>String</tt> is a function of the charset,
+     * Converts the buffer's contents into a string by decoding the bytes using the specified {@link java.nio.charset.Charset} name. The length of the new <tt>String</tt> is a function of the charset,
      * and hence may not be equal to the length of the byte array.
      * 
      * <p>
@@ -221,7 +220,7 @@ public class MessageBufferOutput extends OutputStream {
      * control over the decoding process is required.
      * 
      * @param charsetName
-     *            the name of a supported {@linkplain java.nio.charset.Charset </code>charset<code>}
+     *            the name of a supported {@linkplain java.nio.charset.Charset} <code>charset</code>
      * @return String decoded from the buffer's contents.
      * @exception UnsupportedEncodingException
      *                If the named charset is not supported

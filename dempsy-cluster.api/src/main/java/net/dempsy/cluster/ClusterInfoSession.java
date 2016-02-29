@@ -37,7 +37,6 @@ public interface ClusterInfoSession {
      * 
      * @param path
      *            is the directory to delete.
-     * @return true if the directory is successfully removed and false if it doesn't exist.
      * @throws ClusterInfoException
      *             if there is no node at the given path.
      */

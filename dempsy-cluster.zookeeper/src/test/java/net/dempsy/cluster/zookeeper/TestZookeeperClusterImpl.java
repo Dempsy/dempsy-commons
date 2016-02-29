@@ -41,33 +41,27 @@ public class TestZookeeperClusterImpl extends TestClusterImpls {
     @Test
     public void testBadZooKeeperConnection() throws Throwable {
         Throwable receivedException = null;
-        ZookeeperSession session = null;
+        try (final ZookeeperSession session = new ZookeeperSession(new JsonSerializer(), server.connectString(), 5000) {
 
-        try {
-            session = new ZookeeperSession(new JsonSerializer(), server.connectString(), 5000) {
+            @Override
+            protected ZooKeeper makeZooKeeperClient(final String connectString, final int sessionTimeout) throws IOException {
+                return new ZooKeeper(connectString, sessionTimeout, new ZkWatcher()) {
+                    @Override
+                    public List<String> getChildren(final String path, final Watcher watcher) throws KeeperException {
+                        throw (appropriateException = new KeeperException(Code.DATAINCONSISTENCY) {
+                            private static final long serialVersionUID = 1L;
+                        });
+                    }
+                };
+            }
 
-                @Override
-                protected ZooKeeper makeZooKeeperClient(final String connectString, final int sessionTimeout) throws IOException {
-                    return new ZooKeeper(connectString, sessionTimeout, new ZkWatcher()) {
-                        @Override
-                        public List<String> getChildren(final String path, final Watcher watcher) throws KeeperException {
-                            throw (appropriateException = new KeeperException(Code.DATAINCONSISTENCY) {
-                                private static final long serialVersionUID = 1L;
-                            });
-                        }
-                    };
-                }
-
-            };
+        };) {
 
             try {
                 session.getSubdirs(new ClusterId("test", "test").asPath(), null);
             } catch (final Exception e) {
                 receivedException = e.getCause();
             }
-        } finally {
-            if (session != null)
-                session.stop();
         }
 
         assertNotNull(appropriateException);

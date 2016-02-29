@@ -48,24 +48,13 @@ public class KryoSerializer extends Serializer {
         public final Kryo kryo;
         public final Output output = new Output(0, -1);
         public final Input input = new Input();
-        private ClassLoader oldLoader = null;
 
         Holder() {
             kryo = new Kryo();
         }
 
-        public Holder setClassLoader(final ClassLoader loader) {
-            if (loader != null) {
-                oldLoader = kryo.getClassLoader();
-                kryo.setClassLoader(loader);
-            }
-            return this;
-        }
-
         @Override
         public void close() {
-            if (oldLoader != null)
-                kryo.setClassLoader(oldLoader);
             output.close();
             input.close();
             input.setBuffer(park); // clean input
@@ -76,28 +65,60 @@ public class KryoSerializer extends Serializer {
 
     // need an object pool of Kryo instances since Kryo is not thread safe
     private final ConcurrentLinkedQueue<Holder> kryopool = new ConcurrentLinkedQueue<Holder>();
-    private List<Registration> registrations = null;
+    private final List<Registration> registrations;
+    private final RunKryo kryoRunner;
     private KryoOptimizer optimizer = null;
     private boolean requireRegistration = false;
 
+    public KryoSerializer() {
+        this(true);
+    }
+
     /**
-     * Create an unconfigured default {@link KryoSerializer} with no registered classes.
+     * Create an unconfigured default {@link KryoSerializer} with no registered classes. If you set manageExactClasses then the result of serializing and then deserializing a class by referring to its
+     * superclass will result in the original class. Otherwise the class passed to the deserialize call will be the actual class that's deserialized.
      */
-    public KryoSerializer() {}
+    public KryoSerializer(final boolean manageExactClasses) {
+        this(manageExactClasses, (Registration[]) null);
+    }
 
     /**
      * Create an {@link KryoSerializer} with the provided registrations. This can be used from a Spring configuration.
      */
-    public KryoSerializer(final Registration... regs) {
-        registrations = Arrays.asList(regs);
+    public KryoSerializer(final boolean manageExactClasses, final Registration... regs) {
+        this(manageExactClasses, null, regs);
     }
 
     /**
      * Create an {@link KryoSerializer} with the provided registrations and Application specific Optimizer. This can be used from a Spring configuration.
      */
-    public KryoSerializer(final KryoOptimizer optimizer, final Registration... regs) {
-        registrations = Arrays.asList(regs);
+    public KryoSerializer(final boolean manageExactClasses, final KryoOptimizer optimizer, final Registration... regs) {
+        registrations = regs == null ? null : Arrays.asList(regs);
         this.optimizer = optimizer;
+        this.kryoRunner = manageExactClasses ? new RunKryo() {
+
+            @Override
+            public <T> void doSerialize(final Holder k, final Output output, final T object) {
+                k.kryo.writeClassAndObject(output, object);
+            }
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public <T> T doDeserialize(final Holder k, final Input input, final Class<T> clazz) {
+                return (T) k.kryo.readClassAndObject(input);
+            }
+        } : new RunKryo() {
+
+            @Override
+            public <T> void doSerialize(final Holder k, final Output output, final T object) {
+                k.kryo.writeObject(output, object);
+            }
+
+            @Override
+            public <T> T doDeserialize(final Holder k, final Input input, final Class<T> clazz) {
+                return k.kryo.readObject(input, clazz);
+            }
+        };
     }
 
     /**
@@ -127,7 +148,7 @@ public class KryoSerializer extends Serializer {
             // this will allow kryo to grow the buffer as needed.
             output.setBuffer(buffer.getBuffer(), Integer.MAX_VALUE);
             output.setPosition(buffer.getPosition()); // set the position to where we already are.
-            k.kryo.writeClassAndObject(output, object);
+            kryoRunner.doSerialize(k, output, object);
             // if we resized then we need to adjust the message buffer
             if (output.getBuffer() != buffer.getBuffer())
                 buffer.replace(output.getBuffer());
@@ -145,8 +166,7 @@ public class KryoSerializer extends Serializer {
         try (Holder k = getKryoHolder()) {
             final Input input = k.input;
             input.setBuffer(data.getBuffer(), data.getPosition(), data.getLimit());
-            @SuppressWarnings("unchecked")
-            final T ret = (T) k.kryo.readClassAndObject(input);
+            final T ret = kryoRunner.doDeserialize(k, input, clazz);
             data.setPosition(input.position()); // forward to where Kryo finished.
             return ret;
         } catch (final KryoException ke) {
@@ -197,6 +217,12 @@ public class KryoSerializer extends Serializer {
             }
         }
         return ret;
+    }
+
+    private static interface RunKryo {
+        <T> void doSerialize(final Holder k, final Output output, final T object);
+
+        <T> T doDeserialize(final Holder k, final Input input, final Class<T> clazz);
     }
 
 }

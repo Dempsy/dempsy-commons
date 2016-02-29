@@ -38,14 +38,21 @@ public abstract class TestSerializerImplementation {
 
     protected final Serializer underTest;
     protected final boolean requiresDefaultConstructor;
+    protected final boolean canDeserializeSubclasses;
 
-    protected TestSerializerImplementation(final Serializer underTest, final boolean requiresDefaultConstructor) {
+    protected TestSerializerImplementation(final Serializer underTest, final boolean requiresDefaultConstructor,
+            final boolean canDeserializeSubclasses) {
         this.underTest = underTest;
         this.requiresDefaultConstructor = requiresDefaultConstructor;
+        this.canDeserializeSubclasses = canDeserializeSubclasses;
+    }
+
+    protected TestSerializerImplementation(final Serializer underTest, final boolean requiresDefaultConstructor) {
+        this(underTest, requiresDefaultConstructor, true);
     }
 
     protected TestSerializerImplementation(final Serializer underTest) {
-        this(underTest, false);
+        this(underTest, false, true);
     }
 
     private final MockClass o1 = new MockClass(TEST_NUMBER, TEST_STRING);
@@ -227,8 +234,10 @@ public abstract class TestSerializerImplementation {
             final Mock2 o2 = underTest.deserialize(data, Mock2.class);
             assertEquals(1, o2.getInt());
             assertEquals(new MockClass(2, "Hello"), o2.getMockClass());
-            assertTrue(o2 instanceof Mock3);
-            assertEquals(1, ((Mock3) o2).myI);
+            if (canDeserializeSubclasses) {
+                assertTrue(o2 instanceof Mock3);
+                assertEquals(1, ((Mock3) o2).myI);
+            }
         }
     }
 

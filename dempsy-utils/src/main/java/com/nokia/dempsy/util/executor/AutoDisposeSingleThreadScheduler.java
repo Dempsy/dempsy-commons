@@ -43,7 +43,7 @@ public final class AutoDisposeSingleThreadScheduler {
     }
 
     /**
-     * This object is returned from {@see AutoDisposeSingleThreadScheduler#schedule(Runnable, long, TimeUnit)} anc can be used to cancel the task - best effort.
+     * This object is returned from {@link AutoDisposeSingleThreadScheduler#schedule(Runnable, long, TimeUnit)} and can be used to cancel the task - best effort.
      */
     public class Cancelable {
         private final ScheduledFuture<?> future;
@@ -55,7 +55,7 @@ public final class AutoDisposeSingleThreadScheduler {
         }
 
         /**
-         * Attempt to cancel the Runnable that was submitted to {@see AutoDisposeSingleThreadScheduler#schedule(Runnable, long, TimeUnit)}
+         * Attempt to cancel the Runnable that was submitted to {@link AutoDisposeSingleThreadScheduler#schedule(Runnable, long, TimeUnit)}
          */
         public void cancel() {
             future.cancel(false);
@@ -64,7 +64,7 @@ public final class AutoDisposeSingleThreadScheduler {
         }
 
         /**
-         * Is the Runnable that was submitted to {@see AutoDisposeSingleThreadScheduler#schedule(Runnable, long, TimeUnit)} comleted?
+         * Is the Runnable that was submitted to {@link AutoDisposeSingleThreadScheduler#schedule(Runnable, long, TimeUnit)} comleted?
          */
         public boolean isDone() {
             return future.isDone();
