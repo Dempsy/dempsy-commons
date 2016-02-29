@@ -6,7 +6,7 @@
   <parent>
     <groupId>net.dempsy</groupId>
     <artifactId>dempsy-commons</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
   </parent>
 
   <artifactId>dempsy-serialization.kryo</artifactId>
