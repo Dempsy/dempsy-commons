@@ -5,7 +5,7 @@
 
   <groupId>net.dempsy</groupId>
   <artifactId>dempsy-commons</artifactId>
-  <version>1.1</version>
+  <version>1.2-SNAPSHOT</version>
   <name>Dempsy Commons Parent Pom Aggregator</name>
   <description>Dempsy Commons Parent Pom Aggregator</description>
   <packaging>pom</packaging>
