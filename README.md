@@ -63,7 +63,7 @@ These dependencies are represented as Maven pom.xml file dependencies but, of co
 <dependency>
    <groupId>net.dempsy</groupId>
    <artifactId>dempsy-cluster.api</artifactId>
-   <version>${dempsy.commons.version}</version>
+   <version>${dempsy-cluster.api.version}</version>
 </dependency>
 ```
 
@@ -75,7 +75,7 @@ This dependency includes the actual zookeeper implementation of the cluster abst
 <dependency>
    <groupId>net.dempsy</groupId>
    <artifactId>dempsy-cluster.zookeeper</artifactId>
-   <version>${dempsy.commons.version}</version>
+   <version>${dempsy-cluster.zookeeper.version}</version>
    <scope>runtime</scope>
 </dependency>
 ```
@@ -88,7 +88,7 @@ For testing your code you can plug in a local implementation of the cluster abst
 <dependency>
    <groupId>net.dempsy</groupId>
    <artifactId>dempsy-cluster.local</artifactId>
-   <version>${dempsy.commons.version}</version>
+   <version>${dempsy-commons.local.version}</version>
    <scope>test</scope>
 </dependency>
 ```
@@ -100,7 +100,7 @@ It's possible to use the Zookeeper implementation in test as there's a zookeeper
    <groupId>net.dempsy</groupId>
    <artifactId>dempsy-cluster.zookeeper</artifactId>
    <type>test-jar</type>
-   <version>${dempsy.commons.version}</version>
+   <version>${dempsy-cluster.zookeeper.version}</version>
    <scope>test</scope>
 </dependency>
 ```
