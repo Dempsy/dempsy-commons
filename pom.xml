@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>net.dempsy</groupId>
-  <artifactId>dempsy-commons.aggragator</artifactId>
+  <artifactId>dempsy-commons.aggregator</artifactId>
   <version>0.0.0</version>
   <name>Dempsy Commons Aggregator</name>
   <description>Dempsy Commons Aggregator</description>

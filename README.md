@@ -6,7 +6,7 @@ This project contains a set of APIs that were generated as port of the [Dempsy](
 
 This API is a simple generalization of [Zookeeper's](https://zookeeper.apache.org/) API. It has an implementation that doesn't require zookeeper and also one that depends on zookeeper. All error handling is managed by the implementations and so it's much easier to code against than the raw zookeeper. Plus it allows the writing of unit tests against classes that use the API by plugging in a working Local implementation.
 
-This is an alternative to [Netflix's Curator](http://curator.apache.org/). It provides a decoupling from the underlying Zookeeper and makes code written against Zookeeper more resillient and easier to test.
+This is an alternative to [Netflix's Curator](http://curator.apache.org/). It provides a decoupling from the underlying Zookeeper and makes code written against Zookeeper more resilient and easier to test.
 
 ### Limitations
 
@@ -18,7 +18,7 @@ Not all functionality that Zookeeper provides is available in this API. The foll
 
 #### The main abstraction
 
-See the [API docs](http://dempsy.github.io/Dempsy/dempsy-commons/1.1/) for the [ClusterInfoSession](http://dempsy.github.io/Dempsy/dempsy-commons/1.1/net/dempsy/cluster/ClusterInfoSession.html). It's a simple api wrapper that lets you interact with ZooKeeper but has more resillience than the standard ZooKeeper client and you can plug in a local implementation for testing.
+See the [API docs](http://dempsy.github.io/Dempsy/dempsy-commons/1.1/) for the [ClusterInfoSession](http://dempsy.github.io/Dempsy/dempsy-commons/1.1/net/dempsy/cluster/ClusterInfoSession.html). It's a simple api wrapper that lets you interact with ZooKeeper but has more resilience than the standard ZooKeeper client and you can plug in a local implementation for testing.
 
 #### Selecting the implementation in code
 
@@ -35,7 +35,7 @@ Dependency injection would be the best way to inject the selected implementation
     }
 ```
 
-with an appliction context that selects the actual ZooKeeper implementation of the API:
+with an application context that selects the actual ZooKeeper implementation of the API:
 
 ```xml
    <bean name="serializer" class="net.dempsy.serialization.jackson.JsonSerializer" />
@@ -93,7 +93,7 @@ For testing your code you can plug in a local implementation of the cluster abst
 </dependency>
 ```
 
-It's possible to use the Zookeeper implementation in test as there's a zookeeper implementation test-jar that's built. If you want to run tests against an embeded Zookeeper server then you can include the following dependency.
+It's possible to use the Zookeeper implementation in test as there's a zookeeper implementation test-jar that's built. If you want to run tests against an embedded Zookeeper server then you can include the following dependency.
 
 ```xml
 <dependency>
@@ -105,7 +105,7 @@ It's possible to use the Zookeeper implementation in test as there's a zookeeper
 </dependency>
 ```
 
-The following code will then workin a test:
+The following code will then working a test:
 
 ```java
 try (final ZookeeperTestServer server = new ZookeeperTestServer()) {
@@ -131,13 +131,13 @@ See the [API docs](http://dempsy.github.io/Dempsy/dempsy-commons/1.1/) for more 
 
 ## Development lifecycle methodology and versioning
 
-In general libraries that contain the definition of the abstraction end eith a *.api*. Implementations of that abstractions are named based on the abstraction name plus the implementation description. For example, the cluster management abstraction is contained in the project *dempsy-cluster.api* while the ZooKeeper implementation is in *dempsy-cluster.zookeeper*.
+In general libraries that contain the definition of the abstraction end with a *.api*. Implementations of that abstractions are named based on the abstraction name plus the implementation description. For example, the cluster management abstraction is contained in the project *dempsy-cluster.api* while the ZooKeeper implementation is in *dempsy-cluster.zookeeper*.
 
 The versioning methodology is fairly standard. Starting with 2.0.0 the version numbers are defined as follows:
 
   * api (abstraction) libraries (those whose projects end with *.api*) version numbers will be *major*.*minor*.*build*.
-  * *build* distinquish mostly bug fixes and are backwards and forwards compatible and introduce no new functionality.
-  * *minor* reviosions are *backward* compatible but not forwards compatible. Increasing *minor* revisions can add new API functionality but all preexisting functionality within the same *major* revision remains the same.
+  * *build* distinguish mostly bug fixes and are backwards and forwards compatible and introduce no new functionality.
+  * *minor* revisions are *backward* compatible but not forwards compatible. Increasing *minor* revisions can add new API functionality but all preexisting functionality within the same *major* revision remains the same.
   * *major* revisions are refactors of the APIs and may not be backwards or forwards compatible
   * implementations of specific *major.minor* abstractions will be versioned accordingly. For example, if you're using *dempsy-cluster.api* version *2.1.15* all valid implementations should be version *2.1.X*. You will likely want the latest *2.1* implementation.
 
