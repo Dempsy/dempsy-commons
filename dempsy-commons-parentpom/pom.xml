@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>net.dempsy</groupId>
+  <artifactId>dempsy-commons</artifactId>
+  <version>2.0.0-SNAPSHOT</version>
+  <name>Dempsy Commons Parent Pom</name>
+  <description>Dempsy Commons Parent Pom</description>
+  <packaging>pom</packaging>
+  <url>git@github.com:Dempsy/dempsy-commons.git</url>
+  <developers>
+    <developer>
+      <id>jimfcarroll</id>
+      <name>Jim Carroll</name>
+      <url>https://github.com/jimfcarroll</url>
+      <organization>Very Little</organization>
+      <roles>
+        <role>architect</role>
+        <role>developer</role>
+      </roles>
+      <timezone>America/New_York</timezone>
+    </developer>
+  </developers>
+  
+  <licenses>
+    <license>
+      <name>Apache 2</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <scm>
+    <connection>scm:git:git@github.com:Dempsy/dempsy-commons.git</connection>
+    <developerConnection>scm:git:git@github.com:Dempsy/dempsy-commons.git</developerConnection>
+    <url>git@github.com:Dempsy/dempsy-commons.git</url>
+  </scm>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <slf4j.version>1.7.16</slf4j.version>
+    <jackson.version>2.2.3</jackson.version>
+
+    <!-- These are the CURRENT versions -->
+    <dempsy-serialization.api.version>2.0.0-SNAPSHOT</dempsy-serialization.api.version>
+    <dempsy-utils.version>2.0.0-SNAPSHOT</dempsy-utils.version>
+    <dempsy-cluster.api.version>2.0.0-SNAPSHOT</dempsy-cluster.api.version>
+    <dempsy-serialization.jackson.version>2.0.0-SNAPSHOT</dempsy-serialization.jackson.version>
+    <dempsy-test-utils.version>2.0.0-SNAPSHOT</dempsy-test-utils.version>
+  </properties>
+
+  <!-- This section provides some unifority of dependencies for all dempsy-commons projects -->
+  <dependencyManagement>
+    <dependencies>
+      <!-- internal dempsy-commons deps -->
+      <dependency>
+        <groupId>net.dempsy</groupId>
+        <artifactId>dempsy-serialization.api</artifactId>
+        <version>${dempsy-serialization.api.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.dempsy</groupId>
+        <artifactId>dempsy-utils</artifactId>
+        <version>${dempsy-utils.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.dempsy</groupId>
+        <artifactId>dempsy-cluster.api</artifactId>
+        <version>${dempsy-cluster.api.version}</version>
+      </dependency>
+
+      <!-- 3rd party -->
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${slf4j.version}</version>
+      </dependency>
+      <dependency> <!-- needed for the zookeeper cluster management implementation -->
+        <groupId>org.apache.zookeeper</groupId>
+        <artifactId>zookeeper</artifactId>
+        <version>3.4.6</version>
+      </dependency>
+      <dependency> <!-- needed for the json serializer -->
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency> <!-- needed for the kryo serializer implementation -->
+        <groupId>com.esotericsoftware</groupId>
+        <artifactId>kryo</artifactId>
+        <version>3.0.3</version>
+      </dependency>
+
+      <!-- Testing - internal -->
+      <dependency>
+        <groupId>net.dempsy</groupId>
+        <artifactId>dempsy-cluster.api</artifactId>
+        <version>${dempsy-cluster.api.version}</version>
+        <type>test-jar</type>
+      </dependency>
+      <dependency>
+        <groupId>net.dempsy</groupId>
+        <artifactId>dempsy-serialization.api</artifactId>
+        <version>${dempsy-serialization.api.version}</version>
+        <type>test-jar</type>
+      </dependency>
+      <dependency> <!-- used in the tests for Zookeeper cluster management impl -->
+        <groupId>net.dempsy</groupId>
+        <artifactId>dempsy-serialization.jackson</artifactId>
+        <version>${dempsy-serialization.jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.dempsy</groupId>
+        <artifactId>dempsy-test-utils</artifactId>
+        <version>${dempsy-test-utils.version}</version>
+      </dependency>
+
+      <!-- Testing - 3rd party -->
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.11</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-log4j12</artifactId>
+        <version>${slf4j.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <name>Sonatype Nexus Snapshots</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    </snapshotRepository>
+  </distributionManagement>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <version>2.1.2</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>2.3.2</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>2.3.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>2.8.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-gpg-plugin</artifactId>
+          <version>1.5</version>
+        </plugin>
+        <plugin>
+          <groupId>org.sonatype.plugins</groupId>
+          <artifactId>nexus-staging-maven-plugin</artifactId>
+          <version>1.6.3</version>
+        </plugin>
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <versionRange>[1.0,)</versionRange>
+                    <goals>
+                      <goal>enforce</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore />
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+          <debug>true</debug>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <extensions>true</extensions>
+        <configuration>
+          <serverId>ossrh</serverId>
+          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+          <autoReleaseAfterClose>false</autoReleaseAfterClose>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.5</version>
+        <configuration>
+          <autoVersionSubmodules>true</autoVersionSubmodules>
+          <useReleaseProfile>false</useReleaseProfile>
+          <releaseProfiles>release</releaseProfiles>
+          <goals>deploy</goals>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>javadoc</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+              <aggregate>true</aggregate>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>sonatype-oss-release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar-no-fork</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+<!--            <configuration>
+              <aggregate>true</aggregate>
+            </configuration> -->
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+</project>

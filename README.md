@@ -12,7 +12,7 @@ This is an alternative to [Netflix's Curator](http://curator.apache.org/). It pr
 
 Not all functionality that Zookeeper provides is available in this API. The following is a list of the current limitations:
 
-1. There's no support for security or Zookeeper ACLs.
+  * There's no support for security or Zookeeper ACLs.
 
 ### Getting Started
 
@@ -124,4 +124,22 @@ Serialization abstractions are a dime-a-dozen. This one exists to support the ab
   3. Kryo based serialization - artifactId=dempsy-serialization.kryo
 
 See the [API docs](http://dempsy.github.io/Dempsy/dempsy-commons/1.1/) for more details.
+
+## General Requirements:
+
+  * Java 8 - at version (1.1), almost everything will build with java 7 except the Kryo serializer which will need to be modified slightly. The released version 1.1 was built with Java 8. Going forward (2.0.0 and beyon) there will be an assumption that Java 8 functionality is available and builds will be done using Java8.
+
+## Development lifecycle methodology and versioning
+
+In general libraries that contain the definition of the abstraction end eith a *.api*. Implementations of that abstractions are named based on the abstraction name plus the implementation description. For example, the cluster management abstraction is contained in the project *dempsy-cluster.api* while the ZooKeeper implementation is in *dempsy-cluster.zookeeper*.
+
+The versioning methodology is fairly standard. Starting with 2.0.0 the version numbers are defined as follows:
+
+  * api (abstraction) libraries (those whose projects end with *.api*) version numbers will be *major*.*minor*.*build*.
+  * *build* distinquish mostly bug fixes and are backwards and forwards compatible and introduce no new functionality.
+  * *minor* reviosions are *backward* compatible but not forwards compatible. Increasing *minor* revisions can add new API functionality but all preexisting functionality within the same *major* revision remains the same.
+  * *major* revisions are refactors of the APIs and may not be backwards or forwards compatible
+  * implementations of specific *major.minor* abstractions will be versioned accordingly. For example, if you're using *dempsy-cluster.api* version *2.1.15* all valid implementations should be version *2.1.X*. You will likely want the latest *2.1* implementation.
+
+
 
