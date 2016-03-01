@@ -43,7 +43,7 @@ import net.dempsy.serialization.Serializer;
 import net.dempsy.util.SafeString;
 import net.dempsy.util.executor.AutoDisposeSingleThreadScheduler;
 
-public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession, AutoCloseable {
+public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession {
     private static final Logger logger = LoggerFactory.getLogger(ZookeeperSession.class);
 
     private static final byte[] zeroByteArray = new byte[0];
@@ -54,14 +54,14 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession,
     private static CreateMode[] dirModeLut = new CreateMode[4];
 
     static {
-        dirModeLut[DirMode.PERSISTENT.getFlag()] = CreateMode.PERSISTENT;
-        dirModeLut[DirMode.EPHEMERAL.getFlag()] = CreateMode.EPHEMERAL;
-        dirModeLut[DirMode.PERSISTENT_SEQUENTIAL.getFlag()] = CreateMode.PERSISTENT_SEQUENTIAL;
-        dirModeLut[DirMode.EPHEMERAL_SEQUENTIAL.getFlag()] = CreateMode.EPHEMERAL_SEQUENTIAL;
+        dirModeLut[DirMode.PERSISTENT.flag] = CreateMode.PERSISTENT;
+        dirModeLut[DirMode.EPHEMERAL.flag] = CreateMode.EPHEMERAL;
+        dirModeLut[DirMode.PERSISTENT_SEQUENTIAL.flag] = CreateMode.PERSISTENT_SEQUENTIAL;
+        dirModeLut[DirMode.EPHEMERAL_SEQUENTIAL.flag] = CreateMode.EPHEMERAL_SEQUENTIAL;
     }
 
     private static CreateMode from(final DirMode mode) {
-        return dirModeLut[mode.getFlag()];
+        return dirModeLut[mode.flag];
     }
 
     // =======================================================================
@@ -177,11 +177,6 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession,
                 return wp == null ? cur.getChildren(path, true) : cur.getChildren(path, wp);
             }
         });
-    }
-
-    @Override
-    public void close() throws Exception {
-        stop();
     }
 
     @Override

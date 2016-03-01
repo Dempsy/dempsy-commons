@@ -1,6 +1,9 @@
 package net.dempsy.cluster;
 
-public interface ClusterInfoWatcher
-{
-   public void process();
+/**
+ * Implementations of this interface are used for notifications when changes happen.
+ */
+@FunctionalInterface
+public interface ClusterInfoWatcher {
+    public void process();
 }

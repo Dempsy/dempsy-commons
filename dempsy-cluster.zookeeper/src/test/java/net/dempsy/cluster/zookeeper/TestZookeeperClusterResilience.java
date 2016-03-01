@@ -16,6 +16,7 @@
 
 package net.dempsy.cluster.zookeeper;
 
+import static net.dempsy.cluster.TestClusterImpls.recurseCreate;
 import static net.dempsy.utils.test.ConditionPoll.poll;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -32,9 +33,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.dempsy.cluster.ClusterId;
 import net.dempsy.cluster.ClusterInfoException;
-import net.dempsy.cluster.ClusterInfoSession;
 import net.dempsy.cluster.ClusterInfoWatcher;
 import net.dempsy.cluster.DirMode;
 import net.dempsy.serialization.jackson.JsonSerializer;
@@ -58,31 +57,18 @@ public class TestZookeeperClusterResilience {
 
     }
 
-    public static String createApplicationLevel(final ClusterId cid, final ClusterInfoSession session) throws ClusterInfoException {
-        final String ret = "/" + cid.namespace;
-        session.mkdir(ret, null, DirMode.PERSISTENT);
-        return ret;
-    }
-
-    public static String createClusterLevel(final ClusterId cid, final ClusterInfoSession session) throws ClusterInfoException {
-        String ret = createApplicationLevel(cid, session);
-        ret += ("/" + cid.clusterName);
-        session.mkdir(ret, null, DirMode.PERSISTENT);
-        return ret;
-    }
-
     volatile boolean connected = false;
 
     @Test
     public void testBouncingServer() throws Throwable {
 
-        final ClusterId clusterId = new ClusterId(appname, "testBouncingServer");
+        final String clusterId = "/" + appname + "/testBouncingServer";
 
         try (final ZookeeperTestServer server = new ZookeeperTestServer()) {
             final ZookeeperSessionFactory factory = new ZookeeperSessionFactory(server.connectString(), 5000, new JsonSerializer());
             try (ZookeeperSession session = (ZookeeperSession) factory.createSession();) {
                 final ZookeeperSession cluster = session;
-                createClusterLevel(clusterId, session);
+                recurseCreate(clusterId, session);
                 final TestWatcher callback = new TestWatcher(cluster) {
 
                     @Override
@@ -92,12 +78,12 @@ public class TestZookeeperClusterResilience {
                             done = true;
 
                             try {
-                                if (session.getSubdirs(clusterId.asPath(), this).size() == 0)
-                                    session.mkdir(clusterId.asPath() + "/slot1", null, DirMode.EPHEMERAL);
+                                if (session.getSubdirs(clusterId, this).size() == 0)
+                                    session.mkdir(clusterId + "/slot1", null, DirMode.EPHEMERAL);
                                 called.set(true);
                             } catch (final ClusterInfoException.NoNodeException e) {
                                 try {
-                                    createClusterLevel(clusterId, session);
+                                    recurseCreate(clusterId, session);
                                     done = false;
                                 } catch (final ClusterInfoException e1) {
                                     throw new RuntimeException(e1);
@@ -110,12 +96,12 @@ public class TestZookeeperClusterResilience {
 
                 };
 
-                cluster.exists(clusterId.asPath(), callback);
+                cluster.exists(clusterId, callback);
                 callback.process();
 
                 // create another session and look
                 try (final ZookeeperSession tmpsession = (ZookeeperSession) factory.createSession();) {
-                    assertEquals(1, tmpsession.getSubdirs(new ClusterId(appname, "testBouncingServer").asPath(), null).size());
+                    assertEquals(1, tmpsession.getSubdirs("/" + appname + "/testBouncingServer", null).size());
                 }
 
                 // kill the server.
@@ -137,7 +123,7 @@ public class TestZookeeperClusterResilience {
 
                 // get the view from a new session.
                 try (final ZookeeperSession tmpsession = (ZookeeperSession) factory.createSession();) {
-                    assertEquals(1, tmpsession.getSubdirs(new ClusterId(appname, "testBouncingServer").asPath(), null).size());
+                    assertEquals(1, tmpsession.getSubdirs("/" + appname + "/testBouncingServer", null).size());
                 }
             }
         }
@@ -145,13 +131,13 @@ public class TestZookeeperClusterResilience {
 
     @Test
     public void testBouncingServerWithCleanDataDir() throws Throwable {
-        final ClusterId clusterId = new ClusterId(appname, "testBouncingServerWithCleanDataDir");
+        final String clusterId = "/" + appname + "/testBouncingServerWithCleanDataDir";
 
         try (final ZookeeperTestServer server = new ZookeeperTestServer()) {
             final ZookeeperSessionFactory factory = new ZookeeperSessionFactory(server.connectString(), 5000, new JsonSerializer());
             try (final ZookeeperSession session = (ZookeeperSession) factory.createSession();) {
                 final ZookeeperSession cluster = session;
-                createClusterLevel(clusterId, session);
+                recurseCreate(clusterId, session);
                 final TestWatcher callback = new TestWatcher(cluster) {
 
                     @Override
@@ -161,12 +147,12 @@ public class TestZookeeperClusterResilience {
                             done = true;
 
                             try {
-                                if (session.getSubdirs(clusterId.asPath(), this).size() == 0)
-                                    session.mkdir(clusterId.asPath() + "/slot1", null, DirMode.EPHEMERAL);
+                                if (session.getSubdirs(clusterId, this).size() == 0)
+                                    session.mkdir(clusterId + "/slot1", null, DirMode.EPHEMERAL);
                                 called.set(true);
                             } catch (final ClusterInfoException.NoNodeException e) {
                                 try {
-                                    createClusterLevel(clusterId, session);
+                                    recurseCreate(clusterId, session);
                                     done = false;
                                 } catch (final ClusterInfoException e1) {
                                     throw new RuntimeException(e1);
@@ -179,12 +165,12 @@ public class TestZookeeperClusterResilience {
 
                 };
 
-                cluster.exists(clusterId.asPath(), callback);
+                cluster.exists(clusterId, callback);
                 callback.process();
 
                 // create another session and look
                 try (final ZookeeperSession session2 = (ZookeeperSession) factory.createSession();) {
-                    assertEquals(1, session2.getSubdirs(new ClusterId(appname, "testBouncingServerWithCleanDataDir").asPath(), null).size());
+                    assertEquals(1, session2.getSubdirs("/" + appname + "/testBouncingServerWithCleanDataDir", null).size());
                 }
 
                 // kill the server.
@@ -206,7 +192,7 @@ public class TestZookeeperClusterResilience {
 
                 // get the view from a new session.
                 try (final ZookeeperSession session2 = (ZookeeperSession) factory.createSession();) {
-                    assertEquals(1, session2.getSubdirs(new ClusterId(appname, "testBouncingServerWithCleanDataDir").asPath(), null).size());
+                    assertEquals(1, session2.getSubdirs("/" + appname + "/testBouncingServerWithCleanDataDir", null).size());
                 }
             }
         }
@@ -224,7 +210,7 @@ public class TestZookeeperClusterResilience {
         // create a session from the session factory
         try (final ZookeeperSession session = (ZookeeperSession) factory.createSession();) {
 
-            final ClusterId clusterId = new ClusterId(appname, "testNoServerOnStartup");
+            final String clusterId = "/" + appname + "/testNoServerOnStartup";
 
             // hook a test watch to make sure that callbacks work correctly
             final TestWatcher callback = new TestWatcher(session) {
@@ -237,7 +223,7 @@ public class TestZookeeperClusterResilience {
             // now accessing the cluster should get us an error.
             boolean gotCorrectError = false;
             try {
-                session.getSubdirs(clusterId.asPath(), callback);
+                session.getSubdirs(clusterId, callback);
             } catch (final ClusterInfoException e) {
                 gotCorrectError = true;
             }
@@ -247,7 +233,7 @@ public class TestZookeeperClusterResilience {
             try (final ZookeeperTestServer server = new ZookeeperTestServer(zkConfig);) {
 
                 // create a cluster from the session
-                createClusterLevel(clusterId, session);
+                recurseCreate(clusterId, session);
 
                 // wait until this works.
                 assertTrue(poll(baseTimeoutMillis, callback, new Condition<TestWatcher>() {
@@ -267,7 +253,7 @@ public class TestZookeeperClusterResilience {
                     }
                 }));
 
-                session.getSubdirs(clusterId.asPath(), callback);
+                session.getSubdirs(clusterId, callback);
 
                 final ZooKeeper origZk = session.zkref.get();
                 ZookeeperTestServer.forceSessionExpiration(origZk, portx);
@@ -288,19 +274,19 @@ public class TestZookeeperClusterResilience {
                 for (final long endTime = System.currentTimeMillis() + baseTimeoutMillis; endTime > System.currentTimeMillis() && gotCorrectError;) {
                     Thread.sleep(1);
                     try {
-                        session.getSubdirs(clusterId.asPath(), callback);
+                        session.getSubdirs(clusterId, callback);
                         gotCorrectError = false;
                     } catch (final ClusterInfoException e) {}
                 }
 
-                session.getSubdirs(clusterId.asPath(), callback);
+                session.getSubdirs(clusterId, callback);
 
                 // And join should work
                 gotCorrectError = true;
                 for (final long endTime = System.currentTimeMillis() + baseTimeoutMillis; endTime > System.currentTimeMillis() && gotCorrectError;) {
                     Thread.sleep(1);
                     try {
-                        session.mkdir(clusterId.asPath() + "/join-1", null, DirMode.EPHEMERAL);
+                        session.mkdir(clusterId + "/join-1", null, DirMode.EPHEMERAL);
                         gotCorrectError = false;
                     } catch (final ClusterInfoException e) {}
                 }
@@ -318,16 +304,16 @@ public class TestZookeeperClusterResilience {
 
             // the createExpireSessionClient actually results in a Disconnected/SyncConnected rotating events.
             // ... so we need to filter those out since it will result in a callback.
-            final ClusterId clusterId = new ClusterId(appname, "testSessionExpired");
-            createClusterLevel(clusterId, session);
+            final String clusterId = "/" + appname + "/testSessionExpired";
+            recurseCreate(clusterId, session);
             final TestWatcher callback = new TestWatcher(session) {
                 @Override
                 public void process() {
                     try {
                         called.set(true);
                         logger.trace("process called on TestWatcher.");
-                        session.exists(clusterId.asPath(), this);
-                        session.getSubdirs(clusterId.asPath(), this);
+                        session.exists(clusterId, this);
+                        session.getSubdirs(clusterId, this);
                     } catch (final ClusterInfoException cie) {
                         throw new RuntimeException(cie);
                     }
@@ -364,8 +350,8 @@ public class TestZookeeperClusterResilience {
                 }
             }));
 
-            createClusterLevel(clusterId, session);
-            assertTrue(session.exists(clusterId.asPath(), callback));
+            recurseCreate(clusterId, session);
+            assertTrue(session.exists(clusterId, callback));
         }
     }
 
@@ -386,13 +372,13 @@ public class TestZookeeperClusterResilience {
                         return super.makeZooKeeperClient(connectString, sessionTimeout);
                     }
                 };) {
-            final ClusterId clusterId = new ClusterId(appname, "testRecoverWithIOException");
-            createClusterLevel(clusterId, session);
+            final String clusterId = "/" + appname + "/testRecoverWithIOException";
+            recurseCreate(clusterId, session);
             final TestWatcher callback = new TestWatcher(session) {
                 @Override
                 public void process() {
                     try {
-                        session.getSubdirs(clusterId.asPath(), this);
+                        session.getSubdirs(clusterId, this);
                         called.set(true);
                     } catch (final ClusterInfoException cie) {
                         throw new RuntimeException(cie);
@@ -411,11 +397,11 @@ public class TestZookeeperClusterResilience {
             assertTrue(forceIOExceptionLatch.await(baseTimeoutMillis * 3, TimeUnit.MILLISECONDS));
 
             // now the getActiveSlots call should fail since i'm preventing the recovery by throwing IOExceptions
-            assertTrue(poll(baseTimeoutMillis, clusterId, new Condition<ClusterId>() {
+            assertTrue(poll(baseTimeoutMillis, clusterId, new Condition<String>() {
                 @Override
-                public boolean conditionMet(final ClusterId o) throws Throwable {
+                public boolean conditionMet(final String o) throws Throwable {
                     try {
-                        session.mkdir(o.asPath() + "/join-1", null, DirMode.EPHEMERAL);
+                        session.mkdir(o + "/join-1", null, DirMode.EPHEMERAL);
                         return false;
                     } catch (final ClusterInfoException e) {
                         return true;
@@ -437,12 +423,12 @@ public class TestZookeeperClusterResilience {
             }));
 
             // this should eventually recover.
-            assertTrue(poll(baseTimeoutMillis, clusterId, new Condition<ClusterId>() {
+            assertTrue(poll(baseTimeoutMillis, clusterId, new Condition<String>() {
                 @Override
-                public boolean conditionMet(final ClusterId o) throws Throwable {
+                public boolean conditionMet(final String o) throws Throwable {
                     try {
-                        createClusterLevel(o, session);
-                        session.mkdir(o.asPath() + "/join-1", null, DirMode.EPHEMERAL);
+                        recurseCreate(o, session);
+                        session.mkdir(o + "/join-1", null, DirMode.EPHEMERAL);
                         return true;
                     } catch (final ClusterInfoException e) {
                         return false;
@@ -450,15 +436,15 @@ public class TestZookeeperClusterResilience {
                 }
             }));
 
-            session.getSubdirs(clusterId.asPath(), callback);
+            session.getSubdirs(clusterId, callback);
 
             // And join should work
             // And join should work
-            assertTrue(poll(baseTimeoutMillis, clusterId, new Condition<ClusterId>() {
+            assertTrue(poll(baseTimeoutMillis, clusterId, new Condition<String>() {
                 @Override
-                public boolean conditionMet(final ClusterId o) throws Throwable {
+                public boolean conditionMet(final String o) throws Throwable {
                     try {
-                        session.mkdir(o.asPath() + "/join-1", null, DirMode.EPHEMERAL);
+                        session.mkdir(o + "/join-1", null, DirMode.EPHEMERAL);
                         return true;
                     } catch (final ClusterInfoException e) {}
                     return false;

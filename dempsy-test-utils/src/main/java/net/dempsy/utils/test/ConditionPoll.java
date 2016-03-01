@@ -12,6 +12,7 @@ public class ConditionPoll {
     /**
      * This is the interface that serves as the root for anonymous classes passed to the poll call.
      */
+    @FunctionalInterface
     public static interface Condition<T> {
         /**
          * Return whether or not the condition we are polling for has been met yet.

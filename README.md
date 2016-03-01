@@ -18,7 +18,7 @@ Not all functionality that Zookeeper provides is available in this API. The foll
 
 #### The main abstraction
 
-See the [API docs](http://dempsy.github.io/Dempsy/dempsy-commons/1.1/) for the [ClusterInfoSession](http://dempsy.github.io/Dempsy/dempsy-commons/1.1/net/dempsy/cluster/ClusterInfoSession.html). It's a simple api wrapper that lets you interact with ZooKeeper but has more resilience than the standard ZooKeeper client and you can plug in a local implementation for testing.
+See the [API docs](http://dempsy.github.io/Dempsy/dempsy-commons/2.0.0-SNAPSHOT/) for the [ClusterInfoSession](http://dempsy.github.io/Dempsy/dempsy-commons/2.0.0-SNAPSHOT/net/dempsy/cluster/ClusterInfoSession.html). It's a simple api wrapper that lets you interact with ZooKeeper but has more resilience than the standard ZooKeeper client and you can plug in a local implementation for testing.
 
 #### Selecting the implementation in code
 
@@ -123,11 +123,11 @@ Serialization abstractions are a dime-a-dozen. This one exists to support the ab
   2. Native Java serialization - artifactId=dempsy-serialization.java
   3. Kryo based serialization - artifactId=dempsy-serialization.kryo
 
-See the [API docs](http://dempsy.github.io/Dempsy/dempsy-commons/1.1/) for more details.
+See the [API docs](http://dempsy.github.io/Dempsy/dempsy-commons/2.0.0-SNAPSHOT/) for more details.
 
 ## General Requirements:
 
-  * Java 8 - at version (1.1), almost everything will build with java 7 except the Kryo serializer which will need to be modified slightly. The released version 1.1 was built with Java 8. Going forward (2.0.0 and beyon) there will be an assumption that Java 8 functionality is available and builds will be done using Java8.
+  * Java 8 - at version (1.1), almost everything will build with java 7 except the Kryo serializer which will need to be modified slightly. The released version 1.1 was built with Java 8. Going forward (2.0.0 and beyond) there will be an assumption that Java 8 functionality is available and builds will be done using Java8.
 
 ## Development lifecycle methodology and versioning
 

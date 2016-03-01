@@ -14,7 +14,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import net.dempsy.cluster.ClusterId;
 import net.dempsy.cluster.TestClusterImpls;
 import net.dempsy.serialization.jackson.JsonSerializer;
 
@@ -58,7 +57,7 @@ public class TestZookeeperClusterImpl extends TestClusterImpls {
         };) {
 
             try {
-                session.getSubdirs(new ClusterId("test", "test").asPath(), null);
+                session.getSubdirs("/test/test", null);
             } catch (final Exception e) {
                 receivedException = e.getCause();
             }

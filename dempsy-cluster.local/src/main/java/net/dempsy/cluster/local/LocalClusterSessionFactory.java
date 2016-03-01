@@ -59,7 +59,7 @@ public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
     /// initially add the root.
     public static synchronized void reset() {
         entries.clear();
-        entries.put("/", new Entry(null));
+        entries.put("/", new Entry(null, null));
     }
 
     public static synchronized void completeReset() {
@@ -102,9 +102,11 @@ public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
 
         private volatile boolean inProcess = false;
         private final Lock processLock = new ReentrantLock();
+        private final DirMode mode;
 
-        public Entry(final Object data) {
+        public Entry(final Object data, final DirMode mode) {
             this.data.set(data);
+            this.mode = mode;
         }
 
         @Override
@@ -231,6 +233,10 @@ public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
             throw new ClusterInfoException("No Parent for \"" + path + "\" which is expected to be \"" +
                     parent(path) + "\"");
         }
+        if (parent.mode != null && parent.mode.isEphemeral())
+            throw new ClusterInfoException(
+                    "Cannot add the subdirectory \"" + path + "\" to the EPHEMERAL parent directory \"" + parentPath
+                            + ".\" EPHEMERAL directories can't have children.");
 
         long seq = -1;
         if (mode.isSequential()) {
@@ -242,7 +248,7 @@ public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
 
         final String pathToUse = seq >= 0 ? (path + seq) : path;
 
-        entries.put(pathToUse, new Entry(data));
+        entries.put(pathToUse, new Entry(data, mode));
         // find the relative path
         final int lastSlash = pathToUse.lastIndexOf('/');
         parent.children.add(pathToUse.substring(lastSlash + 1));
