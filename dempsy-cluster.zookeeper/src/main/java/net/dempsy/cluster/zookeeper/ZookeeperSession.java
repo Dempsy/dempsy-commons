@@ -99,84 +99,60 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
 
     @Override
     public String mkdir(final String path, final Object data, final DirMode mode) throws ClusterInfoException {
-        return (String) callZookeeper("mkdir", path, null, new DirModeObject(mode, data), new ZookeeperCall() {
-            @Override
-            public Object call(final ZooKeeper cur, final String path, final WatcherProxy watcher, final Object ud) throws KeeperException,
-                    InterruptedException, IOException {
-                final DirModeObject userdata = (DirModeObject) ud;
-                final Object info = userdata.value;
+        return (String) callZookeeper("mkdir", path, null, new DirModeObject(mode, data), (cur, pa, watcher, ud) -> {
+            final DirModeObject userdata = (DirModeObject) ud;
+            final Object info = userdata.value;
 
-                return cur.create(path, (info == null ? zeroByteArray : serializer.serialize(info)), Ids.OPEN_ACL_UNSAFE, from(userdata.dirMode));
-            }
+            return cur.create(path, (info == null ? zeroByteArray : serializer.serialize(info)), Ids.OPEN_ACL_UNSAFE, from(userdata.dirMode));
+        });
+
+    }
+
+    @Override
+    public void rmdir(final String ppath) throws ClusterInfoException {
+        callZookeeper("rmdir", ppath, null, null, (cur, pa, wp, userdata) -> {
+            cur.delete(pa, -1);
+            return null;
         });
     }
 
     @Override
-    public void rmdir(final String path) throws ClusterInfoException {
-        callZookeeper("rmdir", path, null, null, new ZookeeperCall() {
-            @Override
-            public Object call(final ZooKeeper cur, final String path, final WatcherProxy watcher, final Object userdata) throws KeeperException,
-                    InterruptedException, IOException {
-                cur.delete(path, -1);
-                return null;
-            }
-        });
-    }
-
-    @Override
-    public boolean exists(final String path, final ClusterInfoWatcher watcher) throws ClusterInfoException {
-        final Object ret = callZookeeper("exists", path, watcher, null, new ZookeeperCall() {
-            @Override
-            public Object call(final ZooKeeper cur, final String path, final WatcherProxy wp, final Object userdata) throws KeeperException,
-                    InterruptedException, IOException {
-                return wp == null ? (cur.exists(path, true) == null ? false : true) : (cur.exists(path, wp) == null ? false : true);
-            }
+    public boolean exists(final String ppath, final ClusterInfoWatcher watcher) throws ClusterInfoException {
+        final Object ret = callZookeeper("exists", ppath, watcher, null, (cur, path, wp, userdata) -> {
+            return wp == null ? (cur.exists(path, true) == null ? false : true) : (cur.exists(path, wp) == null ? false : true);
         });
         return ((Boolean) ret).booleanValue();
     }
 
     @Override
-    public Object getData(final String path, final ClusterInfoWatcher watcher) throws ClusterInfoException {
-        return callZookeeper("getData", path, watcher, null, new ZookeeperCall() {
-            @Override
-            public Object call(final ZooKeeper cur, final String path, final WatcherProxy wp, final Object userdata) throws KeeperException,
-                    InterruptedException, IOException {
-                final byte[] ret = wp == null ? cur.getData(path, true, null) : cur.getData(path, wp, null);
+    public Object getData(final String ppath, final ClusterInfoWatcher watcher) throws ClusterInfoException {
+        return callZookeeper("getData", ppath, watcher, null, (cur, path, wp, userdata) -> {
+            final byte[] ret = wp == null ? cur.getData(path, true, null) : cur.getData(path, wp, null);
 
-                if (ret != null && ret.length > 0)
-                    return serializer.deserialize(ret, Object.class);
-                return null;
-            }
+            if (ret != null && ret.length > 0)
+                return serializer.deserialize(ret, Object.class);
+            return null;
         });
     }
 
     @Override
-    public void setData(final String path, final Object info) throws ClusterInfoException {
-        callZookeeper("mkdir", path, null, info, new ZookeeperCall() {
-            @Override
-            public Object call(final ZooKeeper cur, final String path, final WatcherProxy watcher, final Object info) throws KeeperException,
-                    InterruptedException, IOException {
-                byte[] buf = null;
-                if (info != null)
-                    // Serialize to a byte array
-                    buf = serializer.serialize(info);
+    public void setData(final String ppath, final Object info) throws ClusterInfoException {
+        callZookeeper("mkdir", ppath, null, info, (cur, path, wp, userdata) -> {
+            byte[] buf = null;
+            if (info != null)
+                // Serialize to a byte array
+                buf = serializer.serialize(info);
 
-                zkref.get().setData(path, buf, -1);
-                return null;
-            }
+            zkref.get().setData(path, buf, -1);
+            return null;
         });
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public Collection<String> getSubdirs(final String path, final ClusterInfoWatcher watcher) throws ClusterInfoException {
-        return (Collection<String>) callZookeeper("getSubdirs", path, watcher, null, new ZookeeperCall() {
-            @Override
-            public Object call(final ZooKeeper cur, final String path, final WatcherProxy wp, final Object userdata) throws KeeperException,
-                    InterruptedException, IOException {
-                return wp == null ? cur.getChildren(path, true) : cur.getChildren(path, wp);
-            }
-        });
+    public Collection<String> getSubdirs(final String ppath, final ClusterInfoWatcher pwatcher) throws ClusterInfoException {
+        return (Collection<String>) callZookeeper("getSubdirs", ppath, pwatcher, null,
+                (cur, pa, wp, userdata) -> wp == null ? cur.getChildren(pa, true) : cur.getChildren(pa, wp));
     }
 
     @Override
@@ -278,6 +254,7 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
         }
     }
 
+    @FunctionalInterface
     private interface ZookeeperCall {
         public Object call(ZooKeeper cur, String path, WatcherProxy watcher, Object userdata)
                 throws KeeperException, InterruptedException, IOException;
