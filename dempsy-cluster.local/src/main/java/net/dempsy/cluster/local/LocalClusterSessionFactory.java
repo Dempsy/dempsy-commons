@@ -42,11 +42,20 @@ import net.dempsy.cluster.DisruptibleSession;
 
 /**
  * This class is for running all cluster management from within the same vm, and for the same vm. It's meant to mimic the Zookeeper implementation such that callbacks are not made to watchers registered to
- * sessions through wich changes are made.
+ * sessions through which changes are made.
  */
 public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
     private static Logger logger = LoggerFactory.getLogger(LocalClusterSessionFactory.class);
     protected static List<LocalSession> currentSessions = new ArrayList<LocalSession>();
+    protected final boolean cleanupAfterLastSession;
+
+    public LocalClusterSessionFactory(final boolean cleanupAfterLastSession) {
+        this.cleanupAfterLastSession = cleanupAfterLastSession;
+    }
+
+    public LocalClusterSessionFactory() {
+        this(true);
+    }
 
     // ====================================================================
     // This section pertains to the management of the tree information
@@ -423,7 +432,7 @@ public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
 
             synchronized (currentSessions) {
                 currentSessions.remove(this);
-                if (currentSessions.size() == 0)
+                if (currentSessions.size() == 0 && cleanupAfterLastSession)
                     reset();
             }
         }
