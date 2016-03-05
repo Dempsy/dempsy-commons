@@ -14,7 +14,7 @@ This project contains a set of APIs and useful utilities that were generated as 
 
 ### [Tools and utilities](#tools)
 1. [dempsy-utils](#dempsy-utils) - A few simple reusalbe components
-1. [dempsy-test-utils](#dempsy-test-utils) - Aids in muti-threaded and more complicated network testing requirements
+1. [dempsy-test-utils](#dempsy-test-utils) - Aids in muti-threaded and more complicated network testing
 1. [dempsy-ringbuffer](#dempsy-ringbuffer) - High performance multi-threading
 
 ### [General Requirements](#general-requirements)
