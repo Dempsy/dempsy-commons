@@ -123,7 +123,7 @@ public class RingBufferConsumerIterator<T> {
     }
 
     public void waitForCompletion() throws InterruptedException {
-        publishDone.await();
+        waitForPublishToComplete();
         allDone.await();
     }
 

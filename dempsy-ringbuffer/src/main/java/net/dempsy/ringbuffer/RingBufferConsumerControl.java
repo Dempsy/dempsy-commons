@@ -75,8 +75,7 @@ import com.lmax.disruptor.util.PaddedLong;
  * {@link RingBufferControlMulticaster} and {@link RingBufferControlMultiplexor})
  * </p>
  */
-public abstract class RingBufferConsumerControl
-{
+public abstract class RingBufferConsumerControl {
     /** Set to -1 as sequence starting point */
     protected static final long INITIAL_CURSOR_VALUE = -1L;
 
@@ -121,7 +120,8 @@ public abstract class RingBufferConsumerControl
             long availableSequence;
             int counter = SPIN_TRIES;
             while ((availableSequence = cursor.get()) < sequence) {
-                if (counter > 0) counter--;
+                if (counter > 0)
+                    counter--;
                 else Thread.yield();
             }
             return availableSequence;
@@ -135,7 +135,7 @@ public abstract class RingBufferConsumerControl
     protected final Sequence publishCursor;
 
     // This is updated from the consumer side, only read on the published side but only
-    //  when the tail cache indicates the buffer is full and only to update the cache
+    // when the tail cache indicates the buffer is full and only to update the cache
     protected final Sequence tail = new Sequence(INITIAL_CURSOR_VALUE);
 
     // Accessed ONLY on the consumer side.
@@ -143,30 +143,34 @@ public abstract class RingBufferConsumerControl
 
     private final PaddedLong headCache = new PaddedLong(INITIAL_CURSOR_VALUE);
 
-    // This value holds this consumers former return value for a call to 
+    // This value holds this consumers former return value for a call to
     // either availableTo or tryAvailableTo. This is then used in the notifyProcessed.
     private final PaddedLong previousAvailableToResult = new PaddedLong(INITIAL_CURSOR_VALUE);
 
-    //   private final Object obj0 = null;
+    // private final Object obj0 = null;
 
     // stop flag. Will contain the sequence of the stop command.
     // This value is potentially interlocked.
     protected final PaddedLong stop;
     protected boolean stopIsCommon;
 
+    /**
+     * Making this public avoids it being optimized away
+     */
     public volatile long p1, p2, p3, p4, p5, p6 = 7L;
 
     protected RingBufferConsumerControl(final int sizePowerOfTwo,
             final ConsumerWaitStrategy waitStrategy, final Sequence cursor)
-            throws IllegalArgumentException {
+                    throws IllegalArgumentException {
         this(sizePowerOfTwo, waitStrategy, cursor, new PaddedLong(Long.MAX_VALUE));
         stopIsCommon = false;
     }
 
     protected RingBufferConsumerControl(final int sizePowerOfTwo,
             final ConsumerWaitStrategy waitStrategy, final Sequence cursor, final PaddedLong commonStop)
-            throws IllegalArgumentException {
-        if (Integer.bitCount(sizePowerOfTwo) != 1) throw new IllegalArgumentException("bufferSize must be a power of 2");
+                    throws IllegalArgumentException {
+        if (Integer.bitCount(sizePowerOfTwo) != 1)
+            throw new IllegalArgumentException("bufferSize must be a power of 2");
 
         this.bufferSize = sizePowerOfTwo;
         this.indexMask = sizePowerOfTwo - 1;
@@ -218,29 +222,31 @@ public abstract class RingBufferConsumerControl
     @SuppressWarnings("rawtypes") protected Iterator iter = null;
 
     public <T> Iterator<T> consumeAsIterator(final T[] values) {
-        if (iter == null) iter =
-                new Iterator<T>() {
-                    long availableTo = -1;
-                    long curPos = 0;
+        if (iter == null)
+            iter = new Iterator<T>() {
+                long availableTo = -1;
+                long curPos = 0;
 
-                    @Override
-                    public boolean hasNext() {
-                        if (curPos > availableTo) availableTo = availableTo();
-                        return availableTo != RingBufferControl.ACQUIRE_STOP_REQUEST && curPos <= availableTo;
-                    }
+                @Override
+                public boolean hasNext() {
+                    if (curPos > availableTo)
+                        availableTo = availableTo();
+                    return availableTo != RingBufferControl.ACQUIRE_STOP_REQUEST && curPos <= availableTo;
+                }
 
-                    @Override
-                    public T next() {
-                        final T ret = values[index(curPos++)];
-                        if (curPos > availableTo) notifyProcessed();
-                        return ret;
-                    }
+                @Override
+                public T next() {
+                    final T ret = values[index(curPos++)];
+                    if (curPos > availableTo)
+                        notifyProcessed();
+                    return ret;
+                }
 
-                    @Override
-                    public void remove() {
-                        throw new UnsupportedOperationException();
-                    }
-                };
+                @Override
+                public void remove() {
+                    throw new UnsupportedOperationException();
+                }
+            };
 
         @SuppressWarnings("unchecked")
         final Iterator<T> ret = iter;
@@ -274,10 +280,12 @@ public abstract class RingBufferConsumerControl
     }
 
     protected void clear() {
-        if (isShutdown()) return;
+        if (isShutdown())
+            return;
 
         // if the stop is common then we don't clear it here.
-        if (!stopIsCommon) stop.set(Long.MAX_VALUE);
+        if (!stopIsCommon)
+            stop.set(Long.MAX_VALUE);
 
         // this final set has the correct memory barrier so that the
         // publish side can see that it's been shut down. So we do it last.
@@ -292,7 +300,8 @@ public abstract class RingBufferConsumerControl
 
     protected long tryAvailableTo(final long requestedSequence) {
         final long lastKnownHead = headCache.get();
-        if (lastKnownHead >= requestedSequence) return lastKnownHead;
+        if (lastKnownHead >= requestedSequence)
+            return lastKnownHead;
 
         final long availableSequence = publishCursor.get();
         if (availableSequence < requestedSequence) {
@@ -305,7 +314,8 @@ public abstract class RingBufferConsumerControl
 
     protected long availableTo(final long requestedSequence) {
         final long lastKnownHead = headCache.get();
-        if (lastKnownHead >= requestedSequence) return lastKnownHead;
+        if (lastKnownHead >= requestedSequence)
+            return lastKnownHead;
 
         return doAvailableTo(waitStrategy.waitFor(requestedSequence, publishCursor), requestedSequence);
     }
@@ -331,8 +341,7 @@ public abstract class RingBufferConsumerControl
             doNotifyProcessed(availableSequence);
             clear();
             return ACQUIRE_STOP_REQUEST;
-        }
-        else {
+        } else {
             previousAvailableToResult.set(availableSequence);
             headCache.set(availableSequence);
             return availableSequence;

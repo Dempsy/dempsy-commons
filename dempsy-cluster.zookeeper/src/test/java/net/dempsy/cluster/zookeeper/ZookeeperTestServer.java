@@ -114,14 +114,11 @@ public class ZookeeperTestServer implements AutoCloseable {
     }
 
     public static void forceSessionExpiration(final ZooKeeper origZk, final int port) throws Throwable {
-        final Condition<ZooKeeper> condition = new Condition<ZooKeeper>() {
-            @Override
-            public boolean conditionMet(final ZooKeeper o) throws Throwable {
-                try {
-                    return (o.getState() == ZooKeeper.States.CONNECTED) && o.exists("/", true) != null;
-                } catch (final KeeperException ke) {
-                    return false;
-                }
+        final Condition<ZooKeeper> condition = o -> {
+            try {
+                return (o.getState() == ZooKeeper.States.CONNECTED) && o.exists("/", true) != null;
+            } catch (final KeeperException ke) {
+                return false;
             }
         };
 
@@ -136,31 +133,18 @@ public class ZookeeperTestServer implements AutoCloseable {
             kwatcher.connection.set(killer);
 
             // wait until we get a close
-            final boolean calledBack = poll(5000, kwatcher, new Condition<KWatcher>() {
-                @Override
-                public boolean conditionMet(final KWatcher o) throws Throwable {
-                    return o.closed.get();
-                }
-            });
+            final boolean calledBack = poll(5000, kwatcher, o -> o.closed.get());
 
             if (!calledBack)
                 killer.close();
 
             final AtomicBoolean isExpired = new AtomicBoolean(false);
-            final ZooKeeper check = new ZooKeeper("127.0.0.1:" + port, 5000, new Watcher() {
-                @Override
-                public void process(final WatchedEvent event) {
-                    if (event.getState() == Watcher.Event.KeeperState.Expired)
-                        isExpired.set(true);
-                }
-            }, sessionid, pw);
+            final ZooKeeper check = new ZooKeeper("127.0.0.1:" + port, 5000, event -> {
+                if (event.getState() == Watcher.Event.KeeperState.Expired)
+                    isExpired.set(true);
+            } , sessionid, pw);
 
-            done = poll(5000, isExpired, new Condition<AtomicBoolean>() {
-                @Override
-                public boolean conditionMet(final AtomicBoolean o) {
-                    return o.get();
-                }
-            });
+            done = poll(5000, isExpired, o -> o.get());
 
             check.close();
         }
