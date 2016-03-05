@@ -9,7 +9,7 @@ This project contains a set of APIs and useful utilities that were generated as 
 1. [Naming and versioning](#lifecycle)
 1. [dempsy-cluster.api](#dempsy-cluser.api) - a tool for writing cluster data management code.
    1. [Limitations](#limitations) with respect to ZooKeeper
-   1. [User's Guide](#getting-started) for getting started with the cluster info api
+   1. [User Guide](#user-guide) for getting started with the cluster info api
 1. [dempsy-serialization.api](#dempsy-serialization.api) - a simple serialization abastraction and a few implementations
 
 ### [Tools and utilities](#tools)
@@ -27,7 +27,7 @@ This project contains a set of APIs and useful utilities that were generated as 
 
 In general libraries that contain the definition of the abstraction (a.k.a the *interface*) end with a *.api*. They take the form *dempsy-[feature].api*.
 
-Jars with the implementations of those interfaces are named based on the feature, plus the implementation description. They have the form *dempsy-[feature].[implementation].
+Jars with the implementations of those interfaces are named based on the feature, plus the implementation description. They have the form *dempsy-[feature].[implementation]*.
 
 For example, the cluster management abstraction is contained in the project *dempsy-cluster.api* while the ZooKeeper implementation is in *dempsy-cluster.zookeeper*.
 
@@ -51,15 +51,15 @@ Not all functionality that Zookeeper provides is available in this API. The foll
 
   * There's no support for security or Zookeeper ACLs.
 
-### <a name="users-guide"></a>User's Guide
+### <a name="user-guide"></a>User Guide
 
 #### The main abstraction
 
 See the [API docs](http://dempsy.github.io/Dempsy/dempsy-commons/2.0.0-SNAPSHOT/) for the [ClusterInfoSession](http://dempsy.github.io/Dempsy/dempsy-commons/2.0.0-SNAPSHOT/net/dempsy/cluster/ClusterInfoSession.html). It's a simple api wrapper that lets you interact with ZooKeeper but has more resilience than the standard ZooKeeper client and you can plug in a local implementation for testing.
 
-#### Selecting the implementation in code
+#### Selecting the implementation
 
-Dependency injection would be the best way to inject the selected implementation into your code. An example using Spring:
+Dependency injection would be the best way to select which implementation your code should use. That way you can write code that works against multiple implementations. An example using Spring:
 
 ```java
     public class MyClassThatUsesClusterInfo {
@@ -90,7 +90,7 @@ with an application context that selects the actual ZooKeeper implementation of 
 
 *Note: the ZookeeperSessionFactory requires a serializer. There are several serializers included in dempsy-commons and the selected one will need to be included in the dependencies. For the above example you'll need to include: artifactId=dempsy-serialization.jackson.*
 
-#### Add dependencies.
+#### Build Dependencies
 
 These dependencies are represented as Maven pom.xml file dependencies but, of course, you can include them in your favorite Maven or Ivy based build system.
 
@@ -119,7 +119,7 @@ This dependency includes the actual zookeeper implementation of the cluster abst
 
   3. Testing dependency
 
-For testing your code you can plug in a local implementation of the cluster abstraction as follows
+For testing your code you can plug in a local implementation of the cluster abstraction as follows.
 
 ```xml
 <dependency>
@@ -130,7 +130,7 @@ For testing your code you can plug in a local implementation of the cluster abst
 </dependency>
 ```
 
-It's possible to use the Zookeeper implementation in test as there's a zookeeper implementation test-jar that's built. If you want to run tests against an embedded Zookeeper server then you can include the following dependency.
+It's possible to use the Zookeeper implementation in test as there's a zookeeper implementation test-jar that's built and contains a general zookeeper test server. If you want to run tests against an embedded Zookeeper server then you can include the following dependency.
 
 ```xml
 <dependency>
@@ -151,6 +151,8 @@ try (final ZookeeperTestServer server = new ZookeeperTestServer()) {
    ....
 }
 ```
+
+The port selected is ephemeral. You can alternately supply the port in the [ZookeeperTestServer](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-cluster.zookeeper/src/test/java/net/dempsy/cluster/zookeeper/ZookeeperTestServer.java#L55) constructor.
 
 ## <a name="dempsy-serialization.api"></a>dempsy-serialization.api
 
