@@ -62,6 +62,11 @@ public class ZookeeperTestServer implements AutoCloseable {
         start(zkConfig);
     }
 
+    public ZookeeperTestServer(final int port) throws IOException {
+        this.port = port;
+        start();
+    }
+
     public String connectString() {
         return "127.0.0.1:" + port;
     }
