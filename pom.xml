@@ -20,6 +20,7 @@
 
   <modules>
     <module>dempsy-commons-parentpom</module>
+    <module>dempsy-ringbuffer</module>
     <module>dempsy-serialization.api</module>
     <module>dempsy-serialization.jackson</module>
     <module>dempsy-serialization.java</module>

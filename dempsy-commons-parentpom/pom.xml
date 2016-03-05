@@ -92,6 +92,11 @@
         <artifactId>kryo</artifactId>
         <version>3.0.3</version>
       </dependency>
+      <dependency> <!-- for the RingBuffer functionality -->
+        <groupId>com.lmax</groupId>
+        <artifactId>disruptor</artifactId>
+        <version>3.3.0</version>
+      </dependency>
 
       <!-- Testing - internal -->
       <dependency>
