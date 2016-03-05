@@ -255,7 +255,7 @@ public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
             seq = cseq.getAndIncrement();
         }
 
-        final String pathToUse = seq >= 0 ? (path + seq) : path;
+        final String pathToUse = seq >= 0 ? (path + String.format("%010d", seq)) : path;
 
         entries.put(pathToUse, new Entry(data, mode));
         // find the relative path

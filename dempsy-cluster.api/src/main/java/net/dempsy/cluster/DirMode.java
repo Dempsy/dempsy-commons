@@ -32,6 +32,11 @@ package net.dempsy.cluster;
  *     0: NON-SEQUENTIAL
  *     1: SEQUENTIAL
  * </pre>
+ * 
+ * <p>
+ * For SEQUENTIAL nodes, all implementations are required to make the resulting versioned subdirectories both lexographically sortable from the highest to lowest revision and also the SEQUENTIAL suffix will be
+ * convertable to an integer.
+ * </p>
  */
 public enum DirMode {
     PERSISTENT(0), EPHEMERAL(1), SEQUENTIAL(2), PERSISTENT_SEQUENTIAL(2), EPHEMERAL_SEQUENTIAL(3);

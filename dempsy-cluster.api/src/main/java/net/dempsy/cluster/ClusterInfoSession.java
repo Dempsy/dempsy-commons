@@ -59,6 +59,37 @@ import java.util.Collection;
  *  otherSession.mkdir("/root/subdir", null, DirMode.EPHEMERAL); // < - this will cause the lambda to execute.
  * </code>
  * </pre>
+ * 
+ * <p>
+ * SEQUENTIAL directories will appear as separately versioned directories when retrieved using {@link #getSubdirs(String, ClusterInfoWatcher)}. They will appear as different subdirectories with a suffix. For
+ * example:
+ * </p>
+ * 
+ * <pre>
+ * {@code
+ * ...
+ *  session.mkdir("/root/subdir_", null, DirMode.EPHEMERAL_SEQUENTIAL); // make child dir
+ *  session.mkdir("/root/subdir_", null, DirMode.EPHEMERAL_SEQUENTIAL); // make child dir
+ *  session.mkdir("/root/subdir_", null, DirMode.EPHEMERAL_SEQUENTIAL); // make child dir
+ *  Collection<String> subdirs = session.getSubdirs("/root");
+ *  subdirs.stream().forEach(s -> System.out.println(s));
+ *  ....
+ * }
+ * </pre>
+ * <p>
+ * This will result in something like the following:
+ * </p>
+ * 
+ * <pre>
+ * subdir_0000000000
+ * subdir_0000000001
+ * subdir_0000000002
+ * </pre>
+ * 
+ * <p>
+ * The version suffixes are both lexographically sortable and also convertable to integers. This should be guaranteed by every implementation.
+ * </p>
+ * 
  */
 public interface ClusterInfoSession extends AutoCloseable {
     /**
@@ -71,7 +102,8 @@ public interface ClusterInfoSession extends AutoCloseable {
      * @param mode
      *            is the mode to set for the new directory. See {@link DirMode}.
      * 
-     * @return directory path if the directory was created. {@code null} if the directory cannot be created or already exists.
+     * @return directory path if the directory was created. {@code null} if the directory cannot be created or already exists. If the {@link DirMode} is sequential then the result will satisfy the
+     *         {@link DirMode.SEQUENTIAL}.
      * 
      * @throws ClusterInfoException
      *             on an error which can include the fact that the parent directory doesn't exist or if you add a directory as a subdir of an EPHEMERAL directory.
@@ -137,7 +169,8 @@ public interface ClusterInfoSession extends AutoCloseable {
      *            where the subdirectories to show are.
      * @param watcher
      *            if non-null, and the path exists, then the watcher will be called back whenever the node at the path has data added to it, or is deleted.
-     * @return the list of subdirectories. These strings WILL NOT contain the fill path. They will only contain the subdirectory name.
+     * @return the list of subdirectories. These strings WILL NOT contain the full path. They will only contain the subdirectory name. If they are versions of the same SEQUENTIAL directory then they will be
+     *         lexographically sortable.
      * @throws ClusterInfoException
      */
     public Collection<String> getSubdirs(String path, ClusterInfoWatcher watcher) throws ClusterInfoException;
