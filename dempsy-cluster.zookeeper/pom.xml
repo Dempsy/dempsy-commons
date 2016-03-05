@@ -88,9 +88,10 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <configuration>
-          <includes>
-            <include>**/ZookeeperTestServer*</include>
-          </includes>
+          <excludes>
+            <exclude>**/Test*</exclude>
+            <exclude>**/log4j.properties*</exclude>
+          </excludes>
         </configuration>
         <executions>
           <execution>
