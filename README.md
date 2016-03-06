@@ -1,6 +1,6 @@
 # Dempsy Common Api's
 
-This project contains a set of APIs and useful utilities that were generated as port of the [Dempsy](http://dempsy.github.com/Dempsy/#overview) project. I'm currently using them professionally and thought that it made sense to separate them and make them generally available.
+This project contains a set of APIs and useful utilities that were generated as part of the [Dempsy](http://dempsy.github.com/Dempsy/#overview) project. I'm currently using them professionally and thought that it made sense to separate them and make them generally available.
 
 ## Contents
 
