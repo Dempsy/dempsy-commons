@@ -94,7 +94,7 @@ with an application context that selects the actual ZooKeeper implementation of 
 
 These dependencies are represented as Maven pom.xml file dependencies but, of course, you can include them in your favorite Maven or Ivy based build system.
 
-1. API dependency.
+* API dependency.
 
 ```xml
 <dependency>
@@ -104,7 +104,7 @@ These dependencies are represented as Maven pom.xml file dependencies but, of co
 </dependency>
 ```
 
-  2. ZooKeeper implementation dependency.
+* ZooKeeper implementation dependency.
 
 This dependency includes the actual zookeeper implementation of the cluster abstraction. If you write code against the API then this should be able to be included as a "runtime" dependency.
 
@@ -117,7 +117,7 @@ This dependency includes the actual zookeeper implementation of the cluster abst
 </dependency>
 ```
 
-  3. Testing dependency
+* Testing dependency
 
 For testing your code you can plug in a local implementation of the cluster abstraction as follows.
 
