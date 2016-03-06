@@ -28,6 +28,9 @@
     <module>dempsy-cluster.api</module>
     <module>dempsy-cluster.local</module>
     <module>dempsy-cluster.zookeeper</module>
+    <module>dempsy-distconfig.api</module>
+    <module>dempsy-distconfig.clusterinfo</module>
+    <module>dempsy-distconfig.apachevfs</module>
     <module>dempsy-test-utils</module>
     <module>dempsy-utils</module>
   </modules>

@@ -47,8 +47,11 @@
     <dempsy-serialization.api.version>2.0.0-SNAPSHOT</dempsy-serialization.api.version>
     <dempsy-utils.version>2.0.0-SNAPSHOT</dempsy-utils.version>
     <dempsy-cluster.api.version>2.0.0-SNAPSHOT</dempsy-cluster.api.version>
+    <dempsy-cluster.zookeeper.version>2.0.0-SNAPSHOT</dempsy-cluster.zookeeper.version>
+    <dempsy-cluster.local.version>2.0.0-SNAPSHOT</dempsy-cluster.local.version>
     <dempsy-serialization.jackson.version>2.0.0-SNAPSHOT</dempsy-serialization.jackson.version>
     <dempsy-test-utils.version>2.0.0-SNAPSHOT</dempsy-test-utils.version>
+    <dempsy-distconfig.api.version>2.0.0-SNAPSHOT</dempsy-distconfig.api.version>
   </properties>
 
   <!-- This section provides some unifority of dependencies for all dempsy-commons projects -->
@@ -69,6 +72,11 @@
         <groupId>net.dempsy</groupId>
         <artifactId>dempsy-cluster.api</artifactId>
         <version>${dempsy-cluster.api.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.dempsy</groupId>
+        <artifactId>dempsy-distconfig.api</artifactId>
+        <version>${dempsy-distconfig.api.version}</version>
       </dependency>
 
       <!-- 3rd party -->
@@ -97,12 +105,33 @@
         <artifactId>disruptor</artifactId>
         <version>3.3.0</version>
       </dependency>
+      <dependency> <!-- Used in the dempsy-distconfig Apache VFS implementation -->
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-vfs2</artifactId>
+        <version>2.0</version>
+      </dependency>
 
       <!-- Testing - internal -->
       <dependency>
         <groupId>net.dempsy</groupId>
         <artifactId>dempsy-cluster.api</artifactId>
         <version>${dempsy-cluster.api.version}</version>
+        <type>test-jar</type>
+      </dependency>
+      <dependency>
+        <groupId>net.dempsy</groupId> <!-- used in testing disconf functionality -->
+        <artifactId>dempsy-cluster.local</artifactId>
+        <version>${dempsy-cluster.local.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.dempsy</groupId> <!-- used in testing disconf functionality -->
+        <artifactId>dempsy-cluster.zookeeper</artifactId>
+        <version>${dempsy-cluster.zookeeper.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.dempsy</groupId> <!-- used in testing disconf functionality -->
+        <artifactId>dempsy-cluster.zookeeper</artifactId>
+        <version>${dempsy-cluster.zookeeper.version}</version>
         <type>test-jar</type>
       </dependency>
       <dependency>
@@ -120,6 +149,12 @@
         <groupId>net.dempsy</groupId>
         <artifactId>dempsy-test-utils</artifactId>
         <version>${dempsy-test-utils.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.dempsy</groupId>
+        <artifactId>dempsy-distconfig.api</artifactId>
+        <type>test-jar</type>
+        <version>${dempsy-distconfig.api.version}</version>
       </dependency>
 
       <!-- Testing - 3rd party -->
