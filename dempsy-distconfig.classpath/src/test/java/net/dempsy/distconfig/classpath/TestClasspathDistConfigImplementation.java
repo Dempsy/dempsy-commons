@@ -14,61 +14,50 @@
  * limitations under the License.
  */
 
-package net.dempsy.distconfig.apachevfs;
+package net.dempsy.distconfig.classpath;
 
 import static net.dempsy.util.Functional.unchecked;
 
-import java.io.File;
 import java.io.IOException;
-
-import org.codehaus.plexus.util.FileUtils;
+import java.util.Properties;
 
 import net.dempsy.distconfig.AutoCloseableFunction;
 import net.dempsy.distconfig.PropertiesReader;
 import net.dempsy.distconfig.PropertiesStore;
 import net.dempsy.distconfig.TestConfigImplementation;
-import net.dempsy.distconfig.apahcevfs.ApacheVfsPropertiesReader;
-import net.dempsy.distconfig.apahcevfs.ApacheVfsPropertiesStore;
 
-public class TestApacheVfsDistConfigImplementation extends TestConfigImplementation {
-    private static File tmpDir = setTempDir();
-
-    private static File setTempDir() {
-        try {
-            final File tmpFile = File.createTempFile("tmp", ".test");
-            tmpFile.delete();
-            tmpFile.mkdirs();
-            tmpFile.deleteOnExit();
-            return tmpFile;
-        } catch (final IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static File genTempFile(final String testName) {
-        return new File(tmpDir, "tmp-" + testName + ".properties");
-    }
+public class TestClasspathDistConfigImplementation extends TestConfigImplementation {
 
     @Override
     protected AutoCloseableFunction<PropertiesStore> getLoader(final String testName) {
         return new AutoCloseableFunction<PropertiesStore>() {
-            private final File dir = genTempFile(testName);
 
             @Override
             public PropertiesStore apply(final String pfile) {
-                return unchecked(() -> new ApacheVfsPropertiesStore("file://" + dir.getAbsolutePath(), pfile));
+                // stub out the store.
+                return new PropertiesStore() {
+
+                    @Override
+                    public int push(final Properties props) throws IOException {
+                        return 0;
+                    }
+
+                    @Override
+                    public int merge(final Properties props) throws IOException {
+                        return 0;
+                    }
+                };
             }
 
             @Override
-            public void close() throws Exception {
-                FileUtils.deleteDirectory(dir);
-            }
+            public void close() throws Exception {}
         };
     }
 
     @Override
     protected AutoCloseableFunction<PropertiesReader> getReader(final String testName) {
-        return pfile -> unchecked(() -> new ApacheVfsPropertiesReader("file://" + genTempFile(testName).getAbsolutePath(), pfile));
+        return !"testNullWatcherNoProps".equals(testName) ? (path -> unchecked(() -> new ClasspathPropertiesReader(path)))
+                : (path -> unchecked(() -> new ClasspathPropertiesReader("nofile")));
     }
 
 }

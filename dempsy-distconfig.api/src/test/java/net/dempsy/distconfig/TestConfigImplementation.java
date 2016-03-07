@@ -61,16 +61,19 @@ public abstract class TestConfigImplementation {
             final PropertiesStore loader = loaderac.apply(PATH);
             final PropertiesReader reader = readerac.apply(PATH);
 
-            final AtomicBoolean notified = new AtomicBoolean(false);
+            if (reader.supportsNotification()) {
 
-            // read and expect an empty properties
-            assertEquals(0, reader.read(() -> notified.set(true)).size());
+                final AtomicBoolean notified = new AtomicBoolean(false);
 
-            // add a property.
-            assertEquals(0, loader.push(new PropertiesBuilder().add("hello", "world").build()));
+                // read and expect an empty properties
+                assertEquals(0, reader.read(() -> notified.set(true)).size());
 
-            if (reader.supportsNotification())
-                assertTrue(poll(notified, n -> n.get()));
+                // add a property.
+                assertEquals(0, loader.push(new PropertiesBuilder().add("hello", "world").build()));
+
+                if (reader.supportsNotification())
+                    assertTrue(poll(notified, n -> n.get()));
+            }
         }
     }
 
@@ -80,32 +83,35 @@ public abstract class TestConfigImplementation {
                 final AutoCloseableFunction<PropertiesReader> readerac = getReader("testNotifyWithPropsChangeWithMerge");) {
             final PropertiesStore loader = loaderac.apply(PATH);
             final PropertiesReader reader = readerac.apply(PATH);
-            final AtomicBoolean notifiedNew = new AtomicBoolean(false);
-            final AtomicBoolean notifiedChanged = new AtomicBoolean(false);
 
-            // read and expect an no properties
-            assertEquals(0, reader.read(() -> notifiedNew.set(true)).size());
+            if (reader.supportsNotification()) {
+                final AtomicBoolean notifiedNew = new AtomicBoolean(false);
+                final AtomicBoolean notifiedChanged = new AtomicBoolean(false);
 
-            // add a property.
-            assertEquals(0, loader.push(new PropertiesBuilder().add("hello", "world").build()));
+                // read and expect an no properties
+                assertEquals(0, reader.read(() -> notifiedNew.set(true)).size());
 
-            if (reader.supportsNotification())
-                assertTrue(poll(notifiedNew, n -> n.get())); // this makes us wait until the property is set.
+                // add a property.
+                assertEquals(0, loader.push(new PropertiesBuilder().add("hello", "world").build()));
 
-            // read and expect a property
-            assertEquals(1, reader.read(() -> notifiedChanged.set(true)).size());
+                if (reader.supportsNotification())
+                    assertTrue(poll(notifiedNew, n -> n.get())); // this makes us wait until the property is set.
 
-            // change a property.
-            assertEquals(1, loader.push(new PropertiesBuilder().add("hello", "joe").build()));
+                // read and expect a property
+                assertEquals(1, reader.read(() -> notifiedChanged.set(true)).size());
 
-            if (reader.supportsNotification())
-                assertTrue(poll(notifiedChanged, n -> n.get())); // this makes us wait until the property is set.
+                // change a property.
+                assertEquals(1, loader.push(new PropertiesBuilder().add("hello", "joe").build()));
 
-            // read and expect a property
-            assertEquals(1, reader.read(null).size());
+                if (reader.supportsNotification())
+                    assertTrue(poll(notifiedChanged, n -> n.get())); // this makes us wait until the property is set.
 
-            // and that property is the new value
-            assertEquals("joe", reader.read(null).getProperty("hello"));
+                // read and expect a property
+                assertEquals(1, reader.read(null).size());
+
+                // and that property is the new value
+                assertEquals("joe", reader.read(null).getProperty("hello"));
+            }
         }
     }
 
@@ -115,35 +121,37 @@ public abstract class TestConfigImplementation {
                 final AutoCloseableFunction<PropertiesReader> readerac = getReader("testNotifyWithPropsChangeWithPush");) {
             final PropertiesStore loader = loaderac.apply(PATH);
             final PropertiesReader reader = readerac.apply(PATH);
-            final AtomicBoolean notifiedNew = new AtomicBoolean(false);
-            final AtomicBoolean notifiedChanged = new AtomicBoolean(false);
+            if (reader.supportsNotification()) {
+                final AtomicBoolean notifiedNew = new AtomicBoolean(false);
+                final AtomicBoolean notifiedChanged = new AtomicBoolean(false);
 
-            // read and expect an no properties
-            assertEquals(0, reader.read(() -> notifiedNew.set(true)).size());
+                // read and expect an no properties
+                assertEquals(0, reader.read(() -> notifiedNew.set(true)).size());
 
-            // add a property.
-            assertEquals(0, loader.push(new PropertiesBuilder().add("hello", "world").add("good", "bye").build()));
+                // add a property.
+                assertEquals(0, loader.push(new PropertiesBuilder().add("hello", "world").add("good", "bye").build()));
 
-            if (reader.supportsNotification())
-                assertTrue(poll(notifiedNew, n -> n.get())); // this makes us wait until the property is set.
+                if (reader.supportsNotification())
+                    assertTrue(poll(notifiedNew, n -> n.get())); // this makes us wait until the property is set.
 
-            // read and expect a property
-            assertEquals(2, reader.read(() -> notifiedChanged.set(true)).size());
+                // read and expect a property
+                assertEquals(2, reader.read(() -> notifiedChanged.set(true)).size());
 
-            // change a property.
-            assertEquals(1, loader.merge(new PropertiesBuilder().add("hello", "joe").build()));
+                // change a property.
+                assertEquals(1, loader.merge(new PropertiesBuilder().add("hello", "joe").build()));
 
-            if (reader.supportsNotification())
-                assertTrue(poll(notifiedChanged, n -> n.get())); // this makes us wait until the property is set.
+                if (reader.supportsNotification())
+                    assertTrue(poll(notifiedChanged, n -> n.get())); // this makes us wait until the property is set.
 
-            // read and expect a property
-            assertEquals(2, reader.read(null).size());
+                // read and expect a property
+                assertEquals(2, reader.read(null).size());
 
-            // and that property is the new value
-            assertEquals("joe", reader.read(null).getProperty("hello"));
+                // and that property is the new value
+                assertEquals("joe", reader.read(null).getProperty("hello"));
 
-            // and the other one still has the original value
-            assertEquals("bye", reader.read(null).getProperty("good"));
+                // and the other one still has the original value
+                assertEquals("bye", reader.read(null).getProperty("good"));
+            }
         }
     }
 

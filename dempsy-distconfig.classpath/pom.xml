@@ -10,8 +10,8 @@
     <relativePath>../dempsy-commons-parentpom/pom.xml</relativePath>
   </parent>
 
-  <artifactId>dempsy-distconfig.apachevfs</artifactId>
-  <name>dempsy-distconfig implementation on apache's virtual file system 2</name>
+  <artifactId>dempsy-distconfig.classpath</artifactId>
+  <name>dempsy-distconfig implementation for reading from classpath.</name>
 
   <licenses>
     <license>
@@ -23,20 +23,12 @@
 
   <dependencies>
     <dependency>
-     <groupId>org.apache.commons</groupId>
-     <artifactId>commons-vfs2</artifactId>
-    </dependency>
-    <dependency>
      <groupId>net.dempsy</groupId>
      <artifactId>dempsy-distconfig.api</artifactId>
     </dependency>
     <dependency>
       <groupId>net.dempsy</groupId>
       <artifactId>dempsy-utils</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
     </dependency>
   
     <!-- Test dependencies -->
