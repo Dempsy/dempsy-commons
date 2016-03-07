@@ -261,11 +261,9 @@ try (final ClassPathXmlApplicationContext propsCtx = new ClassPathXmlApplication
             Properties props = reader.read(null);
 
             @Override
-                    public Object getProperty(final String name) {
-                LOGGER.debug("Property requested from " + getName() + " using key: " + name);
+            public Object getProperty(final String name) {
                         return props.getProperty(name);
             }
-
         });
 
      // refresh the context
@@ -278,18 +276,10 @@ try (final ClassPathXmlApplicationContext propsCtx = new ClassPathXmlApplication
 Now, to unit test your code you can supply a different *properties-source.xml*.
 
 ```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
-    xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd 
-    http://www.springframework.org/schema/context
-    http://www.springframework.org/schema/context/spring-context.xsd ">
-
-    <!-- Simple classpath PropertiesReader -->
-    <bean id="prop-reader" class="net.dempsy.distconfig.classpath.ClasspathPropertiesReader">
-     <constructor-arg ref="test-application.properties" />
-    </bean>
-</beans>
+<!-- Simple classpath PropertiesReader -->
+<bean id="prop-reader" class="net.dempsy.distconfig.classpath.ClasspathPropertiesReader">
+   <constructor-arg ref="test-application.properties" />
+</bean>
 ```
 
 In this case, *test-application.properties* would contain a unit testing setting for the *com.mycompany.mailserver*.
