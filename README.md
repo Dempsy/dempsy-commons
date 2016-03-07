@@ -233,6 +233,7 @@ Another bootstrap application context for production would look like the followi
 ```
 
 Walking through this what we want is a PropertiesReader.
+
 1. The PropertiesReader implementation is a ClusterInfoPropertiesReader. This uses the ClusterInfo functionality from *dempsy-cluster.api*.
 1. The ClusterInfoPropertiesReader needs to be passed a ClusterInfoSession in its constructor.
 1. The ClusterInfoSession is a ZookeeperSession from *dempsy-cluster.zookeeper*. The actual session is gotten from a factory bean of the type ZookeeperSessionFactory that's configured with the only bootstrapping parameter necessary. That is ZK_CONFIG.
