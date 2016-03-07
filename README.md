@@ -162,6 +162,138 @@ Serialization abstractions are a dime-a-dozen. This one exists to support the ab
 1. Native Java serialization - artifactId=*dempsy-serialization.java*
 1. Kryo based serialization - artifactId=*dempsy-serialization.kryo*
 
+## <a name="dempsy-distconfig.api"></a>dempsy-distconfig.api
+
+A common problem when writing elastic distributed systems is providing configuration information for newly started dynamically allocated systems. This abstraction and its accompanying implementations provide for a means to do just that.
+
+The right way to approach this problem is to separate environment specific settings and use them as variables in application specific configuration. For example, the location of a mail server or the uri for a database is something that will vary depending on the deployment environment. The *dev* environment can have a different database/mail server than the *test* or *production* environment. Separating these settings into a centrally managed configuration store and bootstrapping that store's location is what this library is about.
+
+### Example using Spring
+
+#### Main Application context
+
+Suppose you have an application context that looks like the following <b>application.xml</b>:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd 
+    http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context.xsd ">
+   
+   <context:property-placeholder />
+
+   <bean class="com.mycompany.MyAppOrService">
+      <constructor-arg name="mailServer" value="${com.mycompany.mailserver}" />
+   </bean>
+</beans>
+```
+
+This application context expects the propery source placeholder configurer to be able to pick up a value for the variable *com.mycompany.mailserver*. This can be done with a PropertiesReader and a small bit of code. For example.
+
+#### PropertiesReader application context.
+
+Another bootstrap application context for production would look like the following *property-source.xml*. Note, what we want from this is a [PropertiesReader](http://dempsy.github.io/Dempsy/dempsy-commons/2.0.0-SNAPSHOT/net/dempsy/distconfig/PropertiesReader.html).
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd 
+    http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context.xsd ">
+
+    <!-- Allow the system to supply the bootstrap variable through a system -->
+    <!--  environment variable or in a -D property on the command line. -->
+    <context:property-placeholder location="/etc/mycompany/thisenvironment.properties" system-properties-mode="OVERRIDE"/>
+    
+    <!-- ClusterInfoSessionFactory using zookeeper with jackson serialization -->
+    <!--  This object needs to be bootrapped with the zookeeper connect string and nothing else. -->
+    <bean id="zk-session-info-factory" class="net.dempsy.cluster.zookeeper.ZookeeperSessionFactory" >
+       <constructor-arg value="${ZK_CONNECT}" />
+       <constructor-arg value="5000" />
+       <constructor-arg>
+         <bean class="net.dempsy.serialization.jackson.JsonSerializer" />
+       </constructor-arg>
+    </bean>
+    
+    <!-- Get a session from the ClusterInfoSessionFactory -->
+    <bean id="zk-session-info" factory-bean="zk-session-info-factory" factory-method="createSession" destroy-method="close" />
+
+    <!-- Use that session in the PropertiesReader -->
+    <bean id="prop-reader" class="net.dempsy.distconfig.clusterinfo.ClusterInfoPropertiesReader">
+     <constructor-arg ref="zk-session-info" />
+     <constructor-arg value="/ptc/envconf" />
+    </bean>
+</beans>
+```
+
+Walking through this what we want is a PropertiesReader.
+1. The PropertiesReader implementation is a ClusterInfoPropertiesReader. This uses the ClusterInfo functionality from *dempsy-cluster.api*.
+1. The ClusterInfoPropertiesReader needs to be passed a ClusterInfoSession in its constructor.
+1. The ClusterInfoSession is a ZookeeperSession from *dempsy-cluster.zookeeper*. The actual session is gotten from a factory bean of the type ZookeeperSessionFactory that's configured with the only bootstrapping parameter necessary. That is ZK_CONFIG.
+1. ZK_CONFIG can be provided in the file already on the system at */etc/mycompany/thisenvironment.properties* or it can be in the system environment, e.g. ```export ZK_CONFIG=host1:2181,host2:2181,host3:2181```. Or it can be provided on the command line as a -D option to the jvm start. e.g. ```-DZK_CONFIG=host1:2181,host2:2181,host3:2181```
+
+#### Glue code.
+
+Now, when we load the application configuration we need to do it in 2 stages. First we need to load the *properties-source.xml* context. Then we need to supply that as a Spring PropertySource to the main application context. This can be done as follows:
+
+```java
+ClassPathXmlApplicationContext ctx;
+
+// Load the properties-source context.
+try (final ClassPathXmlApplicationContext propsCtx = new ClassPathXmlApplicationContext("properies-source.xml");) {
+
+    // Retrieve the reader.
+    final PropertiesReader reader = getOptionalBean(propsCtx, PropertiesReader.class);
+
+    // load the main application context without refreshing it.
+    ctx = new ClassPathXmlApplicationContext(sc.appCtx, false);
+
+    // Add a Spring PropertySource to the main application context's environment
+    ctx.getEnvironment().getPropertySources().addFirst(
+       new PropertySource<Properties>(reader.getClass().getName()) {
+            Properties props = reader.read(null);
+
+            @Override
+                    public Object getProperty(final String name) {
+                LOGGER.debug("Property requested from " + getName() + " using key: " + name);
+                        return props.getProperty(name);
+            }
+
+        });
+
+     // refresh the context
+     ctx.refresh();
+}
+```
+
+#### Unit testing your application
+
+Now, to unit test your code you can supply a different *properties-source.xml*.
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd 
+    http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context.xsd ">
+
+    <!-- Simple classpath PropertiesReader -->
+    <bean id="prop-reader" class="net.dempsy.distconfig.classpath.ClasspathPropertiesReader">
+     <constructor-arg ref="test-application.properties" />
+    </bean>
+</beans>
+```
+
+In this case, *test-application.properties* would contain a unit testing setting for the *com.mycompany.mailserver*.
+
+### Example supplying .yml substitutions in dropwizard.
+
+<b>TBD</b>
+
 See the [API docs](http://dempsy.github.io/Dempsy/dempsy-commons/2.0.0-SNAPSHOT/) for more details.
 
 ## <a name="tools"></a>Tools and Utilities
