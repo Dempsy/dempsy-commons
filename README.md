@@ -11,6 +11,7 @@ This project contains a set of APIs and useful utilities that were generated as 
    1. [Limitations](#limitations) with respect to ZooKeeper
    1. [User Guide](#user-guide) for getting started with the cluster info api
 1. [dempsy-serialization.api](#dempsy-serialization.api) - a simple serialization abastraction and a few implementations
+1. [dempsy-distconfig.api](#dempsy-distconfig.api) - a means of supplying environment configuration for an elastic distributed system
 
 ### [Tools and utilities](#tools)
 1. [dempsy-utils](#dempsy-utils) - A few simple reusalbe components
