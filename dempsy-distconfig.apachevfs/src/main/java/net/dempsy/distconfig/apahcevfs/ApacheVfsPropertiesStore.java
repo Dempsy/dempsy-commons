@@ -32,17 +32,17 @@ import org.apache.commons.vfs2.VFS;
 
 import net.dempsy.distconfig.PropertiesStore;
 
-public class ApacheVfsPropertiesLoader extends PropertiesStore {
+public class ApacheVfsPropertiesStore extends PropertiesStore {
 
     private final FileObject parentDirObj;
-    private final static String COMMENT = "These properties loaded using " + ApacheVfsPropertiesLoader.class.getSimpleName();
+    private final static String COMMENT = "These properties loaded using " + ApacheVfsPropertiesStore.class.getSimpleName();
 
-    public ApacheVfsPropertiesLoader(final String parentUri, final String childPropertiesName) throws IOException {
+    public ApacheVfsPropertiesStore(final String parentUri, final String childPropertiesName) throws IOException {
         final FileObject baseDir = wrap(() -> VFS.getManager().resolveFile(parentUri));
         parentDirObj = wrap(() -> VFS.getManager().resolveFile(baseDir, cleanPath(childPropertiesName)));
     }
 
-    public ApacheVfsPropertiesLoader(final String pathUri) throws IOException {
+    public ApacheVfsPropertiesStore(final String pathUri) throws IOException {
         parentDirObj = wrap(() -> VFS.getManager().resolveFile(pathUri));
     }
 

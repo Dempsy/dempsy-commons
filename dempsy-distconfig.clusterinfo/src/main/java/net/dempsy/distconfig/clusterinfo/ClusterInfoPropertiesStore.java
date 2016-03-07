@@ -27,12 +27,12 @@ import net.dempsy.cluster.ClusterInfoSession;
 import net.dempsy.cluster.DirMode;
 import net.dempsy.distconfig.PropertiesStore;
 
-public class ClusterInfoPropertiesLoader extends PropertiesStore {
+public class ClusterInfoPropertiesStore extends PropertiesStore {
 
     private final ClusterInfoSession session;
     private final String path;
 
-    public ClusterInfoPropertiesLoader(final ClusterInfoSession session, final String path) {
+    public ClusterInfoPropertiesStore(final ClusterInfoSession session, final String path) {
         this.session = session;
 
         this.path = Utils.cleanPath(path);

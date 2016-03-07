@@ -41,7 +41,7 @@ public class TestLocalClusterDistConfig extends TestConfigImplementation {
 
             @Override
             public PropertiesStore apply(final String path) {
-                return new ClusterInfoPropertiesLoader(session, path);
+                return new ClusterInfoPropertiesStore(session, path);
             }
 
             @Override

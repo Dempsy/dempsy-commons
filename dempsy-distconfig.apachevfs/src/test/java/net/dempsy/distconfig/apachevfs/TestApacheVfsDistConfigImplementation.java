@@ -25,7 +25,7 @@ import net.dempsy.distconfig.AutoCloseableFunction;
 import net.dempsy.distconfig.PropertiesStore;
 import net.dempsy.distconfig.PropertiesReader;
 import net.dempsy.distconfig.TestConfigImplementation;
-import net.dempsy.distconfig.apahcevfs.ApacheVfsPropertiesLoader;
+import net.dempsy.distconfig.apahcevfs.ApacheVfsPropertiesStore;
 import net.dempsy.distconfig.apahcevfs.ApacheVfsPropertiesReader;
 
 public class TestApacheVfsDistConfigImplementation extends TestConfigImplementation {
@@ -67,7 +67,7 @@ public class TestApacheVfsDistConfigImplementation extends TestConfigImplementat
 
             @Override
             public PropertiesStore apply(final String pfile) {
-                return unchecked(() -> new ApacheVfsPropertiesLoader("file://" + dir.getAbsolutePath(), pfile));
+                return unchecked(() -> new ApacheVfsPropertiesStore("file://" + dir.getAbsolutePath(), pfile));
             }
 
             @Override
