@@ -12,6 +12,8 @@ This project contains a set of APIs and useful utilities that were generated as 
    1. [User Guide](#user-guide) for getting started with the cluster info api
 1. [dempsy-serialization.api](#dempsy-serialization.api) - a simple serialization abastraction and a few implementations
 1. [dempsy-distconfig.api](#dempsy-distconfig.api) - a means of supplying environment configuration for an elastic distributed system
+   1. [Example using Spring](#dempsy-distconfig-springexample)
+   1. [Example in a dropwizard app](#dempsy-distconfig-dropwizard)
 
 ### [Tools and utilities](#tools)
 1. [dempsy-utils](#dempsy-utils) - A few simple reusalbe components
@@ -169,7 +171,7 @@ A common problem when writing elastic distributed systems is providing configura
 
 The right way to approach this problem is to separate environment specific settings and use them as variables in application specific configuration. For example, the location of a mail server or the uri for a database is something that will vary depending on the deployment environment. The *dev* environment can have a different database/mail server than the *test* or *production* environment. Separating these settings into a centrally managed configuration store and bootstrapping that store's location is what this library is about.
 
-### Example using Spring
+### <a name="dempsy-distconfig-springexample"></a>Example using Spring
 
 #### Main Application context
 
@@ -247,7 +249,7 @@ ClassPathXmlApplicationContext ctx;
 try (final ClassPathXmlApplicationContext propsCtx = new ClassPathXmlApplicationContext("properies-source.xml");) {
 
     // Retrieve the reader.
-    final PropertiesReader reader = getOptionalBean(propsCtx, PropertiesReader.class);
+    final PropertiesReader reader = propsCtx.getBean(PropertiesReader.class);
 
     // load the main application context without refreshing it.
     ctx = new ClassPathXmlApplicationContext(sc.appCtx, false);
@@ -291,7 +293,7 @@ Now, to unit test your code you can supply a different *properties-source.xml*.
 
 In this case, *test-application.properties* would contain a unit testing setting for the *com.mycompany.mailserver*.
 
-### Example supplying .yml substitutions in dropwizard.
+### <a name="dempsy-distconfig-dropwizard"></a>Example supplying .yml substitutions in dropwizard.
 
 <b>TBD</b>
 
