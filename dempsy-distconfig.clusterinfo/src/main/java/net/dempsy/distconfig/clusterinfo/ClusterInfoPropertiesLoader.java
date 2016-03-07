@@ -25,9 +25,9 @@ import java.util.Properties;
 import net.dempsy.cluster.ClusterInfoException;
 import net.dempsy.cluster.ClusterInfoSession;
 import net.dempsy.cluster.DirMode;
-import net.dempsy.distconfig.PropertiesLoader;
+import net.dempsy.distconfig.PropertiesStore;
 
-public class ClusterInfoPropertiesLoader extends PropertiesLoader {
+public class ClusterInfoPropertiesLoader extends PropertiesStore {
 
     private final ClusterInfoSession session;
     private final String path;

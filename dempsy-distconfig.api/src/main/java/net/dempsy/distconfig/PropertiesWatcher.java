@@ -16,6 +16,9 @@
 
 package net.dempsy.distconfig;
 
+/**
+ * Callback interface used to register for changes to the current distributed properties.
+ */
 @FunctionalInterface
 public interface PropertiesWatcher {
     public void propertiesChanged();

@@ -25,7 +25,7 @@ import net.dempsy.cluster.ClusterInfoSession;
 import net.dempsy.cluster.zookeeper.ZookeeperSessionFactory;
 import net.dempsy.cluster.zookeeper.ZookeeperTestServer;
 import net.dempsy.distconfig.AutoCloseableFunction;
-import net.dempsy.distconfig.PropertiesLoader;
+import net.dempsy.distconfig.PropertiesStore;
 import net.dempsy.distconfig.PropertiesReader;
 import net.dempsy.distconfig.TestConfigImplementation;
 import net.dempsy.serialization.jackson.JsonSerializer;
@@ -49,12 +49,12 @@ public class TestZookeeperClusterDistConfig extends TestConfigImplementation {
     }
 
     @Override
-    protected AutoCloseableFunction<PropertiesLoader> getLoader(final String testName) throws Exception {
-        return new AutoCloseableFunction<PropertiesLoader>() {
+    protected AutoCloseableFunction<PropertiesStore> getLoader(final String testName) throws Exception {
+        return new AutoCloseableFunction<PropertiesStore>() {
             ClusterInfoSession session = factory.createSession();
 
             @Override
-            public PropertiesLoader apply(final String path) {
+            public PropertiesStore apply(final String path) {
                 return new ClusterInfoPropertiesLoader(session, path);
             }
 

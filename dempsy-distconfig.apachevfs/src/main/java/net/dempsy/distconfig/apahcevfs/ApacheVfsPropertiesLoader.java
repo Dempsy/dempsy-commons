@@ -30,9 +30,9 @@ import java.util.Properties;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.VFS;
 
-import net.dempsy.distconfig.PropertiesLoader;
+import net.dempsy.distconfig.PropertiesStore;
 
-public class ApacheVfsPropertiesLoader extends PropertiesLoader {
+public class ApacheVfsPropertiesLoader extends PropertiesStore {
 
     private final FileObject parentDirObj;
     private final static String COMMENT = "These properties loaded using " + ApacheVfsPropertiesLoader.class.getSimpleName();

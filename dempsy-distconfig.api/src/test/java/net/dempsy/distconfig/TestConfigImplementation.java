@@ -37,15 +37,15 @@ public abstract class TestConfigImplementation {
         return new BufferedInputStream(TestConfigImplementation.class.getClassLoader().getResourceAsStream(classpathResource));
     }
 
-    protected abstract AutoCloseableFunction<PropertiesLoader> getLoader(String testName) throws Exception;
+    protected abstract AutoCloseableFunction<PropertiesStore> getLoader(String testName) throws Exception;
 
     protected abstract AutoCloseableFunction<PropertiesReader> getReader(String testName) throws Exception;
 
     @Test
     public void testSimpleWriteAndRead() throws Exception {
-        try (final AutoCloseableFunction<PropertiesLoader> loaderac = getLoader("testSimpleWriteAndRead");
+        try (final AutoCloseableFunction<PropertiesStore> loaderac = getLoader("testSimpleWriteAndRead");
                 final AutoCloseableFunction<PropertiesReader> readerac = getReader("testSimpleWriteAndRead");) {
-            final PropertiesLoader loader = loaderac.apply(PATH);
+            final PropertiesStore loader = loaderac.apply(PATH);
             final PropertiesReader reader = readerac.apply(PATH);
             assertEquals(0, loader.push(new PropertiesBuilder().add("hello", "world").build()));
             final VersionedProperties props = reader.read(null);
@@ -56,9 +56,9 @@ public abstract class TestConfigImplementation {
 
     @Test
     public void testNotifyWithNewProps() throws Throwable {
-        try (final AutoCloseableFunction<PropertiesLoader> loaderac = getLoader("testNotifyWithNewProps");
+        try (final AutoCloseableFunction<PropertiesStore> loaderac = getLoader("testNotifyWithNewProps");
                 final AutoCloseableFunction<PropertiesReader> readerac = getReader("testNotifyWithNewProps");) {
-            final PropertiesLoader loader = loaderac.apply(PATH);
+            final PropertiesStore loader = loaderac.apply(PATH);
             final PropertiesReader reader = readerac.apply(PATH);
 
             final AtomicBoolean notified = new AtomicBoolean(false);
@@ -76,9 +76,9 @@ public abstract class TestConfigImplementation {
 
     @Test
     public void testNotifyWithPropsChangeWithMerge() throws Throwable {
-        try (final AutoCloseableFunction<PropertiesLoader> loaderac = getLoader("testNotifyWithPropsChangeWithMerge");
+        try (final AutoCloseableFunction<PropertiesStore> loaderac = getLoader("testNotifyWithPropsChangeWithMerge");
                 final AutoCloseableFunction<PropertiesReader> readerac = getReader("testNotifyWithPropsChangeWithMerge");) {
-            final PropertiesLoader loader = loaderac.apply(PATH);
+            final PropertiesStore loader = loaderac.apply(PATH);
             final PropertiesReader reader = readerac.apply(PATH);
             final AtomicBoolean notifiedNew = new AtomicBoolean(false);
             final AtomicBoolean notifiedChanged = new AtomicBoolean(false);
@@ -111,9 +111,9 @@ public abstract class TestConfigImplementation {
 
     @Test
     public void testNotifyWithPropsChangeWithPush() throws Throwable {
-        try (final AutoCloseableFunction<PropertiesLoader> loaderac = getLoader("testNotifyWithPropsChangeWithPush");
+        try (final AutoCloseableFunction<PropertiesStore> loaderac = getLoader("testNotifyWithPropsChangeWithPush");
                 final AutoCloseableFunction<PropertiesReader> readerac = getReader("testNotifyWithPropsChangeWithPush");) {
-            final PropertiesLoader loader = loaderac.apply(PATH);
+            final PropertiesStore loader = loaderac.apply(PATH);
             final PropertiesReader reader = readerac.apply(PATH);
             final AtomicBoolean notifiedNew = new AtomicBoolean(false);
             final AtomicBoolean notifiedChanged = new AtomicBoolean(false);
@@ -158,9 +158,9 @@ public abstract class TestConfigImplementation {
     }
 
     private void testPathHandling(final String testName, final String path) throws Exception {
-        try (final AutoCloseableFunction<PropertiesLoader> loaderac = getLoader(testName);
+        try (final AutoCloseableFunction<PropertiesStore> loaderac = getLoader(testName);
                 final AutoCloseableFunction<PropertiesReader> readerac = getReader(testName);) {
-            final PropertiesLoader loader = loaderac.apply(path);
+            final PropertiesStore loader = loaderac.apply(path);
             final PropertiesReader reader = readerac.apply("/dempsy/envconf");
 
             final Properties loggingProps = new PropertiesBuilder().load(is("log4j.properties")).build();

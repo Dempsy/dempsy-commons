@@ -22,7 +22,7 @@ import java.io.IOException;
 import org.codehaus.plexus.util.FileUtils;
 
 import net.dempsy.distconfig.AutoCloseableFunction;
-import net.dempsy.distconfig.PropertiesLoader;
+import net.dempsy.distconfig.PropertiesStore;
 import net.dempsy.distconfig.PropertiesReader;
 import net.dempsy.distconfig.TestConfigImplementation;
 import net.dempsy.distconfig.apahcevfs.ApacheVfsPropertiesLoader;
@@ -61,12 +61,12 @@ public class TestApacheVfsDistConfigImplementation extends TestConfigImplementat
     }
 
     @Override
-    protected AutoCloseableFunction<PropertiesLoader> getLoader(final String testName) {
-        return new AutoCloseableFunction<PropertiesLoader>() {
+    protected AutoCloseableFunction<PropertiesStore> getLoader(final String testName) {
+        return new AutoCloseableFunction<PropertiesStore>() {
             private final File dir = genTempFile(testName);
 
             @Override
-            public PropertiesLoader apply(final String pfile) {
+            public PropertiesStore apply(final String pfile) {
                 return unchecked(() -> new ApacheVfsPropertiesLoader("file://" + dir.getAbsolutePath(), pfile));
             }
 
