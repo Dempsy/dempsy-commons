@@ -44,9 +44,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-        <groupId>net.dempsy</groupId>
-        <artifactId>dempsy-serialization.jackson</artifactId>
-        <scope>test</scope>
+      <groupId>net.dempsy</groupId>
+      <artifactId>dempsy-serialization.jackson</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>net.dempsy</groupId>
@@ -57,6 +57,7 @@
       <groupId>net.dempsy</groupId>
       <artifactId>dempsy-cluster.api</artifactId>
       <type>test-jar</type>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>net.dempsy</groupId>
