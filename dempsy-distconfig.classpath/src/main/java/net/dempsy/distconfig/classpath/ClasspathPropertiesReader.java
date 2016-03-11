@@ -19,6 +19,7 @@ package net.dempsy.distconfig.classpath;
 import static net.dempsy.util.Functional.chainThrows;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
 import net.dempsy.distconfig.PropertiesReader;
@@ -57,8 +58,9 @@ public class ClasspathPropertiesReader implements PropertiesReader {
                 : (classpathUri.startsWith("classpathUri:") ? classpathUri.substring(11) : cleanPath(classpathUri));
 
         System.out.println("trying to read:" + resource);
-        return new VersionedProperties(0,
-                chainThrows(new Properties(), p -> p.load(ClasspathPropertiesReader.class.getClassLoader().getResourceAsStream(resource))));
+        final InputStream resAsStream = ClasspathPropertiesReader.class.getClassLoader().getResourceAsStream(resource);
+        return resAsStream == null ? new VersionedProperties(-1, null) : new VersionedProperties(0,
+                chainThrows(new Properties(), p -> p.load(resAsStream)));
     }
 
     @Override
