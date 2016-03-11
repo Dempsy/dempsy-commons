@@ -21,13 +21,17 @@ public class Functional {
         }
     }
 
-    public static <T> T chain(final T t, final Consumer<T> f) {
-        f.accept(t);
+    @SafeVarargs
+    public static <T> T chain(final T t, final Consumer<T>... fs) {
+        for (final Consumer<T> f : fs)
+            f.accept(t);
         return t;
     }
 
-    public static <T, E extends Exception> T chainThrows(final T t, final ConsumerThrows<T, E> f) throws E {
-        f.accept(t);
+    @SafeVarargs
+    public static <T, E extends Exception> T chainThrows(final T t, final ConsumerThrows<T, E>... fs) throws E {
+        for (final ConsumerThrows<T, E> f : fs)
+            f.accept(t);
         return t;
     }
 }
