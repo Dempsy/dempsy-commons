@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd 
+    http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context.xsd ">
+    
+    <context:property-placeholder system-properties-mode="OVERRIDE"/>
+    
+    <!-- ClusterInfoSessionFactory using zookeeper with jackson serialization -->
+    <bean id="zk-session-info-factory" class="net.dempsy.cluster.zookeeper.ZookeeperSessionFactory" >
+       <constructor-arg value="${ZK_CONNECT}" />
+       <constructor-arg value="5000" />
+       <constructor-arg>
+         <bean class="net.dempsy.serialization.jackson.JsonSerializer" />
+       </constructor-arg>
+    </bean>
+    
+    <!-- Get a session from the ClusterInfoSessionFactory -->
+    <bean id="zk-session-info" factory-bean="zk-session-info-factory" factory-method="createSession" destroy-method="close" />
+
+    <!-- Use that session in the PropertiesReader -->
+    <bean id="prop-reader" class="net.dempsy.distconfig.clusterinfo.ClusterInfoPropertiesReader">
+     <constructor-arg ref="zk-session-info" />
+     <constructor-arg value="${CONFIG_PATH:/envconf}" />
+    </bean>
+    
+    <bean id="prop-store" class="net.dempsy.distconfig.clusterinfo.ClusterInfoPropertiesStore" >
+     <constructor-arg ref="zk-session-info" />
+     <constructor-arg value="${CONFIG_PATH:/envconf}" />
+    </bean>
+</beans>

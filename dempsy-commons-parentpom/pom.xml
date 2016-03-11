@@ -52,6 +52,9 @@
     <dempsy-serialization.jackson.version>2.0.0-SNAPSHOT</dempsy-serialization.jackson.version>
     <dempsy-test-utils.version>2.0.0-SNAPSHOT</dempsy-test-utils.version>
     <dempsy-distconfig.api.version>2.0.0-SNAPSHOT</dempsy-distconfig.api.version>
+    <dempsy-distconfig.clusterinfo.version>2.0.0-SNAPSHOT</dempsy-distconfig.clusterinfo.version>
+    <dempsy-distconfig.apachevfs.version>2.0.0-SNAPSHOT</dempsy-distconfig.apachevfs.version>
+    <spring-framework.version>4.2.5.RELEASE</spring-framework.version>
   </properties>
 
   <!-- This section provides some unifority of dependencies for all dempsy-commons projects -->
@@ -77,6 +80,16 @@
         <groupId>net.dempsy</groupId>
         <artifactId>dempsy-distconfig.api</artifactId>
         <version>${dempsy-distconfig.api.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.dempsy</groupId>
+        <artifactId>dempsy-distconfig.apachevfs</artifactId>
+        <version>${dempsy-distconfig.apachevfs.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.dempsy</groupId>
+        <artifactId>dempsy-distconfig.clusterinfo</artifactId>
+        <version>${dempsy-distconfig.clusterinfo.version}</version>
       </dependency>
 
       <!-- 3rd party -->
@@ -109,6 +122,11 @@
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-vfs2</artifactId>
         <version>2.0</version>
+      </dependency>
+      <dependency>
+       <groupId>org.springframework</groupId>
+       <artifactId>spring-context</artifactId>
+       <version>${spring-framework.version}</version>
       </dependency>
 
       <!-- Testing - internal -->
