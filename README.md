@@ -312,7 +312,7 @@ There's also the ability to chain calls where the lambda's may throw exceptions.
 
 Several of these utilites are meant to help with lambda's that throw checked excpetions; something Java 8 streams is notoriously bad at.
 
-For example, since Class.forName throws the checked exception ClassNotFoundException we cannot normally use it in a lambda unless we use try/catch blocks.
+For example, since <em>Class.forName</em> throws the checked exception <em>ClassNotFoundException</em> we cannot normally use it in a lambda unless we use <em>try/catch</em> blocks inside the lambda.
 
 What if we wanted the stream operation (map, forEach, etc.) to throw the same exception that might be thrown from the lambda? <em>uncheck</em> and <em>recheck</em> are for this purpose.
 
