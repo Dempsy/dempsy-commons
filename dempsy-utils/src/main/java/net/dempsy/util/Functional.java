@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
- * A series of methods utilities to help with Java 8 functional operations.
+ * A series of utilities to help with Java 8 functional operations.
  */
 public class Functional {
     /**
@@ -208,7 +208,7 @@ public class Functional {
      * <pre>
      * {@code
      * try {
-     *     classes = Functional.&lt;ClassNotFoundException&gt; recheck(() -> classnames.stream().map(cn -> uncheck(() -> Class.forName(cn))));
+     *     classes = Functional.<ClassNotFoundException> recheck(() -> classnames.stream().map(cn -> uncheck(() -> Class.forName(cn))));
      * } catch (final ClassNotFoundException cnf) {
      *     ...
      * }
@@ -259,7 +259,7 @@ public class Functional {
      * <pre>
      * {@code
      *   try {
-     *       Functional.&lt;ClassNotFoundException&gt; recheck(() -> strings.stream().forEach(s -> uncheck(() -> objectOutputStream.writeObject(s))));
+     *       Functional.<ClassNotFoundException> recheck(() -> strings.stream().forEach(s -> uncheck(() -> objectOutputStream.writeObject(s))));
      *   } catch (final ClassNotFoundException cnf) {
      *       ....
      *   }
