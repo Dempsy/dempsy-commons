@@ -300,14 +300,15 @@ Several of the utilities are simple reusalbe components meant for internal (to d
 * [AutoDisposeSingleThreadScheduler](http://dempsy.github.io/Dempsy/dempsy-commons/2.0.0-SNAPSHOT/net/dempsy/util/executor/AutoDisposeSingleThreadScheduler.html) is a self contained *one-shot* scheduler for a future task. It cleans itself up once the task executes. It's useful for scheduling retries without worrying about cleaning up threads afterward.
 * [MessageBufferInput](http://dempsy.github.io/Dempsy/dempsy-commons/2.0.0-SNAPSHOT/net/dempsy/util/io/MessageBufferInput.html)/[MessageBufferOutput](http://dempsy.github.io/Dempsy/dempsy-commons/2.0.0-SNAPSHOT/net/dempsy/util/io/MessageBufferOutput.html) are java.io Input/Output Streams that can be used for *zero-copy* messaging. That is, you can serialize/deserialize directly to/from a network buffer (or other intermediary) without copying bytes around. These classes are used in the *dempsy-serialization.api*.
 * [Java 8 Functional programming support](http://dempsy.github.io/Dempsy/dempsy-commons/2.0.0-SNAPSHOT/net/dempsy/util/Functional.html) is a set of utilities that make up for some of the lack of functionality in Java 8.
-    * Chaining method calls. There is support for the ability to chain calls and create "Builder" like functionality from existing classes that were never meant to be used this way. For example:
+*    * Chaining method calls. There is support for the ability to chain calls and create "Builder" like functionality from existing classes that were never meant to be used this way. For example:
 
 ```java
 Properties properties = chain(new Properties(), p -> p.setProperty("name1", "value1"), p -> p.setProperty("name2", "value2"));
 ```
 
 There's also the ability to chain calls where the lambda's may throw exceptions. See [chainThrows](http://dempsy.github.io/Dempsy/dempsy-commons/2.0.0-SNAPSHOT/net/dempsy/util/Functional.html#chainThrows-T-net.dempsy.util.Functional.ConsumerThrows...-)
-    * Exception handling in Lambda's.
+
+*    * Exception handling in Lambda's.
 
 Several of these utilites are meant to help with lambda's that throw checked excpetions; something Java 8 streams is notoriously bad at.
 
