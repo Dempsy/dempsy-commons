@@ -16,7 +16,7 @@
 
 package net.dempsy.distconfig.classpath;
 
-import static net.dempsy.util.Functional.unchecked;
+import static net.dempsy.util.Functional.uncheck;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -56,8 +56,8 @@ public class TestClasspathDistConfigImplementation extends TestConfigImplementat
 
     @Override
     protected AutoCloseableFunction<PropertiesReader> getReader(final String testName) {
-        return !"testNullWatcherNoProps".equals(testName) ? (path -> unchecked(() -> new ClasspathPropertiesReader(path)))
-                : (path -> unchecked(() -> new ClasspathPropertiesReader("nofile")));
+        return !"testNullWatcherNoProps".equals(testName) ? (path -> uncheck(() -> new ClasspathPropertiesReader(path)))
+                : (path -> uncheck(() -> new ClasspathPropertiesReader("nofile")));
     }
 
 }

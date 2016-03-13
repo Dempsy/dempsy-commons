@@ -16,7 +16,7 @@
 
 package net.dempsy.distconfig.apachevfs;
 
-import static net.dempsy.util.Functional.unchecked;
+import static net.dempsy.util.Functional.uncheck;
 
 import java.io.File;
 import java.io.IOException;
@@ -56,7 +56,7 @@ public class TestApacheVfsDistConfigImplementation extends TestConfigImplementat
 
             @Override
             public PropertiesStore apply(final String pfile) {
-                return unchecked(() -> new ApacheVfsPropertiesStore("file://" + dir.getAbsolutePath(), pfile));
+                return uncheck(() -> new ApacheVfsPropertiesStore("file://" + dir.getAbsolutePath(), pfile));
             }
 
             @Override
@@ -68,7 +68,7 @@ public class TestApacheVfsDistConfigImplementation extends TestConfigImplementat
 
     @Override
     protected AutoCloseableFunction<PropertiesReader> getReader(final String testName) {
-        return pfile -> unchecked(() -> new ApacheVfsPropertiesReader("file://" + genTempFile(testName).getAbsolutePath(), pfile));
+        return pfile -> uncheck(() -> new ApacheVfsPropertiesReader("file://" + genTempFile(testName).getAbsolutePath(), pfile));
     }
 
 }
