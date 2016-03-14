@@ -20,9 +20,10 @@ import static net.dempsy.distconfig.apahcevfs.Utils.cleanPath;
 import static net.dempsy.distconfig.apahcevfs.Utils.getLatest;
 import static net.dempsy.distconfig.apahcevfs.Utils.getVersion;
 import static net.dempsy.distconfig.apahcevfs.Utils.nextFile;
-import static net.dempsy.distconfig.apahcevfs.Utils.wrap;
+import static net.dempsy.util.Functional.mapChecked;
 
 import java.io.IOException;
+import java.util.function.Function;
 
 import org.apache.commons.vfs2.FileChangeEvent;
 import org.apache.commons.vfs2.FileListener;
@@ -36,15 +37,17 @@ import net.dempsy.distconfig.PropertiesWatcher;
 
 public class ApacheVfsPropertiesReader implements PropertiesReader {
     private static Logger LOGGER = LoggerFactory.getLogger(ApacheVfsPropertiesReader.class);
+    private final static Function<Exception, IOException> em = e -> IOException.class.isAssignableFrom(e.getClass()) ? (IOException) e
+            : new IOException(e);
     private final FileObject parentDirObj;
 
     public ApacheVfsPropertiesReader(final String parentUri, final String childPropertiesName) throws IOException {
-        final FileObject baseDir = wrap(() -> VFS.getManager().resolveFile(parentUri));
-        parentDirObj = wrap(() -> VFS.getManager().resolveFile(baseDir, cleanPath(childPropertiesName)));
+        final FileObject baseDir = mapChecked(() -> VFS.getManager().resolveFile(parentUri), em);
+        parentDirObj = mapChecked(() -> VFS.getManager().resolveFile(baseDir, cleanPath(childPropertiesName)), em);
     }
 
     public ApacheVfsPropertiesReader(final String pathUri) throws IOException {
-        parentDirObj = wrap(() -> VFS.getManager().resolveFile(pathUri));
+        parentDirObj = mapChecked(() -> VFS.getManager().resolveFile(pathUri), em);
     }
 
     private static class Proxy implements FileListener {

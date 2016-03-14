@@ -46,6 +46,11 @@ public class TestClasspathDistConfigImplementation extends TestConfigImplementat
                     public int merge(final Properties props) throws IOException {
                         return 0;
                     }
+
+                    @Override
+                    public int clear(final String... propNames) throws IOException {
+                        return 0;
+                    }
                 };
             }
 

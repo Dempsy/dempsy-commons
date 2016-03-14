@@ -3,6 +3,7 @@ package net.dempsy.util;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -297,6 +298,30 @@ public class Functional {
             f.run();
         } catch (final UncheckingExcpetion e) {
             throw (E) e.checked;
+        }
+    }
+
+    /**
+     * This method allows for the automapping mapping of lambda's that throw checked exceptions to other (checked or unchecked) exceptions.
+     * 
+     * @param f
+     *            is the lambda to remap.
+     * @param mapException
+     *            is the function to do the mapping
+     * @return whatever the lambda returns if no exception occurs.
+     * @throws Eout
+     *             when the function maps an exception, it is thrown from the method call.
+     */
+    @SuppressWarnings("unchecked")
+    public static <T, Ein extends Exception, Eout extends Exception> T mapChecked(final SupplierThrows<T, Ein> f,
+            final Function<Ein, Eout> mapException)
+                    throws Eout {
+        try {
+            return f.get();
+        } catch (final RuntimeException rte) {
+            throw rte;
+        } catch (final Exception e) {
+            throw mapException.apply((Ein) e);
         }
     }
 }

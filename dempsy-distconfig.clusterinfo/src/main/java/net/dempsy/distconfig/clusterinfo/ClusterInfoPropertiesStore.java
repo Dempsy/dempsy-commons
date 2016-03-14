@@ -20,6 +20,8 @@ import static net.dempsy.distconfig.clusterinfo.Utils.mkdir;
 import static net.dempsy.distconfig.clusterinfo.Utils.versionSubdirPrefix;
 import static net.dempsy.distconfig.clusterinfo.Utils.versionSubdirPrefixLen;
 
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.Properties;
 
 import net.dempsy.cluster.ClusterInfoException;
@@ -54,6 +56,17 @@ public class ClusterInfoPropertiesStore extends PropertiesStore {
         return write(newProps);
     }
 
+    @Override
+    public int clear(final String... propNames) throws IOException {
+        final Properties setProps = new ClusterInfoPropertiesReader(session, path).read(null);
+
+        final Properties newProps = new Properties();
+        newProps.putAll(setProps);
+        Arrays.stream(propNames).forEach(newProps::remove);
+
+        return write(newProps);
+    }
+
     private int write(final Properties prop) {
         try {
             // make sure the path exists
@@ -65,4 +78,5 @@ public class ClusterInfoPropertiesStore extends PropertiesStore {
             throw new RuntimeException(cie); // not great.
         }
     }
+
 }

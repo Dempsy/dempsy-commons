@@ -21,11 +21,13 @@ import static net.dempsy.distconfig.apahcevfs.Utils.getLatest;
 import static net.dempsy.distconfig.apahcevfs.Utils.getVersion;
 import static net.dempsy.distconfig.apahcevfs.Utils.nextFile;
 import static net.dempsy.distconfig.apahcevfs.Utils.read;
-import static net.dempsy.distconfig.apahcevfs.Utils.wrap;
+import static net.dempsy.util.Functional.mapChecked;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.Properties;
+import java.util.function.Function;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.VFS;
@@ -37,29 +39,32 @@ public class ApacheVfsPropertiesStore extends PropertiesStore {
     private final FileObject parentDirObj;
     private final static String COMMENT = "These properties loaded using " + ApacheVfsPropertiesStore.class.getSimpleName();
 
+    private final static Function<Exception, IOException> em = e -> IOException.class.isAssignableFrom(e.getClass()) ? (IOException) e
+            : new IOException(e);
+
     public ApacheVfsPropertiesStore(final String parentUri, final String childPropertiesName) throws IOException {
-        final FileObject baseDir = wrap(() -> VFS.getManager().resolveFile(parentUri));
-        parentDirObj = wrap(() -> VFS.getManager().resolveFile(baseDir, cleanPath(childPropertiesName)));
+        final FileObject baseDir = mapChecked(() -> VFS.getManager().resolveFile(parentUri), em);
+        parentDirObj = mapChecked(() -> VFS.getManager().resolveFile(baseDir, cleanPath(childPropertiesName)), em);
     }
 
     public ApacheVfsPropertiesStore(final String pathUri) throws IOException {
-        parentDirObj = wrap(() -> VFS.getManager().resolveFile(pathUri));
+        parentDirObj = mapChecked(() -> VFS.getManager().resolveFile(pathUri), em);
     }
 
     @Override
     public int push(final Properties props) throws IOException {
-        return wrap(() -> {
+        return mapChecked(() -> {
             final FileObject next = nextFile(getLatest(parentDirObj), parentDirObj);
             try (OutputStream os = next.getContent().getOutputStream()) {
                 props.store(os, COMMENT);
             }
             return new Integer(getVersion(next));
-        }).intValue();
+        } , em).intValue();
     }
 
     @Override
     public int merge(final Properties props) throws IOException {
-        return wrap(() -> {
+        return mapChecked(() -> {
             final FileObject latest = getLatest(parentDirObj);
             if (latest == null)
                 return push(props);
@@ -74,7 +79,27 @@ public class ApacheVfsPropertiesStore extends PropertiesStore {
                 newProps.store(os, COMMENT);
             }
             return new Integer(getVersion(next));
-        }).intValue();
+        } , em).intValue();
+    }
+
+    @Override
+    public int clear(final String... props) throws IOException {
+        return mapChecked(() -> {
+            final FileObject latest = getLatest(parentDirObj);
+            if (latest == null)
+                return -1;
+
+            final Properties oldProps = read(latest);
+            final Properties newProps = new Properties();
+            newProps.putAll(oldProps);
+            Arrays.stream(props).forEach(newProps::remove);
+
+            final FileObject next = nextFile(latest, parentDirObj);
+            try (OutputStream os = next.getContent().getOutputStream()) {
+                newProps.store(os, COMMENT);
+            }
+            return new Integer(getVersion(next));
+        } , em).intValue();
     }
 
 }

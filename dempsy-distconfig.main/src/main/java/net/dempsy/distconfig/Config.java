@@ -20,7 +20,7 @@ import net.dempsy.distconfig.PropertiesReader.VersionedProperties;
 
 public class Config {
 
-    private final static Set<String> validCommands = new HashSet<>(Arrays.asList("push", "set", "merge", "read"));
+    private final static Set<String> validCommands = new HashSet<>(Arrays.asList("push", "set", "merge", "read", "clear"));
 
     private static final String SYSTEM_PROP_NAME_APP_CTX = "appCtx";
     private static final String DEFAULT_APP_CTX = "classpath:zk.xml";
@@ -29,10 +29,11 @@ public class Config {
         System.err.println("usage: java [-DappCtx=ctx1[,ctx2[,...]]] -jar Config.jar prop-source-uri command [...]");
         System.err.println("      command                  args");
         System.err.println("      ---------------------------------------");
-        System.err.println("      push           path-to-properties-file");
-        System.err.println("      set            propertyName=value[,propertyName=value[,...]]");
         System.err.println("      read           [path to location to write props]");
+        System.err.println("      push           path-to-properties-file");
         System.err.println("      merge          path-to-properties-file");
+        System.err.println("      set            propertyName=value[,propertyName=value[,...]]");
+        System.err.println("      clear          propertyName[,propertyName[,...]]");
         System.err.println();
         System.err.println("Note: The default application context expects the variable ZK_CONNECT to be set. You can");
         System.err.println("      set it as an environment variable or using -DZK_CONNECT=connectstring. The connect");
@@ -76,6 +77,8 @@ public class Config {
                 merge(args);
             else if ("read".equals(command))
                 read(args);
+            else if ("clear".equals(command))
+                clear(args);
             else
                 usage();
         }
@@ -107,6 +110,12 @@ public class Config {
             props.setProperty(keyAndValue[0], keyAndValue[1]);
         });
         store.merge(props);
+    }
+
+    private static void clear(final String[] args) throws IOException {
+        if (args.length != 2)
+            usage();
+        store.clear(args[1].split(","));
     }
 
     private static void read(final String[] args) throws Exception {

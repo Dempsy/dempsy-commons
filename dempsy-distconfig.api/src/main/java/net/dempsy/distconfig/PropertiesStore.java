@@ -43,8 +43,18 @@ public abstract class PropertiesStore {
      * @return the new version of the properties.
      * @throws IOException
      *             if the underlying transport or storage mechanism throws an IOException
-     * 
      */
     public abstract int merge(Properties props) throws IOException;
+
+    /**
+     * This will clear the given properties by name.
+     * 
+     * @param propNames
+     *            is the set of keys to clear from the distributed properties.
+     * @return the new version of the properties.
+     * @throws IOException
+     *             if the underlying transport or storage mechanism throws an IOException
+     */
+    public abstract int clear(String... propNames) throws IOException;
 
 }

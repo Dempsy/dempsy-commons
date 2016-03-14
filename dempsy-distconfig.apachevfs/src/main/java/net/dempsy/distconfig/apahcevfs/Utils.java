@@ -31,16 +31,6 @@ class Utils {
     public static final String versionSuffixPrefix = "v_";
     public static final int versionSuffixPrefixLen = versionSuffixPrefix.length();
 
-    @FunctionalInterface
-    public static interface VoidFunctionThrows {
-        void exec() throws FileSystemException, IOException;
-    }
-
-    @FunctionalInterface
-    public static interface SupplierThrows<T> {
-        T get() throws FileSystemException, IOException;
-    }
-
     public static String cleanPath(final String path) {
         String trimmed = path.trim();
         if (trimmed.startsWith("/"))
@@ -48,22 +38,6 @@ class Utils {
         if (trimmed.endsWith("/"))
             trimmed = trimmed.substring(0, trimmed.length() - 1); // chop off trailing '/'. Let's hope there's not more than one.
         return trimmed;
-    }
-
-    public static void wrap(final VoidFunctionThrows f) throws IOException {
-        try {
-            f.exec();
-        } catch (final FileSystemException fse) {
-            throw new IOException(fse);
-        }
-    }
-
-    public static <T> T wrap(final SupplierThrows<T> f) throws IOException {
-        try {
-            return f.get();
-        } catch (final FileSystemException fse) {
-            throw new IOException(fse);
-        }
     }
 
     public static String genVersionSuffix(final int version) {
