@@ -110,12 +110,12 @@ public class TestFunctional {
     }
 
     @Test(expected = MyException.class)
-    public void testMapCheckedReturns() throws Throwable {
+    public void testMapCheckedReturns() throws MyException {
         @SuppressWarnings({ "rawtypes", "unused" })
         final List classes = mapChecked(() -> {
             final List<String> classnames = Arrays.asList("java.lang.String", "junk.no.class.Exists");
             return recheck(() -> classnames.stream().map(cn -> uncheck(() -> Class.forName(cn))).collect(Collectors.toList()),
                     ClassNotFoundException.class);
-        } , (final ClassNotFoundException cnfe) -> new MyException(cnfe));
+        } , (final Exception cnfe) -> new MyException(cnfe));
     }
 }
