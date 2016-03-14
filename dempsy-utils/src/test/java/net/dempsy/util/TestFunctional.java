@@ -1,5 +1,6 @@
 package net.dempsy.util;
 
+import static net.dempsy.util.Functional.mapChecked;
 import static net.dempsy.util.Functional.recheck;
 import static net.dempsy.util.Functional.uncheck;
 
@@ -89,4 +90,32 @@ public class TestFunctional {
         }
     }
 
+    public static class MyException extends Exception {
+        private static final long serialVersionUID = 1L;
+
+        public MyException(final Exception e) {
+            super(e);
+        }
+    }
+
+    @Test(expected = MyException.class)
+    public void testMapChecked() throws Throwable {
+        mapChecked(() -> {
+            final List<String> classnames = Arrays.asList("java.lang.String", "junk.no.class.Exists");
+            @SuppressWarnings({ "unused", "rawtypes" })
+            List classes = null;
+            classes = recheck(() -> classnames.stream().map(cn -> uncheck(() -> Class.forName(cn))).collect(Collectors.toList()),
+                    ClassNotFoundException.class);
+        } , (final ClassNotFoundException cnfe) -> new MyException(cnfe));
+    }
+
+    @Test(expected = MyException.class)
+    public void testMapCheckedReturns() throws Throwable {
+        @SuppressWarnings({ "rawtypes", "unused" })
+        final List classes = mapChecked(() -> {
+            final List<String> classnames = Arrays.asList("java.lang.String", "junk.no.class.Exists");
+            return recheck(() -> classnames.stream().map(cn -> uncheck(() -> Class.forName(cn))).collect(Collectors.toList()),
+                    ClassNotFoundException.class);
+        } , (final ClassNotFoundException cnfe) -> new MyException(cnfe));
+    }
 }

@@ -325,6 +325,17 @@ There's an alternate form of <em>recheck</em> that allows for the use of a stati
 recheck(() -> classnames.stream().forEach(cn -> uncheck(() -> Class.forName(cn))), ClassNotFoundException.class);
 ```
 
+If you want to simple convert an exception from one checked type to another (checked or unchecked), you can use [Functional.mapChecked](http://dempsy.github.io/Dempsy/dempsy-commons/2.0.0-SNAPSHOT/net/dempsy/util/Functional.html#mapChecked-net.dempsy.util.Functional.SupplierThrows-java.util.function.Function-). For example:
+
+```java
+  public void myFunction() throws MyException {
+    mapChecked(() -> {
+       ...
+       outputStream.write(value);
+       ...
+    },(final IOException e) -> new MyException(e)));
+  }
+```
 See the [Functional](http://dempsy.github.io/Dempsy/dempsy-commons/2.0.0-SNAPSHOT/net/dempsy/util/Functional.html) class for all of the details.
 
 ### <a name="dempsy-test-utils"></a>2. dempsy-test-utils

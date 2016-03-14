@@ -314,10 +314,32 @@ public class Functional {
      */
     @SuppressWarnings("unchecked")
     public static <T, Ein extends Exception, Eout extends Exception> T mapChecked(final SupplierThrows<T, Ein> f,
-            final Function<Ein, Eout> mapException)
-                    throws Eout {
+            final Function<Ein, Eout> mapException) throws Eout {
         try {
             return f.get();
+        } catch (final RuntimeException rte) {
+            throw rte;
+        } catch (final Exception e) {
+            throw mapException.apply((Ein) e);
+        }
+    }
+
+    /**
+     * This method allows for the automapping mapping of lambda's that throw checked exceptions to other (checked or unchecked) exceptions.
+     * 
+     * @param f
+     *            is the lambda to remap.
+     * @param mapException
+     *            is the function to do the mapping
+     * @return whatever the lambda returns if no exception occurs.
+     * @throws Eout
+     *             when the function maps an exception, it is thrown from the method call.
+     */
+    @SuppressWarnings("unchecked")
+    public static <Ein extends Exception, Eout extends Exception> void mapChecked(final RunnableThrows<Ein> f, final Function<Ein, Eout> mapException)
+            throws Eout {
+        try {
+            f.run();
         } catch (final RuntimeException rte) {
             throw rte;
         } catch (final Exception e) {
