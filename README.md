@@ -286,7 +286,27 @@ In this case, *test-application.properties* would contain a unit testing setting
 
 ### <a name="dempsy-distconfig-dropwizard"></a>Example supplying .yml substitutions in dropwizard.
 
-<b>TBD</b>
+It's easy to create the substuitution once you have the PropertiesReader. This is based on the [Dropwizard example on how to do environment variable substitution](http://www.dropwizard.io/0.9.1/docs/manual/core.html#environment-variables)
+
+```java
+public class MyApplication extends Application<MyConfiguration> {
+    // [...]
+    PropertiesReader reader = ...;
+    
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @Override
+    public void initialize(Bootstrap<MyConfiguration> bootstrap) {
+        // Enable variable substitution with the reader
+        bootstrap.setConfigurationSourceProvider(
+                new SubstitutingSourceProvider(bootstrap.getConfigurationSourceProvider(),
+                                                   new StrSubstitutor(StrLookup.mapLookup((Map) reader.read(null)))
+                )
+        );
+    }
+
+    // [...]
+}
+```
 
 See the [API docs](http://dempsy.github.io/Dempsy/dempsy-commons/2.0.0-SNAPSHOT/) for more details.
 
