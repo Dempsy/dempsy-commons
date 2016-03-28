@@ -13,8 +13,6 @@ package net.dempsy.utils.test;
  * Therefore the class has several utility methods for helping to write multithreaded tests by allowing easy polling for a particular condition for a fixed amount of time and returns the final condition value.
  * For example:
  * </p>
- * <p>
- * 
  * <pre>
  * {@code
  * import static net.dempsy.utils.test.ConditionPoll.poll;
@@ -28,7 +26,6 @@ package net.dempsy.utils.test;
  * assertTrue(poll(() -> numOfTimesSomethingHappens == numTimesExpected));
  * }
  * </pre>
- * </p>
  */
 public class ConditionPoll {
     /**

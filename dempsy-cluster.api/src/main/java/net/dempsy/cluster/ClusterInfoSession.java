@@ -50,14 +50,14 @@ import java.util.Collection;
  * </p>
  * 
  * <pre>
- * <code>
+ * {@code
  *  final ClusterInfoSession session = factory.createSession();
  *  session.mkdir("/root",null,DirMode.EPHEMERAL); // make parent dir
- *  session.getSubdirs("/root",() -> System.out.prinln("The subdirs of /root have changed")); // <- lambda callback will be invoked when subdirs come or go. *     });
+ *  session.getSubdirs("/root",() -&gt; System.out.prinln("The subdirs of /root have changed")); // - lambda callback will be invoked when subdirs come or go. *     });
  *  
  *  ....
- *  otherSession.mkdir("/root/subdir", null, DirMode.EPHEMERAL); // < - this will cause the lambda to execute.
- * </code>
+ *  otherSession.mkdir("/root/subdir", null, DirMode.EPHEMERAL); // - this will cause the lambda to execute.
+ * }
  * </pre>
  * 
  * <p>
@@ -102,8 +102,7 @@ public interface ClusterInfoSession extends AutoCloseable {
      * @param mode
      *            is the mode to set for the new directory. See {@link DirMode}.
      * 
-     * @return directory path if the directory was created. {@code null} if the directory cannot be created or already exists. If the {@link DirMode} is sequential then the result will satisfy the
-     *         {@link DirMode.SEQUENTIAL}.
+     * @return directory path if the directory was created. {@code null} if the directory cannot be created or already exists. If the {@link DirMode} is sequential then the result will satisfy the SEQUENTIAL requirements (see {@link DirMode} for the details).
      * 
      * @throws ClusterInfoException
      *             on an error which can include the fact that the parent directory doesn't exist or if you add a directory as a subdir of an EPHEMERAL directory.

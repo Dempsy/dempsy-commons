@@ -60,8 +60,6 @@ public class RingBufferControlMultiplexor {
      * {@link RingBufferControlMultiplexor#tryAvailableTo()} the specific resource that corresponds with the {@link RingBufferControl} that indicated available processing could be selected by a subsequent call
      * to {@link RingBufferControlMultiplexor#getCurrentControlled()}.
      * 
-     * @param numOfPublishers
-     *            is the number of publishers
      * @param sizePowerOfTwo
      *            is the size of each {@link RingBufferControl} and it must be a power of 2 or an {@link IllegalArgumentException} is thrown.
      * @throws IllegalArgumentException
@@ -114,7 +112,7 @@ public class RingBufferControlMultiplexor {
      * </p>
      * 
      * <p>
-     * If this method returns a valid sequence, it MUST NOT be called again prior to calling {@link RingBufferControlMultiplexor#notifyProcessed(long)}
+     * If this method returns a valid sequence, it MUST NOT be called again prior to calling {@link RingBufferControlMultiplexor#notifyProcessed()}
      * </p>
      * 
      * <p>
@@ -141,7 +139,7 @@ public class RingBufferControlMultiplexor {
      * </p>
      * 
      * <p>
-     * If this method returns a valid sequence, it MUST NOT be called again prior to calling {@link RingBufferControlMultiplexor#notifyProcessed(long)}
+     * If this method returns a valid sequence, it MUST NOT be called again prior to calling {@link RingBufferControlMultiplexor#notifyProcessed()}
      * </p>
      */
     public long tryAvailableTo() {

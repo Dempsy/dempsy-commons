@@ -224,8 +224,6 @@ public class RingBufferControlWorkerPool {
      * returned should be supplied to the {@link RingBufferControlWorkerPool#publish(long)} command once the publisher thread has prepared the
      * entries.
      * 
-     * @param requestedNumberOfSlots is the number of entries in the buffer we need
-     *            to wait for to be open.
      * @return the sequence to provide to the {@link RingBufferControl#publish(long)} or the {@link RingBufferControl#index(long)} methods.
      */
     public long next() {
@@ -255,9 +253,7 @@ public class RingBufferControlWorkerPool {
      * 
      * If there are no currently available slots in the RingBuffer then
      * RingBufferControl.UNAVAILABLE will be returned.
-     * 
-     * @param requestedNumberOfSlots is the number of entries in the buffer we need
-     *            to wait for to be open.
+     *
      * @return the sequence to provide to the {@link RingBufferControl#publish(long)} or the {@link RingBufferControl#index(long)} methods.
      */
     public long tryNext() {
@@ -282,7 +278,7 @@ public class RingBufferControlWorkerPool {
      * Once the publisher has readied the buffer entries that were claimed, this method
      * allows the subscribers to be notified that they are ready.
      * 
-     * @param sequence is the sequence returned from the {@link RingBufferControlWorkerPool#claim(int)} call.
+     * @param sequence is the sequence returned from the {@link RingBufferControlWorkerPool#next()} or {@link RingBufferControlWorkerPool#tryNext()} call.
      */
     public void publish(final long sequence) {
         cursor.set(sequence);

@@ -219,7 +219,7 @@ public class Functional {
      * @param <T>
      *            is the type that is supplied by the function, f.
      * @param <E>
-     *            is the exception type that's wrapped inside of 'f' having been passed to {@link #uncheck(SupplierThrows).
+     *            is the exception type that's wrapped inside of 'f' having been passed to {@link #uncheck(SupplierThrows)}.
      */
     @SuppressWarnings("unchecked")
     public static <T, E extends Exception> T recheck(final Supplier<T> f) throws E {
@@ -331,7 +331,6 @@ public class Functional {
      *            is the lambda to remap.
      * @param mapException
      *            is the function to do the mapping
-     * @return whatever the lambda returns if no exception occurs.
      * @throws Eout
      *             when the function maps an exception, it is thrown from the method call.
      */
