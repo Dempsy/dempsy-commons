@@ -279,7 +279,7 @@ try (final ClassPathXmlApplicationContext propsCtx = new ClassPathXmlApplication
         throw new IllegalArgumentException("There was an attempt to use the property reader ["
            + reader.getClass().getName()
            + "] with the context defined by " +
-           + Arrays.toString(config.appCtx)
+           + Arrays.toString(sc.appCtx)
            + " but there is no PropertySourcesPlaceholderConfigurer in the context");
      }
 }
