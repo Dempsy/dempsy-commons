@@ -184,8 +184,11 @@ Suppose you have an application context that looks like the following <b>applica
     http://www.springframework.org/schema/beans/spring-beans.xsd 
     http://www.springframework.org/schema/context
     http://www.springframework.org/schema/context/spring-context.xsd ">
-   
-   <context:property-placeholder />
+
+   <!-- NOTE: If you use context:property-placeholder you run -->
+   <!--       the risk of instantiating the pre-3.1 PropertyPlaceholdConfigurer -->
+   <!--       rather than the required PropertySourcesPlaceholderConfigurer -->
+   <bean class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer" />
 
    <bean class="com.mycompany.MyAppOrService">
       <constructor-arg name="mailServer" value="${com.mycompany.mailserver}" />
@@ -268,6 +271,17 @@ try (final ClassPathXmlApplicationContext propsCtx = new ClassPathXmlApplication
 
      // refresh the context
      ctx.refresh();
+
+     // double check to make sure that there's a PropertySourcesPlaceholderConfigurer
+     final Map<String, PropertySourcesPlaceholderConfigurer> pspcmap =
+         ctx.getBeansOfType(PropertySourcesPlaceholderConfigurer.class);
+     if (pspcmap == null || pspcmap.size() == 0) {
+        throw new IllegalArgumentException("There was an attempt to use the property reader ["
+           + reader.getClass().getName()
+           + "] with the context defined by " +
+           + Arrays.toString(config.appCtx)
+           + " but there is no PropertySourcesPlaceholderConfigurer in the context");
+     }
 }
 ```
 
@@ -278,7 +292,7 @@ Now, to unit test your code you can supply a different *properties-source.xml*.
 ```xml
 <!-- Simple classpath PropertiesReader -->
 <bean id="prop-reader" class="net.dempsy.distconfig.classpath.ClasspathPropertiesReader">
-   <constructor-arg ref="test-application.properties" />
+   <constructor-arg value="test-application.properties" />
 </bean>
 ```
 
