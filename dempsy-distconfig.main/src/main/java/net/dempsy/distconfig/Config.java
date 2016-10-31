@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.support.GenericXmlApplicationContext;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
@@ -48,6 +49,14 @@ public class Config {
     private static PropertiesReader reader;
     private static PropertiesStore store;
 
+    private static <T> T getBean(final GenericXmlApplicationContext ctx, final Class<T> clazz) {
+        try {
+            return ctx.getBean(clazz);
+        } catch (final NoSuchBeanDefinitionException nsb) {
+            return null;
+        }
+    }
+
     public static void main(final String[] args) throws Exception {
         if (args.length == 0)
             usage();
@@ -59,15 +68,15 @@ public class Config {
             usage();
         }
 
-        final String ctxString = System.getProperties().contains(SYSTEM_PROP_NAME_APP_CTX) ? System.getProperty(SYSTEM_PROP_NAME_APP_CTX)
+        final String ctxString = System.getProperties().containsKey(SYSTEM_PROP_NAME_APP_CTX) ? System.getProperty(SYSTEM_PROP_NAME_APP_CTX)
                 : DEFAULT_APP_CTX;
 
         final DefaultResourceLoader resLoader = new DefaultResourceLoader();
         final Resource[] resources = Arrays.stream(ctxString.split(",")).map(resLoader::getResource).toArray(Resource[]::new);
         try (final GenericXmlApplicationContext ctx = new GenericXmlApplicationContext(resources);) {
 
-            store = ctx.getBean(PropertiesStore.class);
-            reader = ctx.getBean(PropertiesReader.class);
+            store = getBean(ctx, PropertiesStore.class);
+            reader = getBean(ctx, PropertiesReader.class);
 
             if ("push".equals(command))
                 push(args);
@@ -84,9 +93,25 @@ public class Config {
         }
     }
 
+    private static void checkStore() {
+        if (store == null) {
+            System.err.println("No " + PropertiesStore.class.getSimpleName() + " was defined in the context.");
+            System.exit(1);
+        }
+    }
+
+    private static void checkReader() {
+        if (reader == null) {
+            System.err.println("No " + PropertiesReader.class.getSimpleName() + " was defined in the context.");
+            System.exit(1);
+        }
+    }
+
     private static void push(final String[] args) throws Exception {
         if (args.length != 2)
             usage();
+
+        checkStore();
 
         store.push(chainThrows(new Properties(), p -> p.load(new FileInputStream(args[1]))));
     }
@@ -95,12 +120,17 @@ public class Config {
         if (args.length != 2)
             usage();
 
+        checkStore();
+
         store.merge(chainThrows(new Properties(), p -> p.load(new FileInputStream(args[1]))));
     }
 
     private static void set(final String[] args) throws IOException {
         if (args.length != 2)
             usage();
+
+        checkStore();
+
         final String[] keyValues = args[1].split(",");
         final Properties props = new Properties();
         Arrays.stream(keyValues).forEach(kv -> {
@@ -115,12 +145,17 @@ public class Config {
     private static void clear(final String[] args) throws IOException {
         if (args.length != 2)
             usage();
+
+        checkStore();
+
         store.clear(args[1].split(","));
     }
 
     private static void read(final String[] args) throws Exception {
         if (args.length > 2)
             usage();
+
+        checkReader();
 
         final VersionedProperties props = reader.read(null);
         final OutputStream os = args.length == 2 ? new FileOutputStream(new File(args[1])) : System.out;
