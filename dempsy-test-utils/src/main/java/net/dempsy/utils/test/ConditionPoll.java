@@ -13,6 +13,7 @@ package net.dempsy.utils.test;
  * Therefore the class has several utility methods for helping to write multithreaded tests by allowing easy polling for a particular condition for a fixed amount of time and returns the final condition value.
  * For example:
  * </p>
+ * 
  * <pre>
  * {@code
  * import static net.dempsy.utils.test.ConditionPoll.poll;
@@ -41,20 +42,7 @@ public class ConditionPoll {
         /**
          * Return whether or not the condition we are polling for has been met yet.
          */
-        public boolean conditionMet(T o) throws Throwable;
-    }
-
-    @FunctionalInterface
-    public static interface SimpleCondition extends Condition<Object> {
-        /**
-         * The developer should return whether or not the condition we're polling for has been met.
-         */
-        public abstract boolean conditionMet();
-
-        @Override
-        public default boolean conditionMet(final Object o) {
-            return conditionMet();
-        }
+        public boolean conditionMet(T o);
     }
 
     /**
@@ -66,7 +54,7 @@ public class ConditionPoll {
      * Anything passed to as the userObject will be passed on to the {@link Condition} and is for the implementor to use as they see fit.
      * </p>
      */
-    public static <T> boolean poll(final long timeoutMillis, final T userObject, final Condition<T> condition) throws Throwable {
+    public static <T> boolean poll(final long timeoutMillis, final T userObject, final Condition<T> condition) throws InterruptedException {
         boolean conditionMet = condition.conditionMet(userObject);
         for (final long endTime = System.currentTimeMillis() + timeoutMillis; endTime > System.currentTimeMillis() && !conditionMet;) {
             Thread.sleep(10);
@@ -84,7 +72,7 @@ public class ConditionPoll {
      * Anything passed to as the userObject will be passed on to the {@link Condition} and is for the implementor to use as they see fit.
      * </p>
      */
-    public static <T> boolean poll(final T userObject, final Condition<T> condition) throws Throwable {
+    public static <T> boolean poll(final T userObject, final Condition<T> condition) throws InterruptedException {
         return poll(baseTimeoutMillis, userObject, condition);
     }
 
@@ -94,7 +82,7 @@ public class ConditionPoll {
      * </p>
      */
     @SuppressWarnings("unchecked")
-    public static boolean poll(@SuppressWarnings("rawtypes") final Condition condition) throws Throwable {
+    public static boolean poll(@SuppressWarnings("rawtypes") final Condition condition) throws InterruptedException {
         return poll(baseTimeoutMillis, null, condition);
     }
 

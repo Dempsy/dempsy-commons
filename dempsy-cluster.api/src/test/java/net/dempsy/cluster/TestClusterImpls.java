@@ -154,7 +154,13 @@ public abstract class TestClusterImpls {
                 session.rmdir(node);
 
                 // wait for no more than ten seconds
-                assertTrue(pass, poll(10000, cluster, (c) -> session.getSubdirs(c, null).size() == 0));
+                assertTrue(pass, poll(10000, cluster, c -> {
+                    try {
+                        return session.getSubdirs(c, null).size() == 0;
+                    } catch (final ClusterInfoException e) {
+                        throw new RuntimeException(e);
+                    }
+                }));
             }
         });
     }

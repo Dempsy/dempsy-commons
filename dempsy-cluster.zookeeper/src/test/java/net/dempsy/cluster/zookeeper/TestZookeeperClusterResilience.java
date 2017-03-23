@@ -17,6 +17,7 @@
 package net.dempsy.cluster.zookeeper;
 
 import static net.dempsy.cluster.TestClusterImpls.recurseCreate;
+import static net.dempsy.utils.test.ConditionPoll.baseTimeoutMillis;
 import static net.dempsy.utils.test.ConditionPoll.poll;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -45,7 +46,6 @@ import net.dempsy.utils.test.ConditionPoll.Condition;
 public class TestZookeeperClusterResilience {
     public static final String appname = TestZookeeperClusterResilience.class.getSimpleName();
     private static Logger logger = LoggerFactory.getLogger(TestZookeeperClusterResilience.class);
-    static private final long baseTimeoutMillis = 20000;
 
     public static abstract class TestWatcher implements ClusterInfoWatcher {
         AtomicBoolean called = new AtomicBoolean(false);
@@ -114,12 +114,7 @@ public class TestZookeeperClusterResilience {
                 server.start(false);
 
                 // wait for the call
-                assertTrue(poll(baseTimeoutMillis, callback, new Condition<TestWatcher>() {
-                    @Override
-                    public boolean conditionMet(final TestWatcher o) {
-                        return o.called.get();
-                    }
-                }));
+                assertTrue(poll(callback, o -> o.called.get()));
 
                 // get the view from a new session.
                 try (final ZookeeperSession tmpsession = (ZookeeperSession) factory.createSession();) {
@@ -183,12 +178,7 @@ public class TestZookeeperClusterResilience {
                 server.start(true);
 
                 // wait for the call
-                assertTrue(poll(baseTimeoutMillis, callback, new Condition<TestWatcher>() {
-                    @Override
-                    public boolean conditionMet(final TestWatcher o) {
-                        return o.called.get();
-                    }
-                }));
+                assertTrue(poll(callback, o -> o.called.get()));
 
                 // get the view from a new session.
                 try (final ZookeeperSession session2 = (ZookeeperSession) factory.createSession();) {
@@ -236,22 +226,12 @@ public class TestZookeeperClusterResilience {
                 recurseCreate(clusterId, session);
 
                 // wait until this works.
-                assertTrue(poll(baseTimeoutMillis, callback, new Condition<TestWatcher>() {
-                    @Override
-                    public boolean conditionMet(final TestWatcher o) {
-                        return o.called.get();
-                    }
-                }));
+                assertTrue(poll(callback, o -> o.called.get()));
 
                 callback.called.set(false); // reset the callbacker ...
 
                 // now see if the cluster works.
-                assertTrue(poll(baseTimeoutMillis, callback, new Condition<TestWatcher>() {
-                    @Override
-                    public boolean conditionMet(final TestWatcher o) {
-                        return !o.called.get();
-                    }
-                }));
+                assertTrue(poll(callback, o -> !o.called.get()));
 
                 session.getSubdirs(clusterId, callback);
 
@@ -259,12 +239,7 @@ public class TestZookeeperClusterResilience {
                 ZookeeperTestServer.forceSessionExpiration(origZk, portx);
 
                 // wait for the callback
-                assertTrue(poll(baseTimeoutMillis, callback, new Condition<TestWatcher>() {
-                    @Override
-                    public boolean conditionMet(final TestWatcher o) {
-                        return o.called.get();
-                    }
-                }));
+                assertTrue(poll(callback, o -> o.called.get()));
 
                 // unfortunately I cannot check the getActiveSlots for failure because there's a race condition I can't fix.
                 // No matter how fast I check it's possible that it's okay again OR that allSlots hasn't been cleared.
@@ -397,15 +372,12 @@ public class TestZookeeperClusterResilience {
             assertTrue(forceIOExceptionLatch.await(baseTimeoutMillis * 3, TimeUnit.MILLISECONDS));
 
             // now the getActiveSlots call should fail since i'm preventing the recovery by throwing IOExceptions
-            assertTrue(poll(baseTimeoutMillis, clusterId, new Condition<String>() {
-                @Override
-                public boolean conditionMet(final String o) throws Throwable {
-                    try {
-                        session.mkdir(o + "/join-1", null, DirMode.EPHEMERAL);
-                        return false;
-                    } catch (final ClusterInfoException e) {
-                        return true;
-                    }
+            assertTrue(poll(clusterId, o -> {
+                try {
+                    session.mkdir(o + "/join-1", null, DirMode.EPHEMERAL);
+                    return false;
+                } catch (final ClusterInfoException e) {
+                    return true;
                 }
             }));
 
@@ -415,24 +387,16 @@ public class TestZookeeperClusterResilience {
             forceIOException.set(false);
 
             // wait for the callback
-            assertTrue(poll(baseTimeoutMillis, callback, new Condition<TestWatcher>() {
-                @Override
-                public boolean conditionMet(final TestWatcher o) {
-                    return o.called.get();
-                }
-            }));
+            assertTrue(poll(callback, o -> o.called.get()));
 
             // this should eventually recover.
-            assertTrue(poll(baseTimeoutMillis, clusterId, new Condition<String>() {
-                @Override
-                public boolean conditionMet(final String o) throws Throwable {
-                    try {
-                        recurseCreate(o, session);
-                        session.mkdir(o + "/join-1", null, DirMode.EPHEMERAL);
-                        return true;
-                    } catch (final ClusterInfoException e) {
-                        return false;
-                    }
+            assertTrue(poll(clusterId, o -> {
+                try {
+                    recurseCreate(o, session);
+                    session.mkdir(o + "/join-1", null, DirMode.EPHEMERAL);
+                    return true;
+                } catch (final ClusterInfoException e) {
+                    return false;
                 }
             }));
 
@@ -440,15 +404,12 @@ public class TestZookeeperClusterResilience {
 
             // And join should work
             // And join should work
-            assertTrue(poll(baseTimeoutMillis, clusterId, new Condition<String>() {
-                @Override
-                public boolean conditionMet(final String o) throws Throwable {
-                    try {
-                        session.mkdir(o + "/join-1", null, DirMode.EPHEMERAL);
-                        return true;
-                    } catch (final ClusterInfoException e) {}
-                    return false;
-                }
+            assertTrue(poll(clusterId, o -> {
+                try {
+                    session.mkdir(o + "/join-1", null, DirMode.EPHEMERAL);
+                    return true;
+                } catch (final ClusterInfoException e) {}
+                return false;
             }));
         }
     }

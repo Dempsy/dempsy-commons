@@ -29,7 +29,6 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
@@ -117,7 +116,7 @@ public class ZookeeperTestServer implements AutoCloseable {
         final Condition<ZooKeeper> condition = o -> {
             try {
                 return (o.getState() == ZooKeeper.States.CONNECTED) && o.exists("/", true) != null;
-            } catch (final KeeperException ke) {
+            } catch (final Exception ke) {
                 return false;
             }
         };
@@ -142,7 +141,7 @@ public class ZookeeperTestServer implements AutoCloseable {
             final ZooKeeper check = new ZooKeeper("127.0.0.1:" + port, 5000, event -> {
                 if (event.getState() == Watcher.Event.KeeperState.Expired)
                     isExpired.set(true);
-            } , sessionid, pw);
+            }, sessionid, pw);
 
             done = poll(5000, isExpired, o -> o.get());
 

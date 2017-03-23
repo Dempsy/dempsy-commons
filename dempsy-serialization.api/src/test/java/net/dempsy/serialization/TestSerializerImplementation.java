@@ -16,6 +16,7 @@
 
 package net.dempsy.serialization;
 
+import static net.dempsy.utils.test.ConditionPoll.baseTimeoutMillis;
 import static net.dempsy.utils.test.ConditionPoll.poll;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -28,12 +29,9 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.Test;
 
-import net.dempsy.utils.test.ConditionPoll.Condition;
-
 public abstract class TestSerializerImplementation {
     private static final int TEST_NUMBER = 42;
     private static final String TEST_STRING = "life, the universe and everything";
-    private static final long baseTimeoutMillis = 20000;
     private static final int numThreads = 5;
 
     protected final Serializer underTest;
@@ -121,14 +119,11 @@ public abstract class TestSerializerImplementation {
             }
 
             // wait until all the threads have been started.
-            assertTrue(poll(baseTimeoutMillis, finished, new Condition<AtomicBoolean[]>() {
-                @Override
-                public boolean conditionMet(final AtomicBoolean[] o) throws Throwable {
-                    for (int i = 0; i < numThreads; i++)
-                        if (o[i].get())
-                            return false;
-                    return true;
-                }
+            assertTrue(poll(finished, o -> {
+                for (int i = 0; i < numThreads; i++)
+                    if (o[i].get())
+                        return false;
+                return true;
             }));
 
             Thread.sleep(10);
@@ -139,15 +134,11 @@ public abstract class TestSerializerImplementation {
 
             // wait until so many message have been serialized
             // This can be slow on cloudbees servers so we're going to double the wait time.
-            assertTrue(poll(baseTimeoutMillis * 2, counts, new Condition<AtomicLong[]>() {
-                @Override
-                public boolean conditionMet(final AtomicLong[] cnts) throws Throwable {
-                    for (int i = 0; i < numThreads; i++)
-                        if (cnts[i].get() < maxSerialize)
-                            return false;
-                    return true;
-                }
-
+            assertTrue(poll(baseTimeoutMillis * 2, counts, cnts -> {
+                for (int i = 0; i < numThreads; i++)
+                    if (cnts[i].get() < maxSerialize)
+                        return false;
+                return true;
             }));
         } finally {
             done.set(true);
