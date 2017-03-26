@@ -92,6 +92,21 @@ import java.util.Collection;
  * 
  */
 public interface ClusterInfoSession extends AutoCloseable {
+
+    public default void recursiveMkdir(final String path, final DirMode mode) throws ClusterInfoException {
+        final String[] splitPath = path.split("/");
+        String parent = "";
+        for (final String p : splitPath) {
+            final String curSubdir = p.trim();
+            if (curSubdir.length() > 0) { // avoid leading or trailing slashes
+                final String cur = parent + "/" + curSubdir;
+                mkdir(cur, null, mode);
+                parent = cur;
+            }
+        }
+
+    }
+
     /**
      * This will create a node at the given path. A node must be created before it can be used. This method is not recursive so parent directories will need to be created before this one is created.
      * 
