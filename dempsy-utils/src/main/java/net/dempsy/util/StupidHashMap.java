@@ -316,7 +316,7 @@ public class StupidHashMap<K, V> implements Map<K, V> {
     private static final void waitFor(final Node<?, ?> bin) {
         int counter = SPIN_TRIES;
         do {
-            if (bin.mine.getAndSet(false))
+            if (bin.mine.compareAndSet(true, false))
                 return;
             if (counter > 0)
                 counter--;

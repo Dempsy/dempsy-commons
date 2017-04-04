@@ -1,16 +1,20 @@
 package net.dempsy.util;
 
 import static net.dempsy.util.Functional.chain;
+import static net.dempsy.utils.test.ConditionPoll.poll;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -25,7 +29,7 @@ import org.junit.runners.Parameterized.Parameters;
 public class TestStupidHashMap {
 
     public static final int NUMWRITERS = 8;
-    public static final int NUMREADERS = 2;
+    public static final int NUMREADERS = 4;
     public static final int NUMWRITES = 500000;
 
     Map<Integer, Integer> it;
@@ -33,7 +37,7 @@ public class TestStupidHashMap {
     @Parameters
     public static Object[][] params() {
         return new Object[][] {
-                // { (Supplier<Map<Integer, Integer>>) () -> new ConcurrentHashMap<Integer, Integer>(2048) },
+                { (Supplier<Map<Integer, Integer>>) () -> new ConcurrentHashMap<Integer, Integer>(2048) },
                 { (Supplier<Map<Integer, Integer>>) () -> new StupidHashMap<Integer, Integer>(1) },
                 { (Supplier<Map<Integer, Integer>>) () -> new StupidHashMap<Integer, Integer>() },
         };
@@ -44,7 +48,7 @@ public class TestStupidHashMap {
     }
 
     @Test
-    public void testPouning() throws InterruptedException {
+    public void testPounding() throws InterruptedException {
 
         final AtomicBoolean done = new AtomicBoolean(false);
         final AtomicBoolean failedWrites = new AtomicBoolean(false);
@@ -70,7 +74,7 @@ public class TestStupidHashMap {
                     if (it.size() != values.length)
                         failedChecks.set(true);
                 }
-            });
+            }, "Checker").start();
 
             final List<Thread> writers = IntStream.range(0, NUMWRITERS).mapToObj(i -> new Thread(() -> {
                 for (int j = 0; j < NUMWRITES;) {
@@ -168,7 +172,7 @@ public class TestStupidHashMap {
                     }
                     numWrites++;
                 }
-            }, "Putter"), t -> t.start())).collect(Collectors.toList());
+            }, "UniqueOwnerGrabber-" + i), t -> t.start())).collect(Collectors.toList());
 
             join(workers, 20000);
         } finally {
@@ -181,7 +185,7 @@ public class TestStupidHashMap {
     }
 
     @Test
-    public void testPouningWithRemove() throws InterruptedException {
+    public void testPoundingWithRemove() throws InterruptedException {
 
         final List<Long> numAdded = new ArrayList<Long>();
         final List<Long> numRemoved = new ArrayList<Long>();
@@ -261,7 +265,6 @@ public class TestStupidHashMap {
     public void testUniqueOwnershipRotating() throws InterruptedException {
 
         for (int loop = 0; loop < 5; loop++) {
-            System.out.println("Trying Yet Again");
             final AtomicBoolean done = new AtomicBoolean(false);
             final AtomicBoolean gotWhenIOwnedObject = new AtomicBoolean(false);
             final AtomicBoolean gotOne = new AtomicBoolean(false);
@@ -318,7 +321,7 @@ public class TestStupidHashMap {
                             }
                         }
                     }
-                }, "Putter"), t -> t.start())).collect(Collectors.toList());
+                }, "UniqueOwnerGrabber-" + i), t -> t.start())).collect(Collectors.toList());
 
                 join(workers, 20000);
             } finally {
@@ -326,27 +329,126 @@ public class TestStupidHashMap {
             }
 
             assertFalse("Got it back on an insert when I already had it.", gotWhenIOwnedObject.get());
-            // if (gotWhenIOwnedObject.get()) {
-            // System.out.println("assert");
-            // }
 
             assertFalse("Retreived it when I already had it.", gotOne.get());
-            // if (gotOne.get()) {
-            // System.out.println("assert");
-            // }
 
             if (it.get(toWorkWith) == null) {
                 assertEquals("There seemed to be too many owners at the end " + owners, 1, owners.size());
-                // if (owners.size() != 1) {
-                // System.out.println("assert");
-                // }
             } else {
                 assertEquals("There seemed to be too many owners at the end " + owners, 0, owners.size());
-                // if (owners.size() != 0) {
-                // System.out.println("assert");
-                // }
             }
         }
+    }
+
+    private static class MutableInt {
+        public Integer value = null;
+
+        MutableInt(final Integer value) {
+            this.value = value;
+        }
+
+        MutableInt() {}
+    }
+
+    public class Remover implements Runnable {
+        List<Integer> removed = new ArrayList<>();
+        final int i;
+        final AtomicBoolean done;
+        final MutableInt toRemove;
+
+        Remover(final int i, final AtomicBoolean done, final MutableInt toRemove) {
+            this.i = i;
+            this.done = done;
+            this.toRemove = toRemove;
+        }
+
+        @Override
+        public void run() {
+            while (!done.get()) {
+                // race to remove the value
+                final Integer mine = it.remove(toRemove.value);
+                if (mine != null)
+                    removed.add(mine);
+            }
+        }
+    }
+
+    public static class RunnableThread {
+        public final Remover r;
+        public final Thread t;
+
+        public RunnableThread(final Remover r, final String name) {
+            this.r = r;
+            this.t = new Thread(r, name);
+            t.start();
+        }
+    }
+
+    @Test
+    public void testUniqueRemove() throws InterruptedException {
+
+        final Integer[] values = createUniqeSet(1000);
+
+        // preload the map
+        for (int ii = 0; ii < values.length; ii++) {
+            final Integer kv = values[ii];
+            final Integer already = it.putIfAbsent(kv, kv);
+            assertNull(already);
+        }
+
+        final int[] removeOrder = new int[values.length];
+        for (int i = 0; i < values.length; i++) {
+            final int halfi = i / 2;
+            removeOrder[i] = (i & 0x1) == 0 ? halfi : (values.length - halfi - 1);
+        }
+
+        final MutableInt toRemove = new MutableInt();
+        final AtomicBoolean done = new AtomicBoolean(false);
+
+        toRemove.value = values[removeOrder[0]];
+        final List<RunnableThread> workers = IntStream.range(0, NUMWRITERS)
+                .mapToObj(i -> new RunnableThread(new Remover(i, done, toRemove), "UniqueRemover-" + i))
+                .collect(Collectors.toList());
+
+        try {
+            // create and start removers
+            for (int i = 1; i < removeOrder.length; i++) {
+                final int index = i;
+                assertTrue(poll(o -> it.size() == (values.length - index)));
+                toRemove.value = values[removeOrder[i]];
+            }
+        } finally {
+            // make sure all of the threads finish
+            done.set(true);
+            workers.forEach(r -> r.t.interrupt());
+        }
+
+        join(workers.stream().map(r -> r.t).collect(Collectors.toList()), 20000);
+
+        // now check the results.
+        final List<List<Integer>> allInts = workers.stream().map(r -> r.r.removed).collect(Collectors.toList());
+
+        final Set<Integer> removedVals = new HashSet<>();
+        int count = 0;
+        // make sure they're all uniqe and complete.
+        for (final List<Integer> cur : allInts) {
+            count += cur.size();
+            for (final Integer i : cur) {
+                assertFalse(removedVals.contains(i));
+                removedVals.add(i);
+            }
+        }
+
+        assertEquals(0, it.size());
+        assertEquals(values.length, count);
+        final Set<Integer> originalValues = new HashSet<>(Arrays.asList(values));
+        for (final Integer cur : values) {
+            assertTrue(originalValues.contains(cur));
+            originalValues.remove(cur);
+        }
+
+        assertTrue(originalValues.isEmpty());
+
     }
 
     private static long sum(final List<Long> vals) {
