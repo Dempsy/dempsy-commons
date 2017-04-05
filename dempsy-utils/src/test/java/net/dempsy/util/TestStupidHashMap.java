@@ -323,7 +323,7 @@ public class TestStupidHashMap {
                     }
                 }, "UniqueOwnerGrabber-" + i), t -> t.start())).collect(Collectors.toList());
 
-                join(workers, 20000);
+                join(workers, 30000);
             } finally {
                 done.set(true);
             }

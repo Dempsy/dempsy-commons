@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Supplier;
@@ -55,13 +54,13 @@ public class StupidHashMap<K, V> implements Map<K, V> {
                     b.next = new FinalWrapper<Node<K, V>>(new Node<K, V>(h, k, v.get()));
                     tmpnode = b.next;
                     size.getAndIncrement();
-                    b.mine.lazySet(true);
+                    b.mine.lazySet(1);
                     return null;
                 }
 
                 // in the meantime, it was set. So borrow the results and move on.
                 tmpnode = b.next;
-                b.mine.lazySet(true); // release the lock
+                b.mine.lazySet(1); // release the lock
             }
 
             // tmpnode now has the current node value
@@ -89,12 +88,12 @@ public class StupidHashMap<K, V> implements Map<K, V> {
             waitFor(prev.value);
             // double check and make sure it's still null
             if (prev.value.next != null) {
-                prev.value.mine.lazySet(true);
+                prev.value.mine.lazySet(1);
                 continue; // start over and try again
             }
             prev.value.next = new FinalWrapper<Node<K, V>>(new Node<K, V>(h, k, v.get()));
             size.getAndIncrement();
-            prev.value.mine.lazySet(true);
+            prev.value.mine.lazySet(1);
             return null;
         }
     }
@@ -187,8 +186,8 @@ public class StupidHashMap<K, V> implements Map<K, V> {
                     // double check.
                     if (prevNode.next != tmpnode) { // are we still in the list?
                         // if not, then start over
-                        prevNode.mine.lazySet(true); // unlock
-                        tmpnodevalue.mine.lazySet(true); // unlock
+                        prevNode.mine.lazySet(1); // unlock
+                        tmpnodevalue.mine.lazySet(1); // unlock
                         done = false;
                         break;
                     }
@@ -200,8 +199,8 @@ public class StupidHashMap<K, V> implements Map<K, V> {
                     size.getAndDecrement();
 
                     // release the hounds
-                    prevNode.mine.lazySet(true); // unlock
-                    tmpnodevalue.mine.lazySet(true); // unlock
+                    prevNode.mine.lazySet(1); // unlock
+                    tmpnodevalue.mine.lazySet(1); // unlock
                     return tmpnodevalue.value;
                 }
 
@@ -290,7 +289,9 @@ public class StupidHashMap<K, V> implements Map<K, V> {
 
     private final static class Node<K, V> {
         public FinalWrapper<Node<K, V>> next = null;
-        public final AtomicBoolean mine = new AtomicBoolean(true);
+        // This is actually a boolean but AtomicBoolean uses an int
+        // value anyway so we're skipping the middle man
+        public final AtomicInteger mine = new AtomicInteger(1);
         final int hash;
         final K key;
         V value;
@@ -316,7 +317,7 @@ public class StupidHashMap<K, V> implements Map<K, V> {
     private static final void waitFor(final Node<?, ?> bin) {
         int counter = SPIN_TRIES;
         do {
-            if (bin.mine.compareAndSet(true, false))
+            if (bin.mine.compareAndSet(1, 0))
                 return;
             if (counter > 0)
                 counter--;
