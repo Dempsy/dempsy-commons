@@ -53,8 +53,8 @@ public class StupidHashMap<K, V> implements Map<K, V> {
                 if (b.next == null) { // double check - still has no entries.
                     b.next = new FinalWrapper<Node<K, V>>(new Node<K, V>(h, k, v.get()));
                     tmpnode = b.next;
-                    size.getAndIncrement();
                     b.mine.lazySet(1);
+                    size.getAndIncrement();
                     return null;
                 }
 
@@ -92,8 +92,8 @@ public class StupidHashMap<K, V> implements Map<K, V> {
                 continue; // start over and try again
             }
             prev.value.next = new FinalWrapper<Node<K, V>>(new Node<K, V>(h, k, v.get()));
-            size.getAndIncrement();
             prev.value.mine.lazySet(1);
+            size.getAndIncrement();
             return null;
         }
     }
@@ -112,8 +112,8 @@ public class StupidHashMap<K, V> implements Map<K, V> {
         // if (b.next == null) { // double check we're still okay
         // b.next = new FinalWrapper<Node<K, V>>(new Node<K, V>(h, k, v));
         // tmpnode = b.next;
-        // size.getAndIncrement();
         // b.mine.lazySet(true);
+        // size.getAndIncrement();
         // return null;
         // }
         //
@@ -149,8 +149,8 @@ public class StupidHashMap<K, V> implements Map<K, V> {
         // if (prev.value.next == null)
         // continue; // start over and try again
         // prev.value.next = new FinalWrapper<Node<K, V>>(new Node<K, V>(h, k, v));
-        // size.getAndIncrement();
         // prev.value.mine.lazySet(true);
+        // size.getAndIncrement();
         // return null;
         // }
         throw new UnsupportedOperationException();

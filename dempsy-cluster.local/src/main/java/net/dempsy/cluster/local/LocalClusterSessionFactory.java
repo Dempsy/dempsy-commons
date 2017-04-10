@@ -97,6 +97,14 @@ public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
         }
         if (child) {
             twatchers.addAll(ths.childWatchers);
+            if (twatchers.size() > 0) {
+                twatchers.forEach(w -> {
+                    if (w.watcher.toString().contains("setup or reset known destinations for Router")) {
+                        if (w.watcher.toString().contains("BlockingQueue_1"))
+                            System.out.println("here");
+                    }
+                });
+            }
             ths.childWatchers = new HashSet<LocalSession.WatcherProxy>();
         }
         return twatchers;
@@ -195,10 +203,13 @@ public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
         if (ret == null)
             throw new ClusterInfoException.NoNodeException("Path \"" + absolutePath + "\" doesn't exists.");
         if (watcher != null) {
-            if (nodeWatch)
+            if (nodeWatch) {
                 ret.nodeWatchers.add(watcher);
-            else
+                System.out.println("Added [" + watcher.watcher + "] to " + ret + " at " + absolutePath);
+            } else {
                 ret.childWatchers.add(watcher);
+                System.out.println("Added [" + watcher.watcher + "] to " + ret + " at " + absolutePath);
+            }
         }
         return ret;
     }
@@ -348,6 +359,11 @@ public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
             @Override
             public boolean equals(final Object o) {
                 return watcher.equals(((WatcherProxy) o).watcher);
+            }
+
+            @Override
+            public String toString() {
+                return watcher.toString();
             }
         }
 

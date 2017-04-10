@@ -279,11 +279,8 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
             try {
                 return callee.call(cur, path, wp, userdata);
             } catch (final KeeperException.NodeExistsException e) {
-
                 if (logger.isTraceEnabled())
-                    logger.trace("Failed call to " + name + " at " + path + " because the node already exists.", e);
-                else if (logger.isDebugEnabled())
-                    logger.debug("Failed call to " + name + " at " + path + " because the node already exists.");
+                    logger.trace("Failed call to " + name + " at " + path + " because the node already exists:" + e.getLocalizedMessage());
                 return null; // this is only thrown from mkdir and so if the Node Exists
                              // we simply want to return a null String
             } catch (final KeeperException.NoNodeException e) {
