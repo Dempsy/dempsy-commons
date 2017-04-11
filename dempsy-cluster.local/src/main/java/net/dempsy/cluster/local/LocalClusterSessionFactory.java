@@ -45,7 +45,7 @@ import net.dempsy.cluster.DisruptibleSession;
  * sessions through which changes are made.
  */
 public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
-    private static Logger logger = LoggerFactory.getLogger(LocalClusterSessionFactory.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(LocalClusterSessionFactory.class);
     protected static List<LocalSession> currentSessions = new ArrayList<LocalSession>();
     protected final boolean cleanupAfterLastSession;
 
@@ -74,7 +74,7 @@ public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
     public static synchronized void completeReset() {
         synchronized (currentSessions) {
             if (!isReset())
-                logger.error("LocalClusterSessionFactory beging reset with sessions or entries still open.");
+                LOGGER.error("LocalClusterSessionFactory beging reset with sessions or entries still open.");
 
             final List<LocalSession> sessions = new ArrayList<LocalSession>(currentSessions.size());
             sessions.addAll(currentSessions);
@@ -161,7 +161,7 @@ public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
                             processLock.unlock();
                             watcher.process();
                         } catch (final RuntimeException e) {
-                            logger.error("Failed to handle process for watcher " + objectDescription(watcher), e);
+                            LOGGER.error("Failed to handle process for watcher " + objectDescription(watcher), e);
                         } finally {
                             processLock.lock();
                         }
@@ -205,10 +205,12 @@ public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
         if (watcher != null) {
             if (nodeWatch) {
                 ret.nodeWatchers.add(watcher);
-                System.out.println("Added [" + watcher.watcher + "] to " + ret + " at " + absolutePath);
+                if (LOGGER.isTraceEnabled())
+                    LOGGER.trace("Added [" + watcher.watcher + "] to " + ret + " at " + absolutePath);
             } else {
                 ret.childWatchers.add(watcher);
-                System.out.println("Added [" + watcher.watcher + "] to " + ret + " at " + absolutePath);
+                if (LOGGER.isTraceEnabled())
+                    LOGGER.trace("Added [" + watcher.watcher + "] to " + ret + " at " + absolutePath);
             }
         }
         return ret;
@@ -434,8 +436,8 @@ public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
             synchronized (localEphemeralDirs) {
                 for (int i = localEphemeralDirs.size() - 1; i >= 0; i--) {
                     try {
-                        if (logger.isTraceEnabled())
-                            logger.trace("Removing ephemeral directory due to stopped session " + localEphemeralDirs.get(i));
+                        if (LOGGER.isTraceEnabled())
+                            LOGGER.trace("Removing ephemeral directory due to stopped session " + localEphemeralDirs.get(i));
                         ormdir(localEphemeralDirs.get(i), notifyWatchers);
                     } catch (final ClusterInfoException cie) {
                         // this can only happen in an odd race condition but
@@ -496,7 +498,7 @@ public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
         try {
             return String.valueOf(o);
         } catch (final Throwable th) {
-            logger.warn("Failed to determine valueOf for given object", th);
+            LOGGER.warn("Failed to determine valueOf for given object", th);
         }
 
         return "[error]";
@@ -507,7 +509,7 @@ public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
             final Class<?> clazz = o == null ? null : o.getClass();
             return clazz == null ? "[null object has no class]" : clazz.getName();
         } catch (final Throwable th) {
-            logger.warn("Failed to determine valueOf for given object", th);
+            LOGGER.warn("Failed to determine valueOf for given object", th);
         }
 
         return "[error]";
