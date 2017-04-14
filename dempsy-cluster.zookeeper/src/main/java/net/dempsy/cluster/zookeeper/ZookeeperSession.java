@@ -67,7 +67,7 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
     // =======================================================================
 
     // Accessed from test.
-    protected volatile AtomicReference<ZooKeeper> zkref;
+    volatile AtomicReference<ZooKeeper> zkref;
 
     private volatile boolean isRunning = true;
     protected long resetDelay = 500;
@@ -355,7 +355,7 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
                                 // in calls to resetZookeeper will either:
                                 // 1) be skipped because they are for an older ZooKeeper instance.
                                 // 2) be executed because they are for this new ZooKeeper instance.
-                                // what we dont want is the possibility that the reset will be skipped
+                                // what we don't want is the possibility that the reset will be skipped
                                 // even though the reset is called for this new ZooKeeper, but we haven't cleared
                                 // the beingReset flag yet.
                                 synchronized (ZookeeperSession.this) {
