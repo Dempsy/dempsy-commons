@@ -251,10 +251,10 @@ public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
         final String parentPath = parent(path);
 
         final Entry parent = entries.get(parentPath);
-        if (parent == null) {
-            throw new ClusterInfoException("No Parent for \"" + path + "\" which is expected to be \"" +
+        if (parent == null)
+            throw new ClusterInfoException.NoParentException("No Parent for \"" + path + "\" which is expected to be \"" +
                     parent(path) + "\"");
-        }
+
         if (parent.mode != null && parent.mode.isEphemeral())
             throw new ClusterInfoException(
                     "Cannot add the subdirectory \"" + path + "\" to the EPHEMERAL parent directory \"" + parentPath
