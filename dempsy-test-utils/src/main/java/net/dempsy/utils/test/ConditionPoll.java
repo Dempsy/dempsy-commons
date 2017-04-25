@@ -80,6 +80,14 @@ public class ConditionPoll {
         return poll(baseTimeoutMillis, userObject, condition);
     }
 
+    public static <T> boolean qpoll(final T userObject, final Condition<T> condition) {
+        try {
+            return poll(baseTimeoutMillis, userObject, condition);
+        } catch (final InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * <p>
      * Poll for a given condition for {@link ConditionPoll#baseTimeoutMillis} milliseconds. If the condition hasn't been met by then return false. Otherwise, return true as soon as the condition is met.

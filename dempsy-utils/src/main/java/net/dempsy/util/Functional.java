@@ -5,12 +5,21 @@ import java.io.ObjectOutputStream;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
  * A series of utilities to help with Java 8 functional operations.
  */
 public class Functional {
+
+    /**
+     * Create's an IntStream that runs in reverse.
+     */
+    public static IntStream reverseRange(final int from, final int to) {
+        return IntStream.range(from, to).map(i -> to - i + from - 1);
+    }
+
     /**
      * A functional interface that analogous to a {@link Supplier} that throws a checked {@link Exception}
      * 
