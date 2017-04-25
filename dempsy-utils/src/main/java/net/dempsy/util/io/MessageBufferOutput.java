@@ -158,6 +158,22 @@ public class MessageBufferOutput extends OutputStream {
     }
 
     /**
+     * Writes an <code>int</code> to the underlying buffer as four
+     * bytes, high byte first. 
+     */
+    public void writeInt(final int v) throws IOException {
+        final int newcount = position + 4; // sizeof int in bytes
+        if (newcount > length) {
+            buf = Arrays.copyOf(buf, Math.max(length << 1, newcount));
+            length = buf.length;
+        }
+        buf[position++] = (byte) ((v >>> 24) & 0xFF);
+        buf[position++] = (byte) ((v >>> 16) & 0xFF);
+        buf[position++] = (byte) ((v >>> 8) & 0xFF);
+        buf[position++] = (byte) ((v >>> 0) & 0xFF);
+    }
+
+    /**
      * Writes the complete contents of this byte array output stream to the specified output stream argument, as if by calling the output stream's write method using <code>out.write(buf, 0, count)</code>.
      * 
      * @param out
