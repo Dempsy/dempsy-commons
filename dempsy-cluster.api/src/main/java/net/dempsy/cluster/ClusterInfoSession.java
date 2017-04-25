@@ -16,7 +16,10 @@
 
 package net.dempsy.cluster;
 
+import java.util.Arrays;
 import java.util.Collection;
+
+import net.dempsy.cluster.ClusterInfoException.NoParentException;
 
 /**
  * <p>
@@ -93,18 +96,29 @@ import java.util.Collection;
  */
 public interface ClusterInfoSession extends AutoCloseable {
 
-    public default void recursiveMkdir(final String path, final DirMode mode) throws ClusterInfoException {
-        final String[] splitPath = path.split("/");
+    public default String recursiveMkdir(final String path, final Object data, final DirMode parentMode, final DirMode mode)
+            throws ClusterInfoException {
+        // assume the parent directory already exists...
+        try {
+            return mkdir(path, data, mode);
+        } catch (final ClusterInfoException.NoParentException nne) {}
+
+        // okay. No parent dir so make the directories
+        final String[] splitPath = Arrays.stream(path.split("/"))
+                .map(p -> p.trim())
+                .filter(p -> p.length() > 0)
+                .toArray(String[]::new);
+
         String parent = "";
-        for (final String p : splitPath) {
-            final String curSubdir = p.trim();
-            if (curSubdir.length() > 0) { // avoid leading or trailing slashes
-                final String cur = parent + "/" + curSubdir;
-                mkdir(cur, null, mode);
-                parent = cur;
-            }
+        for (int i = 0; i < splitPath.length - 1; i++) {
+            final String curSubdir = splitPath[i];
+            final String cur = parent + "/" + curSubdir;
+            mkdir(cur, null, parentMode);
+            parent = cur;
         }
 
+        // now make the final dir
+        return mkdir(path, data, mode);
     }
 
     /**
@@ -123,8 +137,9 @@ public interface ClusterInfoSession extends AutoCloseable {
      * requirements (see {@link DirMode} for the details).
      * 
      * @throws ClusterInfoException
-     *             on an error which can include the fact that the parent directory doesn't exist or if you 
-     *             add a directory as a subdir of an EPHEMERAL directory.
+     *             on an error which can include the fact that the parent directory doesn't exist (when it
+     *             should throw a {@link NoParentException} or if you add a directory as a subdir of an 
+     *             EPHEMERAL directory.
      */
     public String mkdir(String path, Object data, DirMode mode) throws ClusterInfoException;
 
