@@ -505,4 +505,14 @@ public abstract class TestClusterImpls {
             }
         });
     }
+
+    @Test(expected = ClusterInfoException.NoParentException.class)
+    public void testNoParent() throws Throwable {
+        runAllCombinations((pass, factory) -> {
+            try (final ClusterInfoSession session = factory.createSession();) {
+                session.mkdir("/testNoParent/parent/path-where-parent-doesnt-exist", null, DirMode.PERSISTENT);
+            }
+        });
+    }
+
 }
