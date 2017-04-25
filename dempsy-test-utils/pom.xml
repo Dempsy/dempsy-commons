@@ -12,6 +12,14 @@
 
   <artifactId>dempsy-test-utils</artifactId>
   <name>Dempsy Utilities to support internal tests.</name>
+  
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
 
   <licenses>
     <license>

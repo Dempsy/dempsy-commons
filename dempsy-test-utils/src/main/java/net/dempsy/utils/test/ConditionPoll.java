@@ -1,5 +1,9 @@
 package net.dempsy.utils.test;
 
+import java.util.function.Supplier;
+
+import org.junit.Assert;
+
 /**
  * <p>
  * Multi threaded tests are notoriously difficult to write. You should almost NEVER (though there is one exception to this) simply <em>sleep</em> for a certain amount of time and then expect a condition to be
@@ -84,6 +88,10 @@ public class ConditionPoll {
     @SuppressWarnings("unchecked")
     public static boolean poll(@SuppressWarnings("rawtypes") final Condition condition) throws InterruptedException {
         return poll(baseTimeoutMillis, null, condition);
+    }
+
+    public static void assertTrue(final Supplier<String> errMessage, final boolean value) {
+        Assert.assertTrue(value ? "" : errMessage.get(), value);
     }
 
 }
