@@ -40,10 +40,10 @@ public class StupidHashMap<K, V> implements Map<K, V> {
 
     @Override
     public V putIfAbsent(final K k, final V v) {
-        return putIfAbsent(k, () -> v);
+        return computeIfAbsent(k, () -> v);
     }
 
-    public V putIfAbsent(final K k, final Supplier<V> v) {
+    public V computeIfAbsent(final K k, final Supplier<V> v) {
         final int h = hash(k);
         final Node<K, V> b = table[h & mask];
         while (true) {
