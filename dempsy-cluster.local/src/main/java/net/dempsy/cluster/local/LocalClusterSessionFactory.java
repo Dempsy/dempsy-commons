@@ -221,9 +221,12 @@ public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
         return e.data.get();
     }
 
-    private static synchronized void osetData(final String path, final Object data) throws ClusterInfoException {
-        final Entry e = get(path, null, true);
-        e.data.set(data);
+    private static void osetData(final String path, final Object data) throws ClusterInfoException {
+        final Entry e;
+        synchronized (LocalClusterSessionFactory.class) {
+            e = get(path, null, true);
+            e.data.set(data);
+        }
         e.callWatchers(true, false);
     }
 
