@@ -19,7 +19,6 @@ package net.dempsy.util.executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -49,7 +48,7 @@ public final class AutoDisposeSingleThreadScheduler {
         // called only with a lock on the outer instance.
         private Cancelable(final Runnable runnable, final long timeout, final TimeUnit units) {
             this.proxied = runnable;
-            this.future = getScheduledExecutor().schedule(proxied, timeout, units);
+            this.future = getScheduledExecutor().schedule(this, timeout, units);
             pendingCalls++;
         }
 
@@ -108,12 +107,7 @@ public final class AutoDisposeSingleThreadScheduler {
     private synchronized final ScheduledExecutorService getScheduledExecutor() {
         if (scheduler == null) {
             if (baseThreadName != null)
-                scheduler = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
-                    @Override
-                    public Thread newThread(final Runnable r) {
-                        return new Thread(r, baseThreadName + "-" + sequence.getAndIncrement());
-                    }
-                });
+                scheduler = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, baseThreadName + "-" + sequence.getAndIncrement()));
             else
                 scheduler = Executors.newSingleThreadScheduledExecutor();
 
