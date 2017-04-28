@@ -138,7 +138,7 @@ public interface ClusterInfoSession extends AutoCloseable {
      * 
      * @throws ClusterInfoException
      *             on an error which can include the fact that the parent directory doesn't exist (when it
-     *             should throw a {@link NoParentException} or if you add a directory as a subdir of an 
+     *             should throw a {@link NoParentException}) or if you add a directory as a subdir of an 
      *             EPHEMERAL directory.
      */
     public String mkdir(String path, Object data, DirMode mode) throws ClusterInfoException;
