@@ -30,7 +30,7 @@ public class TestStupidHashMap {
 
     public static final int NUMWRITERS = 8;
     public static final int NUMREADERS = 4;
-    public static final int NUMWRITES = 500000;
+    public static final int NUMWRITES = 50000;
 
     Map<Integer, Integer> it;
 
@@ -342,12 +342,6 @@ public class TestStupidHashMap {
 
     private static class MutableInt {
         public Integer value = null;
-
-        MutableInt(final Integer value) {
-            this.value = value;
-        }
-
-        MutableInt() {}
     }
 
     public class Remover implements Runnable {
