@@ -37,7 +37,9 @@ import net.dempsy.util.io.MessageBufferInput;
 import net.dempsy.util.io.MessageBufferOutput;
 
 /**
- * This is the implementation of the Kryo based serialization for Dempsy. It can be configured with registered classes using Spring by passing a list of {@link Registration} instances to the constructor.
+ * This is the implementation of the Kryo based serialization for Dempsy.
+ * It can be configured with registered classes using Spring by passing a
+ * list of {@link Registration} instances to the constructor.
  */
 public class KryoSerializer extends Serializer {
     private static Logger logger = LoggerFactory.getLogger(KryoSerializer.class);
@@ -75,27 +77,32 @@ public class KryoSerializer extends Serializer {
     }
 
     /**
-     * Create an unconfigured default {@link KryoSerializer} with no registered classes. If you set manageExactClasses then the result of serializing and then deserializing a class by referring to its
-     * superclass will result in the original class. Otherwise the class passed to the deserialize call will be the actual class that's deserialized.
+     * Create an unconfigured default {@link KryoSerializer} with no registered classes. 
+     * If you set manageExactClasses then the result of serializing and then deserializing
+     *  a class by referring to its superclass will result in the original class. 
+     *  Otherwise the class passed to the deserialize call will be the actual class that's
+     *  deserialized.
      */
     public KryoSerializer(final boolean manageExactClasses) {
         this(manageExactClasses, (Registration[]) null);
     }
 
     /**
-     * Create an {@link KryoSerializer} with the provided registrations. This can be used from a Spring configuration.
+     * Create an {@link KryoSerializer} with the provided registrations.
+     * This can be used from a Spring configuration.
      */
     public KryoSerializer(final boolean manageExactClasses, final Registration... regs) {
         this(manageExactClasses, null, regs);
     }
 
     /**
-     * Create an {@link KryoSerializer} with the provided registrations and Application specific Optimizer. This can be used from a Spring configuration.
+     * Create an {@link KryoSerializer} with the provided registrations and 
+     * Application specific Optimizer. This can be used from a Spring configuration.
      */
     public KryoSerializer(final boolean manageExactClasses, final KryoOptimizer optimizer, final Registration... regs) {
         registrations = regs == null ? null : Arrays.asList(regs);
         this.optimizer = optimizer;
-        this.kryoRunner = manageExactClasses ? new RunKryo() {
+        kryoRunner = manageExactClasses ? new RunKryo() {
 
             @Override
             public <T> void doSerialize(final Holder k, final Output output, final T object) {

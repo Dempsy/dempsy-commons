@@ -16,7 +16,10 @@
 
 package net.dempsy.cluster;
 
+import java.util.Arrays;
 import java.util.Collection;
+
+import net.dempsy.cluster.ClusterInfoException.NoParentException;
 
 /**
  * <p>
@@ -92,8 +95,35 @@ import java.util.Collection;
  * 
  */
 public interface ClusterInfoSession extends AutoCloseable {
+
+    public default String recursiveMkdir(final String path, final Object data, final DirMode parentMode, final DirMode mode)
+            throws ClusterInfoException {
+        // assume the parent directory already exists...
+        try {
+            return mkdir(path, data, mode);
+        } catch (final ClusterInfoException.NoParentException nne) {}
+
+        // okay. No parent dir so make the directories
+        final String[] splitPath = Arrays.stream(path.split("/"))
+                .map(p -> p.trim())
+                .filter(p -> p.length() > 0)
+                .toArray(String[]::new);
+
+        String parent = "";
+        for (int i = 0; i < splitPath.length - 1; i++) {
+            final String curSubdir = splitPath[i];
+            final String cur = parent + "/" + curSubdir;
+            mkdir(cur, null, parentMode);
+            parent = cur;
+        }
+
+        // now make the final dir
+        return mkdir(path, data, mode);
+    }
+
     /**
-     * This will create a node at the given path. A node must be created before it can be used. This method is not recursive so parent directories will need to be created before this one is created.
+     * This will create a node at the given path. A node must be created before it can be used. This method
+     * is not recursive so parent directories will need to be created before this one is created.
      * 
      * @param path
      *            a '/' separated path to a directory in the cluster information manager to create.
@@ -102,10 +132,14 @@ public interface ClusterInfoSession extends AutoCloseable {
      * @param mode
      *            is the mode to set for the new directory. See {@link DirMode}.
      * 
-     * @return directory path if the directory was created. {@code null} if the directory cannot be created or already exists. If the {@link DirMode} is sequential then the result will satisfy the SEQUENTIAL requirements (see {@link DirMode} for the details).
+     * @return directory path if the directory was created. {@code null} if the directory cannot be created
+     * or already exists. If the {@link DirMode} is sequential then the result will satisfy the SEQUENTIAL
+     * requirements (see {@link DirMode} for the details).
      * 
      * @throws ClusterInfoException
-     *             on an error which can include the fact that the parent directory doesn't exist or if you add a directory as a subdir of an EPHEMERAL directory.
+     *             on an error which can include the fact that the parent directory doesn't exist (when it
+     *             should throw a {@link NoParentException}) or if you add a directory as a subdir of an 
+     *             EPHEMERAL directory.
      */
     public String mkdir(String path, Object data, DirMode mode) throws ClusterInfoException;
 

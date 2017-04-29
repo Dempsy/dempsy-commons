@@ -5,7 +5,7 @@
 
   <groupId>net.dempsy</groupId>
   <artifactId>dempsy-commons</artifactId>
-  <version>2.1.0-SNAPSHOT</version>
+  <version>2.0.1-SNAPSHOT</version>
   <name>Dempsy Commons Parent Pom</name>
   <description>Dempsy Commons Parent Pom</description>
   <packaging>pom</packaging>
@@ -44,16 +44,16 @@
     <jackson.version>2.2.3</jackson.version>
 
     <!-- These are the CURRENT versions -->
-    <dempsy-serialization.api.version>2.1.0-SNAPSHOT</dempsy-serialization.api.version>
-    <dempsy-utils.version>2.1.0-SNAPSHOT</dempsy-utils.version>
-    <dempsy-cluster.api.version>2.1.0-SNAPSHOT</dempsy-cluster.api.version>
-    <dempsy-cluster.zookeeper.version>2.1.0-SNAPSHOT</dempsy-cluster.zookeeper.version>
-    <dempsy-cluster.local.version>2.1.0-SNAPSHOT</dempsy-cluster.local.version>
-    <dempsy-serialization.jackson.version>2.1.0-SNAPSHOT</dempsy-serialization.jackson.version>
-    <dempsy-test-utils.version>2.1.0-SNAPSHOT</dempsy-test-utils.version>
-    <dempsy-distconfig.api.version>2.1.0-SNAPSHOT</dempsy-distconfig.api.version>
-    <dempsy-distconfig.clusterinfo.version>2.1.0-SNAPSHOT</dempsy-distconfig.clusterinfo.version>
-    <dempsy-distconfig.apachevfs.version>2.1.0-SNAPSHOT</dempsy-distconfig.apachevfs.version>
+    <dempsy-serialization.api.version>2.0.1-SNAPSHOT</dempsy-serialization.api.version>
+    <dempsy-utils.version>2.0.1-SNAPSHOT</dempsy-utils.version>
+    <dempsy-cluster.api.version>2.0.1-SNAPSHOT</dempsy-cluster.api.version>
+    <dempsy-cluster.zookeeper.version>2.0.1-SNAPSHOT</dempsy-cluster.zookeeper.version>
+    <dempsy-cluster.local.version>2.0.1-SNAPSHOT</dempsy-cluster.local.version>
+    <dempsy-serialization.jackson.version>2.0.1-SNAPSHOT</dempsy-serialization.jackson.version>
+    <dempsy-test-utils.version>2.0.1-SNAPSHOT</dempsy-test-utils.version>
+    <dempsy-distconfig.api.version>2.0.1-SNAPSHOT</dempsy-distconfig.api.version>
+    <dempsy-distconfig.clusterinfo.version>2.0.1-SNAPSHOT</dempsy-distconfig.clusterinfo.version>
+    <dempsy-distconfig.apachevfs.version>2.0.1-SNAPSHOT</dempsy-distconfig.apachevfs.version>
     <spring-framework.version>4.2.5.RELEASE</spring-framework.version>
   </properties>
 
@@ -111,7 +111,7 @@
       <dependency> <!-- needed for the kryo serializer implementation -->
         <groupId>com.esotericsoftware</groupId>
         <artifactId>kryo</artifactId>
-        <version>3.0.3</version>
+        <version>4.0.0</version>
       </dependency>
       <dependency> <!-- for the RingBuffer functionality -->
         <groupId>com.lmax</groupId>
@@ -179,7 +179,7 @@
       <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
-        <version>4.11</version>
+        <version>4.12</version>
         <scope>test</scope>
       </dependency>
       <dependency>

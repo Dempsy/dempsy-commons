@@ -16,7 +16,6 @@
 
 package net.dempsy.cluster;
 
-public interface ClusterInfoSessionFactory
-{
-   public ClusterInfoSession createSession() throws ClusterInfoException;
+public interface ClusterInfoSessionFactory {
+    public ClusterInfoSession createSession() throws ClusterInfoException;
 }

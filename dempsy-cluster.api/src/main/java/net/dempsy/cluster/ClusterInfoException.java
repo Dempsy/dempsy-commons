@@ -38,4 +38,17 @@ public class ClusterInfoException extends Exception {
             super(message, cause);
         }
     }
+
+    public static class NoParentException extends ClusterInfoException.NoNodeException {
+        private static final long serialVersionUID = 1L;
+
+        public NoParentException(final String message) {
+            super(message);
+        }
+
+        public NoParentException(final String message, final Throwable cause) {
+            super(message, cause);
+        }
+
+    }
 }

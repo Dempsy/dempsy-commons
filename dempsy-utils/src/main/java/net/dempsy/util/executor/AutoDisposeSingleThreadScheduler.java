@@ -20,7 +20,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -28,15 +27,10 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public final class AutoDisposeSingleThreadScheduler {
     private final String baseThreadName;
-    private final AtomicLong pendingCalls = new AtomicLong(0);
+    private long pendingCalls = 0L;
 
     private final AtomicLong sequence = new AtomicLong(0);
-    private final Runnable nameSetter = new Runnable() {
-        @Override
-        public void run() {
-            Thread.currentThread().setName(baseThreadName + "-" + sequence.getAndIncrement());
-        }
-    };
+    private ScheduledExecutorService scheduler = null;
 
     public AutoDisposeSingleThreadScheduler(final String baseThreadName) {
         this.baseThreadName = baseThreadName;
@@ -45,22 +39,46 @@ public final class AutoDisposeSingleThreadScheduler {
     /**
      * This object is returned from {@link AutoDisposeSingleThreadScheduler#schedule(Runnable, long, TimeUnit)} and can be used to cancel the task - best effort.
      */
-    public class Cancelable {
-        private final ScheduledFuture<?> future;
-        private final RunnableProxy runnable;
+    public class Cancelable implements Runnable {
+        private boolean cancelled = false;
 
-        private Cancelable(final RunnableProxy runnable, final ScheduledFuture<?> future) {
-            this.runnable = runnable;
-            this.future = future;
+        private final ScheduledFuture<?> future;
+        private final Runnable proxied;
+
+        // called only with a lock on the outer instance.
+        private Cancelable(final Runnable runnable, final long timeout, final TimeUnit units) {
+            this.proxied = runnable;
+            this.future = getScheduledExecutor().schedule(this, timeout, units);
+            pendingCalls++;
         }
 
         /**
          * Attempt to cancel the Runnable that was submitted to {@link AutoDisposeSingleThreadScheduler#schedule(Runnable, long, TimeUnit)}
          */
         public void cancel() {
-            future.cancel(false);
-            if (runnable.decrement() == 0)
-                disposeOfScheduler();
+            synchronized (AutoDisposeSingleThreadScheduler.this) {
+                future.cancel(false);
+                cancelled = true;
+                decrement();
+            }
+        }
+
+        @Override
+        public void run() {
+            // running the proxied can resubmit the task ... so we dispose afterward
+            synchronized (AutoDisposeSingleThreadScheduler.this) {
+                if (cancelled)
+                    return;
+            }
+
+            try {
+                proxied.run();
+            } finally {
+                synchronized (AutoDisposeSingleThreadScheduler.this) {
+                    if (!cancelled) // if it was cancelled then it was already decremented
+                        decrement();
+                }
+            }
         }
 
         /**
@@ -69,48 +87,30 @@ public final class AutoDisposeSingleThreadScheduler {
         public boolean isDone() {
             return future.isDone();
         }
+
+        private void decrement() {
+            synchronized (AutoDisposeSingleThreadScheduler.this) {
+                pendingCalls--;
+                if (pendingCalls <= 0)
+                    disposeOfScheduler();
+            }
+        }
     }
 
     /**
      * Schedule the given Runnable to run at the given time period from now. The scheduler resources will be cleaned up once the task runs.
      */
     public synchronized Cancelable schedule(final Runnable runnable, final long timeout, final TimeUnit units) {
-        pendingCalls.incrementAndGet();
-        final RunnableProxy proxy = new RunnableProxy(runnable);
-        return new Cancelable(proxy, getScheduledExecutor().schedule(proxy, timeout, units));
+        return new Cancelable(runnable, timeout, units);
     }
-
-    private class RunnableProxy implements Runnable {
-        final Runnable proxied;
-        final AtomicBoolean decremented = new AtomicBoolean(false);
-
-        private RunnableProxy(final Runnable proxied) {
-            this.proxied = proxied;
-        }
-
-        @Override
-        public void run() {
-            // running the proxied can resubmit the task ... so we dispose afterward
-            try {
-                proxied.run();
-            } finally {
-                if (decrement() == 0)
-                    disposeOfScheduler();
-            }
-        }
-
-        private long decrement() {
-            return decremented.getAndSet(true) ? Long.MAX_VALUE : pendingCalls.decrementAndGet();
-        }
-    }
-
-    private ScheduledExecutorService scheduler = null;
 
     private synchronized final ScheduledExecutorService getScheduledExecutor() {
         if (scheduler == null) {
-            scheduler = Executors.newScheduledThreadPool(1);
             if (baseThreadName != null)
-                scheduler.execute(nameSetter);
+                scheduler = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, baseThreadName + "-" + sequence.getAndIncrement()));
+            else
+                scheduler = Executors.newSingleThreadScheduledExecutor();
+
         }
         return scheduler;
     }

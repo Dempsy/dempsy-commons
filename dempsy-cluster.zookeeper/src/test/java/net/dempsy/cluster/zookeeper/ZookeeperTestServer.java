@@ -27,9 +27,9 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
@@ -113,11 +113,15 @@ public class ZookeeperTestServer implements AutoCloseable {
         }
     }
 
-    public static void forceSessionExpiration(final ZooKeeper origZk, final int port) throws Throwable {
+    public void forceSessionExpiration(final ZookeeperSession session) throws InterruptedException, IOException {
+        forceSessionExpiration(session.zkref.get(), port);
+    }
+
+    public static void forceSessionExpiration(final ZooKeeper origZk, final int port) throws InterruptedException, IOException {
         final Condition<ZooKeeper> condition = o -> {
             try {
                 return (o.getState() == ZooKeeper.States.CONNECTED) && o.exists("/", true) != null;
-            } catch (final KeeperException ke) {
+            } catch (final Exception ke) {
                 return false;
             }
         };
@@ -142,7 +146,7 @@ public class ZookeeperTestServer implements AutoCloseable {
             final ZooKeeper check = new ZooKeeper("127.0.0.1:" + port, 5000, event -> {
                 if (event.getState() == Watcher.Event.KeeperState.Expired)
                     isExpired.set(true);
-            } , sessionid, pw);
+            }, sessionid, pw);
 
             done = poll(5000, isExpired, o -> o.get());
 
@@ -235,6 +239,8 @@ public class ZookeeperTestServer implements AutoCloseable {
         return props;
     }
 
+    private static final AtomicLong serverCount = new AtomicLong(0);
+
     private static TestZookeeperServerIntern startZookeeper(final Properties zkConfig) {
         logger.debug("Starting the test zookeeper server on port " + zkConfig.get("clientPort"));
 
@@ -256,7 +262,7 @@ public class ZookeeperTestServer implements AutoCloseable {
                         fail("can't start zookeeper");
                     }
                 }
-            });
+            }, "ZookeeperTestServer-" + serverCount.getAndIncrement());
             t.start();
             Thread.sleep(2000); // give the server time to start
         } catch (final Exception e) {

@@ -67,7 +67,7 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
     // =======================================================================
 
     // Accessed from test.
-    protected volatile AtomicReference<ZooKeeper> zkref;
+    volatile AtomicReference<ZooKeeper> zkref;
 
     private volatile boolean isRunning = true;
     protected long resetDelay = 500;
@@ -104,7 +104,7 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
             final Object info = userdata.value;
 
             return cur.create(path, (info == null ? zeroByteArray : serializer.serialize(info)), Ids.OPEN_ACL_UNSAFE, from(userdata.dirMode));
-        });
+        }, true);
 
     }
 
@@ -113,14 +113,14 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
         callZookeeper("rmdir", ppath, null, null, (cur, pa, wp, userdata) -> {
             cur.delete(pa, -1);
             return null;
-        });
+        }, false);
     }
 
     @Override
     public boolean exists(final String ppath, final ClusterInfoWatcher watcher) throws ClusterInfoException {
         final Object ret = callZookeeper("exists", ppath, watcher, null, (cur, path, wp, userdata) -> {
             return wp == null ? (cur.exists(path, true) == null ? false : true) : (cur.exists(path, wp) == null ? false : true);
-        });
+        }, false);
         return ((Boolean) ret).booleanValue();
     }
 
@@ -132,7 +132,7 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
             if (ret != null && ret.length > 0)
                 return serializer.deserialize(ret, Object.class);
             return null;
-        });
+        }, false);
     }
 
     @Override
@@ -145,14 +145,14 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
 
             zkref.get().setData(path, buf, -1);
             return null;
-        });
+        }, false);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public Collection<String> getSubdirs(final String ppath, final ClusterInfoWatcher pwatcher) throws ClusterInfoException {
         return (Collection<String>) callZookeeper("getSubdirs", ppath, pwatcher, null,
-                (cur, pa, wp, userdata) -> wp == null ? cur.getChildren(pa, true) : cur.getChildren(pa, wp));
+                (cur, pa, wp, userdata) -> wp == null ? cur.getChildren(pa, true) : cur.getChildren(pa, wp), false);
     }
 
     @Override
@@ -266,7 +266,7 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
     }
 
     private Object callZookeeper(final String name, final String path, final ClusterInfoWatcher watcher, final Object userdata,
-            final ZookeeperCall callee) throws ClusterInfoException {
+            final ZookeeperCall callee, final boolean mkdir) throws ClusterInfoException {
         if (isRunning) {
             final WatcherProxy wp = watcher != null ? makeWatcherProxy(watcher) : null;
             if (wp != null) {
@@ -279,15 +279,15 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
             try {
                 return callee.call(cur, path, wp, userdata);
             } catch (final KeeperException.NodeExistsException e) {
-
                 if (logger.isTraceEnabled())
-                    logger.trace("Failed call to " + name + " at " + path + " because the node already exists.", e);
-                else if (logger.isDebugEnabled())
-                    logger.debug("Failed call to " + name + " at " + path + " because the node already exists.");
+                    logger.trace("Failed call to " + name + " at " + path + " because the node already exists:" + e.getLocalizedMessage());
                 return null; // this is only thrown from mkdir and so if the Node Exists
                              // we simply want to return a null String
             } catch (final KeeperException.NoNodeException e) {
-                throw new ClusterInfoException.NoNodeException("Node doesn't exist at " + path + " while running " + name, e);
+                if (mkdir)
+                    throw new ClusterInfoException.NoParentException("No parent node for " + path + " while running " + name, e);
+                else
+                    throw new ClusterInfoException.NoNodeException("Node doesn't exist at " + path + " while running " + name, e);
             } catch (final KeeperException e) {
                 resetZookeeper(cur);
                 throw new ClusterInfoException("Zookeeper failed while trying to " + name + " at " + path, e);
@@ -358,7 +358,7 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
                                 // in calls to resetZookeeper will either:
                                 // 1) be skipped because they are for an older ZooKeeper instance.
                                 // 2) be executed because they are for this new ZooKeeper instance.
-                                // what we dont want is the possibility that the reset will be skipped
+                                // what we don't want is the possibility that the reset will be skipped
                                 // even though the reset is called for this new ZooKeeper, but we haven't cleared
                                 // the beingReset flag yet.
                                 synchronized (ZookeeperSession.this) {

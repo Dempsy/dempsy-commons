@@ -34,8 +34,11 @@ import com.lmax.disruptor.util.PaddedLong;
 
 /**
  * <p>
- * This code is substantially based on the ingenious work done by Martin Thompson on what he calls "Mechanical Sympathy." It leans heavily on the source code from version 3.0.0.beta2 of the LMAX-exchange
- * Disruptor but has been completely refactored in order to invert separate the control mechanism from what is being controlled and to simplify the API.
+ * This code is substantially based on the ingenious work done by Martin Thompson
+ *  on what he calls "Mechanical Sympathy." It leans heavily on the source code 
+ *  from version 3.0.0.beta2 of the LMAX-exchange Disruptor but has been completely
+ *   refactored in order to invert separate the control mechanism from what is being 
+ *   controlled and to simplify the API.
  * </p>
  * 
  * <p>
@@ -47,22 +50,30 @@ import com.lmax.disruptor.util.PaddedLong;
  * </pre>
  * <hr>
  * <p>
- * Employ Martin Thompson's "mechanical sympathy" to the concurrency control mechanism for a ring buffer. It directly borrows from their code base and as of the time this class was written, it has about 20-30%
- * more throughput than their own ring buffer as measured by their own OneToOne benchmark test and about 15x faster as measured on their ThreeToOne test (on my machine, 64bit Linux, 64bit Java 6 Jvm).
+ * Employ Martin Thompson's "mechanical sympathy" to the concurrency control mechanism
+ *  for a ring buffer. It directly borrows from their code base and as of the time this
+ *  class was written, it has about 20-30% more throughput than their own ring buffer as 
+ *  measured by their own OneToOne benchmark test and about 15x faster as measured on 
+ *  their ThreeToOne test (on my machine, 64bit Linux, 64bit Java 6 Jvm).
  * </p>
  * 
  * <p>
- * This class is incredibly temperamental and must strictly be used the way it was intended. Misuse can easily lead to lockups, missed sequences, etc.
+ * This class is incredibly temperamental and must strictly be used the way it was intended.
+ *  Misuse can easily lead to lockups, missed sequences, etc.
  * </p>
  * 
  * <p>
- * In general, the {@link RingBufferControl} is the logic that controls the entries in a ring buffer, but not the ring buffer itself. These classes make no assumptions about where the data is stored (other than
- * in physical memory), or what type it is.
+ * In general, the {@link RingBufferControl} is the logic that controls the entries in a
+ *  ring buffer, but not the ring buffer itself. These classes make no assumptions about
+ *  where the data is stored (other than in physical memory), or what type it is.
  * </p>
  * 
  * <p>
- * The {@link RingBufferControl} is completely analogous to a traditional "condition variable." Just like a Condition Variable is the synchronization mechanism that gates concurrent access to some 'condition',
- * but says nothing about what the 'condition' actually is, the {@link RingBufferControl} gates concurrent access to the publishing and consuming of data in a ring buffer.
+ * The {@link RingBufferControl} is completely analogous to a traditional "condition 
+ * variable." Just like a Condition Variable is the synchronization mechanism that gates
+ * concurrent access to some 'condition', but says nothing about what the 'condition' 
+ * actually is, the {@link RingBufferControl} gates concurrent access to the publishing 
+ * and consuming of data in a ring buffer.
  * </p>
  * 
  * <p>
@@ -161,14 +172,14 @@ public abstract class RingBufferConsumerControl {
 
     protected RingBufferConsumerControl(final int sizePowerOfTwo,
             final ConsumerWaitStrategy waitStrategy, final Sequence cursor)
-                    throws IllegalArgumentException {
+            throws IllegalArgumentException {
         this(sizePowerOfTwo, waitStrategy, cursor, new PaddedLong(Long.MAX_VALUE));
         stopIsCommon = false;
     }
 
     protected RingBufferConsumerControl(final int sizePowerOfTwo,
             final ConsumerWaitStrategy waitStrategy, final Sequence cursor, final PaddedLong commonStop)
-                    throws IllegalArgumentException {
+            throws IllegalArgumentException {
         if (Integer.bitCount(sizePowerOfTwo) != 1)
             throw new IllegalArgumentException("bufferSize must be a power of 2");
 
@@ -219,7 +230,8 @@ public abstract class RingBufferConsumerControl {
         return (int) sequence & indexMask;
     }
 
-    @SuppressWarnings("rawtypes") protected Iterator iter = null;
+    @SuppressWarnings("rawtypes")
+    protected Iterator iter = null;
 
     public <T> Iterator<T> consumeAsIterator(final T[] values) {
         if (iter == null)

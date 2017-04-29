@@ -45,7 +45,7 @@ import net.dempsy.cluster.DisruptibleSession;
  * sessions through which changes are made.
  */
 public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
-    private static Logger logger = LoggerFactory.getLogger(LocalClusterSessionFactory.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(LocalClusterSessionFactory.class);
     protected static List<LocalSession> currentSessions = new ArrayList<LocalSession>();
     protected final boolean cleanupAfterLastSession;
 
@@ -74,7 +74,7 @@ public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
     public static synchronized void completeReset() {
         synchronized (currentSessions) {
             if (!isReset())
-                logger.error("LocalClusterSessionFactory beging reset with sessions or entries still open.");
+                LOGGER.error("LocalClusterSessionFactory beging reset with sessions or entries still open.");
 
             final List<LocalSession> sessions = new ArrayList<LocalSession>(currentSessions.size());
             sessions.addAll(currentSessions);
@@ -97,6 +97,14 @@ public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
         }
         if (child) {
             twatchers.addAll(ths.childWatchers);
+            if (twatchers.size() > 0) {
+                twatchers.forEach(w -> {
+                    if (w.watcher.toString().contains("setup or reset known destinations for Router")) {
+                        if (w.watcher.toString().contains("BlockingQueue_1"))
+                            System.out.println("here");
+                    }
+                });
+            }
             ths.childWatchers = new HashSet<LocalSession.WatcherProxy>();
         }
         return twatchers;
@@ -153,7 +161,7 @@ public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
                             processLock.unlock();
                             watcher.process();
                         } catch (final RuntimeException e) {
-                            logger.error("Failed to handle process for watcher " + objectDescription(watcher), e);
+                            LOGGER.error("Failed to handle process for watcher " + objectDescription(watcher), e);
                         } finally {
                             processLock.lock();
                         }
@@ -195,10 +203,15 @@ public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
         if (ret == null)
             throw new ClusterInfoException.NoNodeException("Path \"" + absolutePath + "\" doesn't exists.");
         if (watcher != null) {
-            if (nodeWatch)
+            if (nodeWatch) {
                 ret.nodeWatchers.add(watcher);
-            else
+                if (LOGGER.isTraceEnabled())
+                    LOGGER.trace("Added [" + watcher.watcher + "] to " + ret + " at " + absolutePath);
+            } else {
                 ret.childWatchers.add(watcher);
+                if (LOGGER.isTraceEnabled())
+                    LOGGER.trace("Added [" + watcher.watcher + "] to " + ret + " at " + absolutePath);
+            }
         }
         return ret;
     }
@@ -208,9 +221,12 @@ public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
         return e.data.get();
     }
 
-    private static synchronized void osetData(final String path, final Object data) throws ClusterInfoException {
-        final Entry e = get(path, null, true);
-        e.data.set(data);
+    private static void osetData(final String path, final Object data) throws ClusterInfoException {
+        final Entry e;
+        synchronized (LocalClusterSessionFactory.class) {
+            e = get(path, null, true);
+            e.data.set(data);
+        }
         e.callWatchers(true, false);
     }
 
@@ -238,10 +254,10 @@ public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
         final String parentPath = parent(path);
 
         final Entry parent = entries.get(parentPath);
-        if (parent == null) {
-            throw new ClusterInfoException("No Parent for \"" + path + "\" which is expected to be \"" +
+        if (parent == null)
+            throw new ClusterInfoException.NoParentException("No Parent for \"" + path + "\" which is expected to be \"" +
                     parent(path) + "\"");
-        }
+
         if (parent.mode != null && parent.mode.isEphemeral())
             throw new ClusterInfoException(
                     "Cannot add the subdirectory \"" + path + "\" to the EPHEMERAL parent directory \"" + parentPath
@@ -349,6 +365,11 @@ public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
             public boolean equals(final Object o) {
                 return watcher.equals(((WatcherProxy) o).watcher);
             }
+
+            @Override
+            public String toString() {
+                return watcher.toString();
+            }
         }
 
         private final WatcherProxy makeWatcher(final ClusterInfoWatcher watcher) {
@@ -418,8 +439,8 @@ public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
             synchronized (localEphemeralDirs) {
                 for (int i = localEphemeralDirs.size() - 1; i >= 0; i--) {
                     try {
-                        if (logger.isTraceEnabled())
-                            logger.trace("Removing ephemeral directory due to stopped session " + localEphemeralDirs.get(i));
+                        if (LOGGER.isTraceEnabled())
+                            LOGGER.trace("Removing ephemeral directory due to stopped session " + localEphemeralDirs.get(i));
                         ormdir(localEphemeralDirs.get(i), notifyWatchers);
                     } catch (final ClusterInfoException cie) {
                         // this can only happen in an odd race condition but
@@ -480,7 +501,7 @@ public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
         try {
             return String.valueOf(o);
         } catch (final Throwable th) {
-            logger.warn("Failed to determine valueOf for given object", th);
+            LOGGER.warn("Failed to determine valueOf for given object", th);
         }
 
         return "[error]";
@@ -491,7 +512,7 @@ public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
             final Class<?> clazz = o == null ? null : o.getClass();
             return clazz == null ? "[null object has no class]" : clazz.getName();
         } catch (final Throwable th) {
-            logger.warn("Failed to determine valueOf for given object", th);
+            LOGGER.warn("Failed to determine valueOf for given object", th);
         }
 
         return "[error]";

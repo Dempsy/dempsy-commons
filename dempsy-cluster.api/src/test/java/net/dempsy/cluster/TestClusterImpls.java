@@ -154,7 +154,13 @@ public abstract class TestClusterImpls {
                 session.rmdir(node);
 
                 // wait for no more than ten seconds
-                assertTrue(pass, poll(10000, cluster, (c) -> session.getSubdirs(c, null).size() == 0));
+                assertTrue(pass, poll(10000, cluster, c -> {
+                    try {
+                        return session.getSubdirs(c, null).size() == 0;
+                    } catch (final ClusterInfoException e) {
+                        throw new RuntimeException(e);
+                    }
+                }));
             }
         });
     }
@@ -499,4 +505,14 @@ public abstract class TestClusterImpls {
             }
         });
     }
+
+    @Test(expected = ClusterInfoException.NoParentException.class)
+    public void testNoParent() throws Throwable {
+        runAllCombinations((pass, factory) -> {
+            try (final ClusterInfoSession session = factory.createSession();) {
+                session.mkdir("/testNoParent/parent/path-where-parent-doesnt-exist", null, DirMode.PERSISTENT);
+            }
+        });
+    }
+
 }
