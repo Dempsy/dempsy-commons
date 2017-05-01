@@ -41,25 +41,25 @@
   </scm>
 
   <modules>
-<!--    <module>dempsy-commons-bom</module> -->
+    <module>dempsy-commons-bom</module>
 
-<!--    <module>dempsy-commons-parentpom</module> -->
+    <module>dempsy-commons-parentpom</module>
     
-<!--    <module>dempsy-ringbuffer</module> -->
-<!--    <module>dempsy-serialization.api</module> -->
-<!--    <module>dempsy-serialization.jackson</module> -->
-<!--    <module>dempsy-serialization.java</module> -->
-<!--    <module>dempsy-serialization.kryo</module> -->
-<!--    <module>dempsy-cluster.api</module> -->
-<!--    <module>dempsy-cluster.local</module> -->
-<!--    <module>dempsy-cluster.zookeeper</module> -->
-<!--    <module>dempsy-distconfig.api</module> -->
-<!--    <module>dempsy-distconfig.classpath</module> -->
-<!--    <module>dempsy-distconfig.clusterinfo</module> -->
-<!--    <module>dempsy-distconfig.apachevfs</module> -->
-<!--    <module>dempsy-distconfig.main</module> -->
-<!--    <module>dempsy-test-utils</module> -->
-<!--    <module>dempsy-utils</module> -->
+    <module>dempsy-ringbuffer</module>
+    <module>dempsy-serialization.api</module>
+    <module>dempsy-serialization.jackson</module>
+    <module>dempsy-serialization.java</module>
+    <module>dempsy-serialization.kryo</module>
+    <module>dempsy-cluster.api</module>
+    <module>dempsy-cluster.local</module>
+    <module>dempsy-cluster.zookeeper</module>
+    <module>dempsy-distconfig.api</module>
+    <module>dempsy-distconfig.classpath</module>
+    <module>dempsy-distconfig.clusterinfo</module>
+    <module>dempsy-distconfig.apachevfs</module>
+    <module>dempsy-distconfig.main</module>
+    <module>dempsy-test-utils</module>
+    <module>dempsy-utils</module>
   </modules>
 
   <build>
