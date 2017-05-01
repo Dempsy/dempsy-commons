@@ -78,6 +78,14 @@ public class MessageBufferOutput extends OutputStream {
     }
 
     /**
+     * Doubles the internal buffer size, or sets to the capacity provided if that's higher, while preserving the data
+     */
+    public void grow(final int newcap) {
+        buf = Arrays.copyOf(buf, Math.max(length << 1, newcap));
+        length = buf.length;
+    }
+
+    /**
      * Completely replace the underlying buffer.
      */
     public void replace(final byte[] buffer) {
@@ -252,6 +260,6 @@ public class MessageBufferOutput extends OutputStream {
      * 
      */
     @Override
-    public void close() throws IOException {}
+    public void close() {}
 
 }

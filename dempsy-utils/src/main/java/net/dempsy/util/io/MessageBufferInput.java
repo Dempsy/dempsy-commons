@@ -1,7 +1,6 @@
 package net.dempsy.util.io;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 
@@ -255,6 +254,6 @@ public class MessageBufferInput extends InputStream {
      * <p>
      */
     @Override
-    public void close() throws IOException {}
+    public void close() {}
 
 }
