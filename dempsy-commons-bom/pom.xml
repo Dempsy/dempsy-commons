@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>net.dempsy</groupId>
-  <artifactId>dempsy-commons</artifactId>
+  <artifactId>dempsy-commons-bom</artifactId>
   <version>2.1.1</version>
-  <name>Dempsy Commons Parent Pom</name>
-  <description>Dempsy Commons Parent Pom</description>
+  <name>dempsy-commons-bom</name>
+  <description>BOM for importing into your pom</description>
   <packaging>pom</packaging>
+  
   <url>git@github.com:Dempsy/dempsy-commons.git</url>
   <developers>
     <developer>
@@ -40,74 +40,127 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <slf4j.version>1.7.16</slf4j.version>
-    <jackson.version>2.2.3</jackson.version>
 
-    <spring-framework.version>4.2.5.RELEASE</spring-framework.version>
+    <!-- These are the CURRENT versions -->
+    <dempsy-serialization.api.version>2.1.0</dempsy-serialization.api.version>
+    <dempsy-serialization.jackson.version>2.1.0</dempsy-serialization.jackson.version>
+    <dempsy-serialization.java.version>2.1.0</dempsy-serialization.java.version>
+    <dempsy-serialization.kryo.version>2.1.0</dempsy-serialization.kryo.version>
+
+    <dempsy-utils.version>2.1.0</dempsy-utils.version>
+    <dempsy-test-utils.version>2.1.0</dempsy-test-utils.version>
+    <dempsy-ringbuffer.version>2.0.1</dempsy-ringbuffer.version>
+    
+    <dempsy-cluster.api.version>2.1.0</dempsy-cluster.api.version>
+    <dempsy-cluster.zookeeper.version>2.1.0</dempsy-cluster.zookeeper.version>
+    <dempsy-cluster.local.version>2.1.0</dempsy-cluster.local.version>
+    
+    <dempsy-distconfig.api.version>2.0.1</dempsy-distconfig.api.version>
+    <dempsy-distconfig.clusterinfo.version>2.0.1</dempsy-distconfig.clusterinfo.version>
+    <dempsy-distconfig.apachevfs.version>2.0.1</dempsy-distconfig.apachevfs.version>
+    <dempsy-distconfig.main.version>2.0.1</dempsy-distconfig.main.version>
   </properties>
 
   <!-- This section provides some unifority of dependencies for all dempsy-commons projects -->
   <dependencyManagement>
     <dependencies>
-      <!-- internal dempsy-commons deps -->
+      <!-- Serialization -->
       <dependency>
         <groupId>net.dempsy</groupId>
-        <artifactId>dempsy-commons-bom</artifactId>
-        <version>2.1.1</version>
-        <type>pom</type>
-        <scope>import</scope>
+        <artifactId>dempsy-serialization.api</artifactId>
+        <version>${dempsy-serialization.api.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.dempsy</groupId>
+        <artifactId>dempsy-serialization.api</artifactId>
+        <version>${dempsy-serialization.api.version}</version>
+        <type>test-jar</type>
+      </dependency>
+      <dependency> <!-- used in the tests for Zookeeper cluster management impl -->
+        <groupId>net.dempsy</groupId>
+        <artifactId>dempsy-serialization.jackson</artifactId>
+        <version>${dempsy-serialization.jackson.version}</version>
+      </dependency>
+      <dependency> 
+        <groupId>net.dempsy</groupId>
+        <artifactId>dempsy-serialization.java</artifactId>
+        <version>${dempsy-serialization.java.version}</version>
+      </dependency>
+      <dependency> 
+        <groupId>net.dempsy</groupId>
+        <artifactId>dempsy-serialization.kryo</artifactId>
+        <version>${dempsy-serialization.kryo.version}</version>
       </dependency>
 
-      <!-- 3rd party -->
+      <!-- cluster info api -->
       <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-api</artifactId>
-        <version>${slf4j.version}</version>
-      </dependency>
-      <dependency> <!-- needed for the zookeeper cluster management implementation -->
-        <groupId>org.apache.zookeeper</groupId>
-        <artifactId>zookeeper</artifactId>
-        <version>3.4.6</version>
-      </dependency>
-      <dependency> <!-- needed for the json serializer -->
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-databind</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-      <dependency> <!-- needed for the kryo serializer implementation -->
-        <groupId>com.esotericsoftware</groupId>
-        <artifactId>kryo</artifactId>
-        <version>4.0.0</version>
-      </dependency>
-      <dependency> <!-- for the RingBuffer functionality -->
-        <groupId>com.lmax</groupId>
-        <artifactId>disruptor</artifactId>
-        <version>3.3.0</version>
-      </dependency>
-      <dependency> <!-- Used in the dempsy-distconfig Apache VFS implementation -->
-        <groupId>org.apache.commons</groupId>
-        <artifactId>commons-vfs2</artifactId>
-        <version>2.0</version>
+        <groupId>net.dempsy</groupId>
+        <artifactId>dempsy-cluster.api</artifactId>
+        <version>${dempsy-cluster.api.version}</version>
       </dependency>
       <dependency>
-       <groupId>org.springframework</groupId>
-       <artifactId>spring-context</artifactId>
-       <version>${spring-framework.version}</version>
+        <groupId>net.dempsy</groupId>
+        <artifactId>dempsy-cluster.api</artifactId>
+        <version>${dempsy-cluster.api.version}</version>
+        <type>test-jar</type>
+      </dependency>
+      <dependency>
+        <groupId>net.dempsy</groupId> <!-- used in testing disconf functionality -->
+        <artifactId>dempsy-cluster.local</artifactId>
+        <version>${dempsy-cluster.local.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.dempsy</groupId> <!-- used in testing disconf functionality -->
+        <artifactId>dempsy-cluster.zookeeper</artifactId>
+        <version>${dempsy-cluster.zookeeper.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.dempsy</groupId> <!-- used in testing disconf functionality -->
+        <artifactId>dempsy-cluster.zookeeper</artifactId>
+        <version>${dempsy-cluster.zookeeper.version}</version>
+        <type>test-jar</type>
       </dependency>
 
-      <!-- Testing - internal -->
-
-      <!-- Testing - 3rd party -->
+      <!-- distributed configuration api -->
       <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <version>4.12</version>
-        <scope>test</scope>
+        <groupId>net.dempsy</groupId>
+        <artifactId>dempsy-distconfig.api</artifactId>
+        <version>${dempsy-distconfig.api.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-log4j12</artifactId>
-        <version>${slf4j.version}</version>
+        <groupId>net.dempsy</groupId>
+        <artifactId>dempsy-distconfig.main</artifactId>
+        <version>${dempsy-distconfig.main.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.dempsy</groupId>
+        <artifactId>dempsy-distconfig.api</artifactId>
+        <type>test-jar</type>
+        <version>${dempsy-distconfig.api.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.dempsy</groupId>
+        <artifactId>dempsy-distconfig.apachevfs</artifactId>
+        <version>${dempsy-distconfig.apachevfs.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.dempsy</groupId>
+        <artifactId>dempsy-distconfig.clusterinfo</artifactId>
+        <version>${dempsy-distconfig.clusterinfo.version}</version>
+      </dependency>
+
+      <!-- General utilities -->
+      <dependency>
+        <groupId>net.dempsy</groupId>
+        <artifactId>dempsy-utils</artifactId>
+        <version>${dempsy-utils.version}</version>
+      </dependency>
+
+      <!-- test utilities -->
+      <dependency>
+        <groupId>net.dempsy</groupId>
+        <artifactId>dempsy-test-utils</artifactId>
+        <version>${dempsy-test-utils.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -289,5 +342,4 @@
       </build>
     </profile>
   </profiles>
-
 </project>

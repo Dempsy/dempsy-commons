@@ -6,12 +6,13 @@
   <parent>
     <groupId>net.dempsy</groupId>
     <artifactId>dempsy-commons</artifactId>
-    <version>2.0.1-SNAPSHOT</version>
+    <version>2.1.0</version>
     <relativePath>../dempsy-commons-parentpom/pom.xml</relativePath>
   </parent>
 
   <artifactId>dempsy-distconfig.apachevfs</artifactId>
   <name>dempsy-distconfig implementation on apache's virtual file system 2</name>
+  <version>2.0.1</version>
 
   <licenses>
     <license>
