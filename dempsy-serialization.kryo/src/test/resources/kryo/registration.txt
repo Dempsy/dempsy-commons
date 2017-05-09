@@ -1,0 +1,4 @@
+  
+net.dempsy.serialization.MockClass
+
+this.is.not.a.real.Class

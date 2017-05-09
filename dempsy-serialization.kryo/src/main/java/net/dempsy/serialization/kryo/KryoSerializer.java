@@ -18,7 +18,12 @@ package net.dempsy.serialization.kryo;
 
 import static net.dempsy.util.SafeString.objectDescription;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -37,13 +42,20 @@ import net.dempsy.util.io.MessageBufferInput;
 import net.dempsy.util.io.MessageBufferOutput;
 
 /**
- * This is the implementation of the Kryo based serialization for Dempsy.
+ * <p>This is the implementation of the Kryo based serialization for Dempsy.
  * It can be configured with registered classes using Spring by passing a
- * list of {@link Registration} instances to the constructor.
+ * list of {@link Registration} instances to the constructor.</p>
+ * 
+ * <p>The serializer will also pick up registrations from a file on the classpath
+ * if it's provided. It will default to {@link KryoSerializer#KRYO_REGISTRATION_FILE}
+ * but can be overridden by supplying the system property with the name
+ * {@link KryoSerializer#SYS_PROP_REGISTRAION_RESOURCE}.</p>
  */
 public class KryoSerializer extends Serializer {
-    private static Logger logger = LoggerFactory.getLogger(KryoSerializer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(KryoSerializer.class);
 
+    public static final String KRYO_REGISTRATION_FILE = "kryo-registrations.txt";
+    public static final String SYS_PROP_REGISTRAION_RESOURCE = "kryo-registration";
     private static final byte[] park = new byte[0];
 
     public class Holder implements AutoCloseable {
@@ -100,7 +112,7 @@ public class KryoSerializer extends Serializer {
      * Application specific Optimizer. This can be used from a Spring configuration.
      */
     public KryoSerializer(final boolean manageExactClasses, final KryoOptimizer optimizer, final Registration... regs) {
-        registrations = regs == null ? null : Arrays.asList(regs);
+        registrations = loadRegistrations(regs);
         this.optimizer = optimizer;
         kryoRunner = manageExactClasses ? new RunKryo() {
 
@@ -126,6 +138,40 @@ public class KryoSerializer extends Serializer {
                 return k.kryo.readObject(input, clazz);
             }
         };
+    }
+
+    private static List<Registration> loadRegistrations(final Registration... regs) {
+        // if there are any registrations passed in then those go first.
+        final List<Registration> ret = regs == null ? new ArrayList<>() : new ArrayList<>(Arrays.asList(regs));
+
+        // now see if there's a registration file on the classpath.
+        final String regResource = System.getProperty(SYS_PROP_REGISTRAION_RESOURCE, KRYO_REGISTRATION_FILE);
+        final InputStream in = KryoSerializer.class.getClassLoader().getResourceAsStream(regResource);
+        if (in != null) {
+            // then we have a text file to read.
+            final BufferedReader br = new BufferedReader(new InputStreamReader(in, Charset.forName("UTF-8")));
+            String line;
+            try {
+                while ((line = br.readLine()) != null) {
+                    line = line.trim();
+                    if (!("".equals(line) || " ".equals(line))) {
+                        LOGGER.trace("Adding the clas ");
+                        ret.add(new Registration(line));
+                    }
+                }
+            } catch (final IOException ioe) {
+                LOGGER.error("Failed to read the file " + KRYO_REGISTRATION_FILE + " from the classpath.", ioe);
+                throw new RuntimeException("Failed to read the file " + KRYO_REGISTRATION_FILE + " from the classpath.", ioe);
+            }
+        } else {
+            final String wasSet = System.getProperty(SYS_PROP_REGISTRAION_RESOURCE);
+            if (wasSet != null)
+                throw new RuntimeException("Can't find " + wasSet + " on the classpath.");
+            // otherwise just log there was no registration
+            LOGGER.debug("No regisration resource found.");
+        }
+
+        return ret;
     }
 
     /**
@@ -196,19 +242,21 @@ public class KryoSerializer extends Serializer {
                 try {
                     optimizer.preRegister(ret.kryo);
                 } catch (final Throwable th) {
-                    logger.error("Optimizer for KryoSerializer \"" + (optimizer == null ? "[null object]" : optimizer.getClass().getName()) +
+                    LOGGER.error("Optimizer for KryoSerializer \"" + (optimizer == null ? "[null object]" : optimizer.getClass().getName()) +
                             "\" threw and unepexcted exception.... continuing.", th);
                 }
             }
 
             if (registrations != null) {
                 for (final Registration reg : registrations) {
+                    if (LOGGER.isTraceEnabled())
+                        LOGGER.trace("Registering classname " + reg.classname + (reg.id >= 0 ? (" with an id of " + reg.id) : "") + " with Kryo.");
                     try {
                         if (reg.id == -1)
                             ret.kryo.register(Class.forName(reg.classname));
                         else ret.kryo.register(Class.forName(reg.classname), reg.id);
                     } catch (final ClassNotFoundException cnfe) {
-                        logger.error("Cannot register the class " + Optional.ofNullable(reg.classname).orElse("null")
+                        LOGGER.error("Cannot register the class " + Optional.ofNullable(reg.classname).orElse("null")
                                 + " with Kryo because the class couldn't be found.");
                     }
                 }
@@ -218,7 +266,7 @@ public class KryoSerializer extends Serializer {
                 try {
                     optimizer.postRegister(ret.kryo);
                 } catch (final Throwable th) {
-                    logger.error("Optimizer for KryoSerializer \"" + (optimizer == null ? "[null object]" : optimizer.getClass().getName()) +
+                    LOGGER.error("Optimizer for KryoSerializer \"" + (optimizer == null ? "[null object]" : optimizer.getClass().getName()) +
                             "\" threw and unepexcted exception.... continuing.", th);
                 }
             }

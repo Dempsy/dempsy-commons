@@ -211,7 +211,6 @@ public abstract class TestSerializerImplementation {
     public void testWithFinalFields() throws Throwable {
         final Mock2 o = new Mock2(1, new MockClass(2, "Hello"));
         final byte[] data = underTest.serialize(o);
-        System.out.println(new String(data));
         final Mock2 o2 = underTest.deserialize(data, Mock2.class);
         assertEquals(1, o2.getInt());
         assertEquals(new MockClass(2, "Hello"), o2.getMockClass());
