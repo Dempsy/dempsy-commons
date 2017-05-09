@@ -6,13 +6,13 @@
   <parent>
     <groupId>net.dempsy</groupId>
     <artifactId>dempsy-commons</artifactId>
-    <version>2.1.2-SNAPSHOT</version>
+    <version>2.1.1</version>
     <relativePath>../dempsy-commons-parentpom/pom.xml</relativePath>
   </parent>
 
   <artifactId>dempsy-serialization.java</artifactId>
   <name>Dempsy Serialization implementation using native java serialization.</name>
-  <version>2.1.1-SNAPSHOT</version>
+  <version>2.1.0</version>
 
   <dependencies>
     <dependency>
