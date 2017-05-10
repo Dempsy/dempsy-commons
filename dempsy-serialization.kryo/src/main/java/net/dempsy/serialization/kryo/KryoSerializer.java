@@ -155,7 +155,7 @@ public class KryoSerializer extends Serializer {
                 while ((line = br.readLine()) != null) {
                     line = line.trim();
                     if (!("".equals(line) || " ".equals(line))) {
-                        LOGGER.trace("Adding the clas ");
+                        LOGGER.debug("Adding the class {}", line);
                         ret.add(new Registration(line));
                     }
                 }
