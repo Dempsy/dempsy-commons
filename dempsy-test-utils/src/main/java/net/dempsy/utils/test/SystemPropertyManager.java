@@ -31,6 +31,10 @@ public class SystemPropertyManager implements AutoCloseable {
         return this;
     }
 
+    public SystemPropertyManager setIfAbsent(final String name, final String value) {
+        return System.getProperties().containsKey(name) ? this : set(name, value);
+    }
+
     public SystemPropertyManager load(final String file) {
         final Properties props = new Properties();
         try (FileInputStream fis = new FileInputStream(file)) {
