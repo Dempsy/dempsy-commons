@@ -397,6 +397,6 @@ These two base primitives can only be used with one consuming thread and one pub
   * Java 8 - at version (1.1), almost everything will build with java 7 except the Kryo serializer which will need to be modified slightly. The released version 1.1 was built with Java 8. Going forward (2.0.0 and beyond) there will be an assumption that Java 8 functionality is available and builds will be done using Java8.
 
 ## [API docs](http://dempsy.github.io/Dempsy/dempsy-commons/2.0.0/)
-   * [version 1.1 javadocs](http://dempsy.github.io/Dempsy/dempsy-commons/1.1/) - <b>deprecated</b>.
-   * [version 2.0.0 javadocs](http://dempsy.github.io/Dempsy/dempsy-commons/2.0.0/) - current development SNAPSHOT build
+   * version 1.1 javadocs - <b>deprecated</b>.
+   * [Javadocs for other released versions](http://dempsy.github.io/dempsy-commons/)
 
