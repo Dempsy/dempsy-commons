@@ -5,7 +5,7 @@
 
   <groupId>net.dempsy</groupId>
   <artifactId>dempsy-commons.aggregator</artifactId>
-  <version>2.1.1</version>
+  <version>2.1.2-SNAPSHOT</version>
   <name>Dempsy Commons Aggregator</name>
   <description>Dempsy Commons Aggregator</description>
   <packaging>pom</packaging>
@@ -24,25 +24,25 @@
     <module>dempsy-commons-bom</module>
     <module>dempsy-commons-parentpom</module>
     
-    <module>dempsy-ringbuffer</module>
+<!--    <module>dempsy-ringbuffer</module> -->
 
     <module>dempsy-serialization.api</module>
-    <module>dempsy-serialization.jackson</module>
-    <module>dempsy-serialization.java</module>
+<!--    <module>dempsy-serialization.jackson</module> -->
+<!--    <module>dempsy-serialization.java</module> -->
     <module>dempsy-serialization.kryo</module>
 
-    <module>dempsy-cluster.api</module>
-    <module>dempsy-cluster.local</module>
-    <module>dempsy-cluster.zookeeper</module>
+<!--    <module>dempsy-cluster.api</module> -->
+<!--    <module>dempsy-cluster.local</module> -->
+<!--    <module>dempsy-cluster.zookeeper</module> -->
 
-    <module>dempsy-distconfig.api</module>
-    <module>dempsy-distconfig.classpath</module>
-    <module>dempsy-distconfig.clusterinfo</module>
-    <module>dempsy-distconfig.apachevfs</module>
-    <module>dempsy-distconfig.main</module>
+<!--    <module>dempsy-distconfig.api</module> -->
+<!--    <module>dempsy-distconfig.classpath</module> -->
+<!--    <module>dempsy-distconfig.clusterinfo</module> -->
+<!--    <module>dempsy-distconfig.apachevfs</module> -->
+<!--    <module>dempsy-distconfig.main</module> -->
 
     <module>dempsy-test-utils</module>
-    <module>dempsy-utils</module>
+<!--    <module>dempsy-utils</module> -->
   </modules>
 
   <build>
