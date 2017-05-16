@@ -22,6 +22,8 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.net.BindException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -33,6 +35,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.server.ServerCnxnFactory;
 import org.apache.zookeeper.server.ServerConfig;
 import org.apache.zookeeper.server.ZooKeeperServerMain;
 import org.apache.zookeeper.server.quorum.QuorumPeerConfig;
@@ -45,12 +48,12 @@ import net.dempsy.utils.test.ConditionPoll.Condition;
 
 @Ignore
 public class ZookeeperTestServer implements AutoCloseable {
-    private static Logger logger = LoggerFactory.getLogger(ZookeeperTestServer.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(ZookeeperTestServer.class);
     private File zkDir = null;
     private Properties zkConfig = null;
     private TestZookeeperServerIntern zkServer = null;
 
-    public final int port;
+    public int port;
 
     public ZookeeperTestServer() throws IOException {
         port = findNextPort();
@@ -68,6 +71,19 @@ public class ZookeeperTestServer implements AutoCloseable {
     }
 
     public String connectString() {
+        for (boolean done = false; !done;) {
+            if (zkServer != null) {
+                if (!zkServer.serverSillRunning.get())
+                    return null;
+                try {
+                    zkServer.waitForStart();
+                } catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException e) {
+                    LOGGER.error("FAILED", e);
+                    return null;
+                }
+                done = true;
+            }
+        }
         return "127.0.0.1:" + port;
     }
 
@@ -155,10 +171,37 @@ public class ZookeeperTestServer implements AutoCloseable {
     }
 
     static class TestZookeeperServerIntern extends ZooKeeperServerMain {
+        final AtomicBoolean serverSillRunning = new AtomicBoolean(true);
+        final ZookeeperTestServer server;
+
+        TestZookeeperServerIntern(final ZookeeperTestServer server) {
+            this.server = server;
+        }
+
         @Override
         public void shutdown() {
-            logger.debug("Stopping internal ZooKeeper server.");
+            LOGGER.debug("Stopping internal ZooKeeper server.");
             super.shutdown();
+        }
+
+        public boolean waitForStart() throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+            while (serverSillRunning.get()) {
+                final ServerCnxnFactory cnxnFactory = getCnxnFactory();
+                if (cnxnFactory != null) {
+                    if (cnxnFactory.getLocalPort() == server.port)
+                        return true;
+                }
+                try {
+                    Thread.sleep(1);
+                } catch (final InterruptedException ie) {}
+            }
+            return false;
+        }
+
+        private ServerCnxnFactory getCnxnFactory() throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+            final Field f = ZooKeeperServerMain.class.getDeclaredField("cnxnFactory");
+            f.setAccessible(true);
+            return (ServerCnxnFactory) f.get(this);
         }
     }
 
@@ -171,11 +214,11 @@ public class ZookeeperTestServer implements AutoCloseable {
         if (zkDir == null || newDataDir)
             zkDir = genZookeeperDataDir();
         zkConfig = genZookeeperConfig(zkDir, port);
-        zkServer = startZookeeper(zkConfig);
+        zkServer = startZookeeper(zkConfig, this);
     }
 
     public void start(final Properties zkConfig) throws IOException {
-        startZookeeper(zkConfig);
+        startZookeeper(zkConfig, this);
     }
 
     @Override
@@ -192,7 +235,7 @@ public class ZookeeperTestServer implements AutoCloseable {
             try {
                 zkServer.shutdown();
             } catch (final Throwable th) {
-                logger.error("Failed to shutdown the internal Zookeeper server:", th);
+                LOGGER.error("Failed to shutdown the internal Zookeeper server:", th);
             }
         }
 
@@ -241,32 +284,64 @@ public class ZookeeperTestServer implements AutoCloseable {
 
     private static final AtomicLong serverCount = new AtomicLong(0);
 
-    private static TestZookeeperServerIntern startZookeeper(final Properties zkConfig) {
-        logger.debug("Starting the test zookeeper server on port " + zkConfig.get("clientPort"));
+    private static TestZookeeperServerIntern startZookeeper(final Properties zkConfig, final ZookeeperTestServer tserver) {
+        LOGGER.debug("Starting the test zookeeper server on port " + zkConfig.get("clientPort"));
 
-        final TestZookeeperServerIntern server = new TestZookeeperServerIntern();
+        final TestZookeeperServerIntern server = new TestZookeeperServerIntern(tserver);
         try {
             final QuorumPeerConfig qpConfig = new QuorumPeerConfig();
             qpConfig.parseProperties(zkConfig);
-            final ServerConfig sConfig = new ServerConfig();
-            sConfig.readFrom(qpConfig);
 
             final Thread t = new Thread(new Runnable() {
 
+                QuorumPeerConfig lqpConfig = qpConfig;
+
                 @Override
                 public void run() {
+                    ServerConfig sConfig = new ServerConfig();
+                    sConfig.readFrom(qpConfig);
+
                     try {
-                        server.runFromConfig(sConfig);
-                    } catch (final IOException ioe) {
-                        logger.error(MarkerFactory.getMarker("FATAL"), "", ioe);
-                        fail("can't start zookeeper");
+                        int failedCount = 0;
+                        for (boolean done = false; !done;) {
+                            done = true;
+                            try {
+                                server.runFromConfig(sConfig);
+                            } catch (final BindException be) {
+                                // assume this is because the port was in use, let's try again.
+                                failedCount++;
+                                if (failedCount > 10) {
+                                    LOGGER.error("Apparent failure to bind. Giving up.", be);
+                                    done = true;
+                                } else {
+                                    LOGGER.error("Apparent failure to bind. Will try again.", be);
+                                    try {
+                                        tserver.port = findNextPort();
+                                        zkConfig.setProperty("clientPort", String.valueOf(tserver.port));
+                                        lqpConfig = new QuorumPeerConfig();
+                                        lqpConfig.parseProperties(zkConfig);
+                                        sConfig = new ServerConfig();
+                                        sConfig.readFrom(qpConfig);
+                                        done = false;
+                                    } catch (final Exception ioe) {
+                                        LOGGER.error("Now I can't even find the port. Giving up", ioe);
+                                        fail("can't start zookeeper");
+                                    }
+                                }
+                            } catch (final IOException ioe) {
+                                LOGGER.error(MarkerFactory.getMarker("FATAL"), "", ioe);
+                                fail("can't start zookeeper");
+                            }
+                        }
+                    } finally {
+                        server.serverSillRunning.set(false);
                     }
                 }
             }, "ZookeeperTestServer-" + serverCount.getAndIncrement());
             t.start();
             Thread.sleep(2000); // give the server time to start
         } catch (final Exception e) {
-            logger.error("Can't start zookeeper", e);
+            LOGGER.error("Can't start zookeeper", e);
             fail("Can't start zookeeper");
         }
         return server;
@@ -277,7 +352,7 @@ public class ZookeeperTestServer implements AutoCloseable {
             for (final File f : path.listFiles())
                 deleteRecursivly(f);
 
-        logger.debug("Deleting zookeeper data directory:" + path);
+        LOGGER.debug("Deleting zookeeper data directory:" + path);
         path.delete();
     }
 
