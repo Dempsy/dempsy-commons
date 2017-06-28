@@ -30,12 +30,13 @@
     
     <dempsy-cluster.api.version>2.1.0</dempsy-cluster.api.version>
     <dempsy-cluster.zookeeper.version>2.1.1-SNAPSHOT</dempsy-cluster.zookeeper.version>
-    <dempsy-cluster.local.version>2.1.0</dempsy-cluster.local.version>
+    <dempsy-cluster.local.version>2.1.1-SNAPSHOT</dempsy-cluster.local.version>
     
     <dempsy-distconfig.api.version>2.0.1</dempsy-distconfig.api.version>
     <dempsy-distconfig.clusterinfo.version>2.0.1</dempsy-distconfig.clusterinfo.version>
     <dempsy-distconfig.apachevfs.version>2.0.1</dempsy-distconfig.apachevfs.version>
     <dempsy-distconfig.main.version>2.0.1</dempsy-distconfig.main.version>
+    <dempsy-distconfig.classpath.version>2.0.2-SNAPSHOT</dempsy-distconfig.classpath.version>
   </properties>
 
   <!-- This section provides some unifority of dependencies for all dempsy-commons projects -->
@@ -108,6 +109,11 @@
         <groupId>net.dempsy</groupId>
         <artifactId>dempsy-distconfig.main</artifactId>
         <version>${dempsy-distconfig.main.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.dempsy</groupId>
+        <artifactId>dempsy-distconfig.classpath</artifactId>
+        <version>${dempsy-distconfig.classpath.version}</version>
       </dependency>
       <dependency>
         <groupId>net.dempsy</groupId>

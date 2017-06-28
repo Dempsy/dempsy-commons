@@ -97,14 +97,6 @@ public class LocalClusterSessionFactory implements ClusterInfoSessionFactory {
         }
         if (child) {
             twatchers.addAll(ths.childWatchers);
-            if (twatchers.size() > 0) {
-                twatchers.forEach(w -> {
-                    if (w.watcher.toString().contains("setup or reset known destinations for Router")) {
-                        if (w.watcher.toString().contains("BlockingQueue_1"))
-                            System.out.println("here");
-                    }
-                });
-            }
             ths.childWatchers = new HashSet<LocalSession.WatcherProxy>();
         }
         return twatchers;

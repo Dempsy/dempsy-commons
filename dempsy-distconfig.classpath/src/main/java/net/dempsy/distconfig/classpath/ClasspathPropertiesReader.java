@@ -26,7 +26,12 @@ import net.dempsy.distconfig.PropertiesReader;
 import net.dempsy.distconfig.PropertiesWatcher;
 import net.dempsy.util.SafeString;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ClasspathPropertiesReader implements PropertiesReader {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ClasspathPropertiesReader.class);
+    
     private final boolean actLikeYouSupportNotifications;
     private final String classpathUri;
 
@@ -57,7 +62,7 @@ public class ClasspathPropertiesReader implements PropertiesReader {
         final String resource = (classpathUri.startsWith("classpath:///")) ? classpathUri.substring(14)
                 : (classpathUri.startsWith("classpathUri:") ? classpathUri.substring(11) : cleanPath(classpathUri));
 
-        System.out.println("trying to read:" + resource);
+        LOGGER.debug("trying to read:{}", resource);
         final InputStream resAsStream = ClasspathPropertiesReader.class.getClassLoader().getResourceAsStream(resource);
         return resAsStream == null ? new VersionedProperties(-1, null) : new VersionedProperties(0,
                 chainThrows(new Properties(), p -> p.load(resAsStream)));
