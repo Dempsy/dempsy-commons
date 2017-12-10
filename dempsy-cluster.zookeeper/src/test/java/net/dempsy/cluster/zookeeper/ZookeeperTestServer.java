@@ -188,8 +188,16 @@ public class ZookeeperTestServer implements AutoCloseable {
             while (serverSillRunning.get()) {
                 final ServerCnxnFactory cnxnFactory = getCnxnFactory();
                 if (cnxnFactory != null) {
-                    if (cnxnFactory.getLocalPort() == server.port)
-                        return true;
+                    try {
+                        if (cnxnFactory.getLocalPort() == server.port)
+                            return true;
+                    } catch (final NullPointerException npe) {
+                        // This is a total hack. The cnxnFactory will throw a NPE if it's not
+                        // running yet. Retards!
+                        try {
+                            Thread.sleep(500);
+                        } catch (final InterruptedException e) {}
+                    }
                 }
                 try {
                     Thread.sleep(1);
