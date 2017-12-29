@@ -6,13 +6,13 @@
   <parent>
     <groupId>net.dempsy</groupId>
     <artifactId>dempsy-commons</artifactId>
-    <version>2.1.0</version>
+    <version>2.2.0-SNAPSHOT</version>
     <relativePath>../dempsy-commons-parentpom/pom.xml</relativePath>
   </parent>
 
   <artifactId>dempsy-utils</artifactId>
-  <version>2.1.0</version>
-  <name>Dempsy Simple utilities with no dependencies.</name>
+  <!-- <version>2.2.0-SNAPSHOT</version> Same as parent -->
+  <name>Dempsy Simple utilities with minimal dependencies.</name>
 
   <dependencies>
     <!-- Testing -->
@@ -30,6 +30,11 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
       <optional>true</optional>
+    </dependency>
+    <dependency> <!-- Only used in the NativeLibraryLoader -->
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <optional>true</optional> <!-- Needs to be included to use the NativeLibraryLoader -->
     </dependency>
   </dependencies>
 </project>
