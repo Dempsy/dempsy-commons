@@ -164,6 +164,8 @@ public class NativeLibraryLoader {
     }
 
     private static InputStream getInputStreamFromClassLoader(final ClassLoader loader, final String resource) {
+        if (loader == null)
+            return null;
         InputStream is = loader.getResourceAsStream(resource);
         if (is == null)
             is = loader.getResourceAsStream("/" + resource);
