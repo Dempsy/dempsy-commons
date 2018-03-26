@@ -43,6 +43,7 @@ public class NativeLibraryLoader {
 
     public static class Loader {
         private final List<LibraryDefinition> libs = new ArrayList<>();
+        private final List<PreLibraryLoad> lls = new ArrayList<>();
 
         private static class LibraryDefinition {
             final private boolean required;
@@ -69,16 +70,25 @@ public class NativeLibraryLoader {
             return this;
         }
 
+        public interface PreLibraryLoad {
+            public void loading(File directory, String libName, String fullLibName);
+        }
+
+        public Loader addCallback(final PreLibraryLoad ll) {
+            lls.add(ll);
+            return this;
+        }
+
         public void load() {
             final File tmpDir = new File(System.getProperty("java.io.tmpdir"));
             libs.stream()
                     .filter(ld -> ld != null)
                     .filter(ld -> ld.libName != null)
                     .filter(ld -> {
-                        final boolean alreadyLoaded = !loaded.contains(ld.libName);
-                        if (alreadyLoaded)
+                        final boolean needsLoading = !loaded.contains(ld.libName);
+                        if (!needsLoading)
                             LOGGER.debug("Native library \"" + ld.libName + "\" is already loaded.");
-                        return alreadyLoaded;
+                        return needsLoading;
                     })
                     .forEach(ld -> {
                         final String libFileName = System.mapLibraryName(ld.libName);
@@ -106,8 +116,11 @@ public class NativeLibraryLoader {
                             }, libFileName);
                         } else
                             LOGGER.debug("Native library \"" + ld.libName + "\" is already on the filesystem. Not overwriting.");
-                        if (!dontLoad.get())
+                        if (!dontLoad.get()) {
+                            lls.stream()
+                                    .forEach(ll -> ll.loading(tmpDir, ld.libName, libFileName));
                             System.load(libFile.getAbsolutePath());
+                        }
                         loaded.add(ld.libName);
                     });
 
