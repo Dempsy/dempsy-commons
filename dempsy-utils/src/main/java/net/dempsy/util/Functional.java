@@ -2,6 +2,7 @@ package net.dempsy.util;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -107,9 +108,39 @@ public class Functional {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    public static <T, E extends Exception> Optional<T> ignore(final SupplierThrows<T, E> f, final Consumer<E> handler) {
+        try {
+            return Optional.of(f.get());
+        } catch (final Exception fse) {
+            if (handler != null)
+                handler.accept((E) fse);
+            return Optional.empty();
+        }
+    }
+
+    public static <T, E extends Exception> Optional<T> ignore(final SupplierThrows<T, E> f) {
+        return ignore(f, null);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <E extends Exception> void ignore(final RunnableThrows<E> f, final Consumer<E> handler) {
+        try {
+            f.run();
+        } catch (final Exception fse) {
+            if (handler != null)
+                handler.accept((E) fse);
+        }
+    }
+
+    public static <E extends Exception> void ignore(final RunnableThrows<E> f) {
+        ignore(f, null);
+    }
+
     /**
      * <p>
-     * This method allows the use of lambda's that throw exceptions in standard java 8 {@link Stream} operations by converting those exceptions to an unchecked exception. For example:
+     * This method allows the use of lambda's that throw exceptions in standard java 8 {@link Stream} 
+     * operations by converting those exceptions to an unchecked exception. For example:
      * </p>
      * 
      * <p>
@@ -151,7 +182,8 @@ public class Functional {
 
     /**
      * <p>
-     * This method allows the use of lambda's that throw exceptions in standard java 8 {@link Stream} operations by converting those exceptions to an unchecked exception. For example:
+     * This method allows the use of lambda's that throw exceptions in standard java 8 {@link Stream}
+     * operations by converting those exceptions to an unchecked exception. For example:
      * </p>
      * 
      * <p>
