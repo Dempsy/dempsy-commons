@@ -24,7 +24,7 @@
     <module>dempsy-commons-bom</module>
     <module>dempsy-commons-parentpom</module>
     
-<!--    <module>dempsy-ringbuffer</module> -->
+    <module>dempsy-ringbuffer</module>
 
 <!--    <module>dempsy-serialization.api</module> -->
 <!--    <module>dempsy-serialization.jackson</module> -->

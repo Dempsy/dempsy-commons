@@ -26,7 +26,7 @@
 
     <dempsy-utils.version>2.2.0-SNAPSHOT</dempsy-utils.version>
     <dempsy-test-utils.version>2.2.0-SNAPSHOT</dempsy-test-utils.version>
-    <dempsy-ringbuffer.version>2.0.1</dempsy-ringbuffer.version>
+    <dempsy-ringbuffer.version>2.2.0-SNAPSHOT</dempsy-ringbuffer.version>
     
     <dempsy-cluster.api.version>2.1.0</dempsy-cluster.api.version>
     <dempsy-cluster.zookeeper.version>2.1.2-SNAPSHOT</dempsy-cluster.zookeeper.version>
