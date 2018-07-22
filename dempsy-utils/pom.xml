@@ -15,6 +15,11 @@
   <name>Dempsy Simple utilities with minimal dependencies.</name>
 
   <dependencies>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+
     <!-- Testing -->
     <dependency>
       <groupId>net.dempsy</groupId>
@@ -29,7 +34,7 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
-      <optional>true</optional>
+      <scope>test</scope>
     </dependency>
     <dependency> <!-- Only used in the NativeLibraryLoader -->
         <groupId>commons-io</groupId>
