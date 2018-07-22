@@ -19,7 +19,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <!-- These are the CURRENT versions -->
-    <dempsy-serialization.api.version>2.1.1</dempsy-serialization.api.version>
+    <dempsy-serialization.api.version>2.1.2-SNAPSHOT</dempsy-serialization.api.version>
     <dempsy-serialization.jackson.version>2.1.0</dempsy-serialization.jackson.version>
     <dempsy-serialization.java.version>2.1.0</dempsy-serialization.java.version>
     <dempsy-serialization.kryo.version>2.1.1</dempsy-serialization.kryo.version>

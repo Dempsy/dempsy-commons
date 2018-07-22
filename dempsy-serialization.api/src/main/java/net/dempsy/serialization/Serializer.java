@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,34 +17,52 @@
 package net.dempsy.serialization;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import net.dempsy.util.io.MessageBufferInput;
 import net.dempsy.util.io.MessageBufferOutput;
 
 /**
  * <p>
- * In order to support pluggable serialization, Dempsy (the container and the distributor) can be configured with a serialization scheme. Note, the serialize call is used on the output side and the deserialize
- * is used on the input side but this interface defines them both right now to make it easy to plug in different implementations without managing many objects.
+ * In order to support pluggable serialization, Dempsy (the container and the distributor) can
+ * be configured with a serialization scheme. Note, the serialize call is used on the output side
+ * and the deserialize is used on the input side but this interface defines them both right now to
+ * make it easy to plug in different implementations without managing many objects.
  * </p>
  * 
  * The implementation should be thread safe.
  */
 public abstract class Serializer {
-    public abstract <T> void serialize(T object, MessageBufferOutput buf) throws IOException;
+   public abstract <T> void serialize(T object, MessageBufferOutput buf) throws IOException;
 
-    public abstract <T> T deserialize(MessageBufferInput is, Class<T> clazz) throws IOException;
+   public abstract <T> T deserialize(MessageBufferInput is, Class<T> clazz) throws IOException;
 
-    public <T> byte[] serialize(final T object) throws IOException {
-        try (MessageBufferOutput out = new MessageBufferOutput()) {
-            serialize(object, out);
-            out.flush();
-            return out.toByteArray();
-        }
-    }
+   public <T> byte[] serialize(final T object) throws IOException {
+      try (MessageBufferOutput out = new MessageBufferOutput()) {
+         serialize(object, out);
+         out.flush();
+         return out.toByteArray();
+      }
+   }
 
-    public <T> T deserialize(final byte[] data, final Class<T> clazz) throws IOException {
-        try (MessageBufferInput is = new MessageBufferInput(data)) {
-            return deserialize(is, clazz);
-        }
-    }
+   public <T> T deserialize(final byte[] data, final Class<T> clazz) throws IOException {
+      try (MessageBufferInput is = new MessageBufferInput(data)) {
+         return deserialize(is, clazz);
+      }
+   }
+
+   public String toString(final Object o) {
+      try (MessageBufferOutput out = new MessageBufferOutput()) {
+         serialize(o, out);
+         return new String(out.getBuffer(), 0, out.getPosition(), StandardCharsets.UTF_8);
+      } catch(final IOException ioe) {
+         // not possible.
+         throw new RuntimeException("NOT POSSIBLE!!!", ioe);
+      }
+   }
+
+   public <T> T fromString(final String object, final Class<T> clazz) throws IOException {
+      return deserialize(new MessageBufferInput(object.getBytes(StandardCharsets.UTF_8)), clazz);
+   }
+
 }
