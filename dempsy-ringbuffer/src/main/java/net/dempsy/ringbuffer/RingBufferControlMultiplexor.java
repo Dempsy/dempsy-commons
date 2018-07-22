@@ -16,6 +16,10 @@
 
 package net.dempsy.ringbuffer;
 
+import java.lang.reflect.Array;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+
 /**
  * <p>
  * This is a helper class for managing a set of {@link RingBufferControl}s for use
@@ -55,9 +59,12 @@ public class RingBufferControlMultiplexor {
     *           {@link IllegalArgumentException} is thrown.
     * @throws IllegalArgumentException
     *            if the sizePowerOfTwo parameter isn't a power of 2.
+    *            if the numOfPublishers is zero
     */
    public RingBufferControlMultiplexor(final int numOfPublishers, final int sizePowerOfTwo)
          throws IllegalArgumentException {
+      if(numOfPublishers == 0)
+         throw new IllegalArgumentException("Cannot create a " + RingBufferControlMultiplexor.class.getSimpleName() + " with zero publishers.");
       this.ringBuffers = new RingBufferControl[numOfPublishers];
       for(int i = 0; i < numOfPublishers; i++)
          ringBuffers[i] = new RingBufferControl(sizePowerOfTwo);
@@ -198,5 +205,84 @@ public class RingBufferControlMultiplexor {
     */
    public int index(final long sequence) {
       return (int)sequence & indexMask;
+   }
+
+   public static class Manager<T> {
+      private final T[][] data;
+      private final RingBufferControlMultiplexor rbm;
+      private final long[] previousIndexAvailable;
+
+      // This creates a sequence number for each pattern finder
+      private final AtomicInteger publisherIndexGenerator = new AtomicInteger(0);
+
+      @SuppressWarnings("unchecked")
+      public Manager(final Class<T> clazz, final RingBufferControlMultiplexor rbm) {
+         this.rbm = rbm;
+         final int numPublishers = rbm.numOfPublishers;
+         data = (T[][])Array.newInstance(clazz, numPublishers, rbm.indexMask + 1);
+         previousIndexAvailable = new long[numPublishers];
+      }
+
+      public long tryGet(final Consumer<T> consumer) {
+         // get the next frames that (might) be available.
+         final long binId = rbm.tryAvailableTo();
+         if(RingBufferControl.ACQUIRE_STOP_REQUEST == binId)
+            return binId;
+         if(RingBufferControl.UNAVAILABLE != binId) {
+            final int publisherIndex = rbm.getCurrentIndex();
+            final long prevLocation = previousIndexAvailable[publisherIndex];
+            for(long i = prevLocation; i < binId; i++) {
+               final int availableIndex = rbm.index(i);
+               consumer.accept(data[publisherIndex][availableIndex]);
+            }
+            rbm.notifyProcessed();
+            previousIndexAvailable[publisherIndex] = binId;
+            return binId - prevLocation;
+         } else
+            return 0;
+      }
+
+      public long get(final Consumer<T> consumer) {
+         // get the next frames that (might) be available.
+         final long binId = rbm.availableTo();
+         if(RingBufferControl.ACQUIRE_STOP_REQUEST == binId)
+            return binId;
+         if(RingBufferControl.UNAVAILABLE != binId) {
+            final int publisherIndex = rbm.getCurrentIndex();
+            final long prevLocation = previousIndexAvailable[publisherIndex];
+            for(long i = prevLocation; i < binId; i++) {
+               final int availableIndex = rbm.index(i);
+               consumer.accept(data[publisherIndex][availableIndex]);
+            }
+            rbm.notifyProcessed();
+            previousIndexAvailable[publisherIndex] = binId;
+            return binId - prevLocation;
+         } else
+            return 0;
+      }
+
+      public static class PublisherWithData<T> {
+         public final RingBufferControl pub;
+         public final T[] data;
+         public final int publisherIndex;
+
+         private PublisherWithData(final T[] data, final RingBufferControl pub, final int publisherIndex) {
+            this.pub = pub;
+            this.data = data;
+            this.publisherIndex = publisherIndex;
+         }
+
+         public void publish(final T newEntry) {
+            final long binId = pub.claim(1);
+            final int collectionIndex = pub.index(binId);
+            data[collectionIndex] = newEntry;
+            pub.publish(binId);
+         }
+      }
+
+      public PublisherWithData<T> getNextPublisher() {
+         final int pubIndex = publisherIndexGenerator.getAndIncrement();
+         return new PublisherWithData<T>(data[pubIndex], rbm.get(pubIndex), pubIndex);
+      }
    }
 }
