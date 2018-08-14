@@ -10,6 +10,11 @@
   <description>Dempsy Commons Global Settings</description>
   <packaging>pom</packaging>
 
+  <properties>
+    <dempsy.distribution.repo.id>ossrh</dempsy.distribution.repo.id>
+    <dempsy.distribution.repo.url>https://oss.sonatype.org/content/repositories/snapshots/</dempsy.distribution.repo.url>
+  </properties>
+  
   <url>git@github.com:Dempsy/dempsy-commons.git</url>
   <developers>
     <developer>
@@ -41,9 +46,9 @@
 
   <distributionManagement>
     <snapshotRepository>
-      <id>ossrh</id>
+      <id>${dempsy.distribution.repo.id}</id>
       <name>Sonatype Nexus Snapshots</name>
-      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+      <url>${dempsy.distribution.repo.url}</url>
     </snapshotRepository>
   </distributionManagement>
 
