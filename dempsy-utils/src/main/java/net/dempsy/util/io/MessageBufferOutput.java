@@ -6,8 +6,6 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 
-import org.omg.CORBA.DataOutputStream;
-
 /**
  * <p>
  * This is literally a copy of the {@link ByteArrayOutputStream} from the runtime library except it's been modified in the following ways:
@@ -21,7 +19,6 @@ import org.omg.CORBA.DataOutputStream;
  * <li>Has a {@link #replace(byte[])} method that will allow replacing the underlying buffer with a different one.</li>
  * <li>Has a {@link #setPosition(int)} method that will set the current output position.</li>
  * <li>The 'size' method is renamed to {@link MessageBufferOutput#getPosition()} for clarity.</li>
- * <li>Various {@link DataOutputStream} write methods have been added.</li>
  * </ul>
  * 
  * <p>
