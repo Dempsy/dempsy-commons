@@ -20,7 +20,7 @@
 
     <!-- These are the CURRENT versions -->
     <dempsy-serialization.api.version>2.1.2-SNAPSHOT</dempsy-serialization.api.version>
-    <dempsy-serialization.jackson.version>2.1.0</dempsy-serialization.jackson.version>
+    <dempsy-serialization.jackson.version>2.1.0-SNAPSHOT</dempsy-serialization.jackson.version>
     <dempsy-serialization.java.version>2.1.0</dempsy-serialization.java.version>
     <dempsy-serialization.kryo.version>2.1.1</dempsy-serialization.kryo.version>
 
@@ -33,9 +33,9 @@
     <dempsy-cluster.local.version>2.1.1</dempsy-cluster.local.version>
     
     <dempsy-distconfig.api.version>2.0.1</dempsy-distconfig.api.version>
-    <dempsy-distconfig.clusterinfo.version>2.0.1</dempsy-distconfig.clusterinfo.version>
-    <dempsy-distconfig.apachevfs.version>2.0.1</dempsy-distconfig.apachevfs.version>
-    <dempsy-distconfig.main.version>2.0.1</dempsy-distconfig.main.version>
+    <dempsy-distconfig.clusterinfo.version>2.0.2-SNAPSHOT</dempsy-distconfig.clusterinfo.version>
+    <dempsy-distconfig.apachevfs.version>2.0.2-SNAPSHOT</dempsy-distconfig.apachevfs.version>
+    <dempsy-distconfig.main.version>2.0.2-SNAPSHOT</dempsy-distconfig.main.version>
     <dempsy-distconfig.classpath.version>2.0.2</dempsy-distconfig.classpath.version>
   </properties>
 
