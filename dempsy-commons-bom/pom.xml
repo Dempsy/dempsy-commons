@@ -34,7 +34,7 @@
     
     <dempsy-distconfig.api.version>2.0.1</dempsy-distconfig.api.version>
     <dempsy-distconfig.clusterinfo.version>2.0.2-SNAPSHOT</dempsy-distconfig.clusterinfo.version>
-    <dempsy-distconfig.apachevfs.version>2.0.2-SNAPSHOT</dempsy-distconfig.apachevfs.version>
+    <dempsy-distconfig.apachevfs.version>2.0.1</dempsy-distconfig.apachevfs.version>
     <dempsy-distconfig.main.version>2.0.2-SNAPSHOT</dempsy-distconfig.main.version>
     <dempsy-distconfig.classpath.version>2.0.2</dempsy-distconfig.classpath.version>
   </properties>
