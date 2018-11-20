@@ -36,10 +36,5 @@
       <artifactId>slf4j-log4j12</artifactId>
       <scope>test</scope>
     </dependency>
-    <dependency> <!-- Only used in the NativeLibraryLoader -->
-        <groupId>commons-io</groupId>
-        <artifactId>commons-io</artifactId>
-        <optional>true</optional> <!-- Needs to be included to use the NativeLibraryLoader -->
-    </dependency>
   </dependencies>
 </project>

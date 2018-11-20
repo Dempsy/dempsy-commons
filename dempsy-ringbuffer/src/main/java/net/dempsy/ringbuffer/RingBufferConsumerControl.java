@@ -30,7 +30,8 @@ package net.dempsy.ringbuffer;
 import java.util.Iterator;
 
 import com.lmax.disruptor.Sequence;
-import com.lmax.disruptor.util.PaddedLong;
+
+import net.dempsy.ringbuffer.internal.PaddedLong;
 
 /**
  * <p>

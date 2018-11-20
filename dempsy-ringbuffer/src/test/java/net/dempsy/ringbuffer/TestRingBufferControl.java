@@ -32,10 +32,10 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.Test;
 
-import com.lmax.disruptor.util.PaddedLong;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+
+import net.dempsy.ringbuffer.internal.PaddedLong;
 
 public class TestRingBufferControl {
    private static long baseTimeoutMillis = 20000; // 20 seconds
