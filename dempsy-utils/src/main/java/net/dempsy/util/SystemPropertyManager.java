@@ -1,4 +1,4 @@
-package net.dempsy.utils.test;
+package net.dempsy.util;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -9,12 +9,7 @@ import java.util.stream.IntStream;
 
 /**
  * This class allows the setting and then unsetting of System properties within the scope of a test.
- *
- * @deprecated this class has been moved to the dempsy-utils project as {@code net.dempsy.utils.SystemPropertyManager}
- *             since it has more useful situations than simply test scenarios. Specifically it can be used as part of
- *             a Spring based application's command line management.
  */
-@Deprecated(forRemoval = true)
 public class SystemPropertyManager implements AutoCloseable {
     private static class OldProperty {
         public final boolean hasOldValue;
@@ -44,9 +39,9 @@ public class SystemPropertyManager implements AutoCloseable {
         final Properties props = new Properties();
         try (FileInputStream fis = new FileInputStream(file)) {
             props.load(fis);
-            props.entrySet().stream().forEach(e -> set((String)e.getKey(), (String)e.getValue()));
+            props.entrySet().stream().forEach(e -> set((String) e.getKey(), (String) e.getValue()));
             return this;
-        } catch(final IOException ioe) {
+        } catch (final IOException ioe) {
             throw new RuntimeException(ioe);
         }
     }
@@ -58,9 +53,8 @@ public class SystemPropertyManager implements AutoCloseable {
     }
 
     private static void revert(final OldProperty op) {
-        if(op.hasOldValue)
+        if (op.hasOldValue)
             System.setProperty(op.name, op.oldValue);
-        else
-            System.clearProperty(op.name);
+        else System.clearProperty(op.name);
     }
 }
