@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * This is a scheduler that will schedule a task to run in the future (or now) and when that task completes it shuts itself down. It can be thought of almost as a daemon task scheduler.
+ * This is a scheduler that will schedule a task to run in the future (or now) and when that task completes it shuts itself down. It can be thought of almost as
+ * a daemon task scheduler.
  */
 public final class AutoDisposeSingleThreadScheduler {
     private final String baseThreadName;
@@ -37,7 +38,8 @@ public final class AutoDisposeSingleThreadScheduler {
     }
 
     /**
-     * This object is returned from {@link AutoDisposeSingleThreadScheduler#schedule(Runnable, long, TimeUnit)} and can be used to cancel the task - best effort.
+     * This object is returned from {@link AutoDisposeSingleThreadScheduler#schedule(Runnable, long, TimeUnit)} and can be used to cancel the task - best
+     * effort.
      */
     public class Cancelable implements Runnable {
         private boolean cancelled = false;
@@ -56,7 +58,7 @@ public final class AutoDisposeSingleThreadScheduler {
          * Attempt to cancel the Runnable that was submitted to {@link AutoDisposeSingleThreadScheduler#schedule(Runnable, long, TimeUnit)}
          */
         public void cancel() {
-            synchronized (AutoDisposeSingleThreadScheduler.this) {
+            synchronized(AutoDisposeSingleThreadScheduler.this) {
                 future.cancel(false);
                 cancelled = true;
                 decrement();
@@ -66,16 +68,16 @@ public final class AutoDisposeSingleThreadScheduler {
         @Override
         public void run() {
             // running the proxied can resubmit the task ... so we dispose afterward
-            synchronized (AutoDisposeSingleThreadScheduler.this) {
-                if (cancelled)
+            synchronized(AutoDisposeSingleThreadScheduler.this) {
+                if(cancelled)
                     return;
             }
 
             try {
                 proxied.run();
             } finally {
-                synchronized (AutoDisposeSingleThreadScheduler.this) {
-                    if (!cancelled) // if it was cancelled then it was already decremented
+                synchronized(AutoDisposeSingleThreadScheduler.this) {
+                    if(!cancelled) // if it was cancelled then it was already decremented
                         decrement();
                 }
             }
@@ -89,9 +91,9 @@ public final class AutoDisposeSingleThreadScheduler {
         }
 
         private void decrement() {
-            synchronized (AutoDisposeSingleThreadScheduler.this) {
+            synchronized(AutoDisposeSingleThreadScheduler.this) {
                 pendingCalls--;
-                if (pendingCalls <= 0)
+                if(pendingCalls <= 0)
                     disposeOfScheduler();
             }
         }
@@ -105,8 +107,8 @@ public final class AutoDisposeSingleThreadScheduler {
     }
 
     private synchronized final ScheduledExecutorService getScheduledExecutor() {
-        if (scheduler == null) {
-            if (baseThreadName != null)
+        if(scheduler == null) {
+            if(baseThreadName != null)
                 scheduler = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, baseThreadName + "-" + sequence.getAndIncrement()));
             else
                 scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -116,7 +118,7 @@ public final class AutoDisposeSingleThreadScheduler {
     }
 
     private synchronized final void disposeOfScheduler() {
-        if (scheduler != null)
+        if(scheduler != null)
             scheduler.shutdown();
         scheduler = null;
     }
