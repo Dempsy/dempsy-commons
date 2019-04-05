@@ -55,7 +55,7 @@
       <dependency> <!-- needed for the kryo serializer implementation -->
         <groupId>com.esotericsoftware</groupId>
         <artifactId>kryo</artifactId>
-        <version>4.0.0</version>
+        <version>4.0.2</version>
       </dependency>
       <dependency> <!-- for the RingBuffer functionality -->
         <groupId>com.lmax</groupId>

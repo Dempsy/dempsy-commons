@@ -28,7 +28,7 @@
     <module>dempsy-serialization.api</module>
     <module>dempsy-serialization.jackson</module>
 <!--    <module>dempsy-serialization.java</module> -->
-<!--    <module>dempsy-serialization.kryo</module> -->
+    <module>dempsy-serialization.kryo</module>
 
 <!--    <module>dempsy-cluster.api</module> -->
 <!--    <module>dempsy-cluster.local</module> -->
