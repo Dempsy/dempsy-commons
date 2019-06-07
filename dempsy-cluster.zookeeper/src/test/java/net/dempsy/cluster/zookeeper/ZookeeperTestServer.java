@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -71,13 +71,13 @@ public class ZookeeperTestServer implements AutoCloseable {
     }
 
     public String connectString() {
-        for (boolean done = false; !done;) {
-            if (zkServer != null) {
-                if (!zkServer.serverSillRunning.get())
+        for(boolean done = false; !done;) {
+            if(zkServer != null) {
+                if(!zkServer.serverSillRunning.get())
                     return null;
                 try {
                     zkServer.waitForStart();
-                } catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException e) {
+                } catch(NoSuchFieldException | IllegalArgumentException | IllegalAccessException e) {
                     LOGGER.error("FAILED", e);
                     return null;
                 }
@@ -89,7 +89,7 @@ public class ZookeeperTestServer implements AutoCloseable {
 
     public static int getPort(final Properties zkConfig) {
         final String cps = zkConfig.getProperty("clientPort");
-        if (cps == null)
+        if(cps == null)
             throw new IllegalArgumentException("Cannot start the zookeeper test server with properties file that doesn't contain the \"clientPort\"");
         return Integer.parseInt(cps);
     }
@@ -110,7 +110,8 @@ public class ZookeeperTestServer implements AutoCloseable {
     }
 
     /**
-     * cause a problem with the server running lets sever the connection according to the zookeeper faq we can force a session expired to occur by closing the session from another client. see:
+     * cause a problem with the server running lets sever the connection according to the zookeeper faq we can force a session expired to occur by closing the
+     * session from another client. see:
      * http://wiki.apache.org/hadoop/ZooKeeper/FAQ#A4
      */
     private static class KWatcher implements Watcher {
@@ -120,11 +121,11 @@ public class ZookeeperTestServer implements AutoCloseable {
         @Override
         public void process(final WatchedEvent event) {
             final ZooKeeper tcon = connection.get();
-            if (tcon != null && event.getState() == Watcher.Event.KeeperState.SyncConnected) {
+            if(tcon != null && event.getState() == Watcher.Event.KeeperState.SyncConnected) {
                 try {
                     tcon.close();
                     closed.set(true);
-                } catch (final InterruptedException ie) {}
+                } catch(final InterruptedException ie) {}
             }
         }
     }
@@ -137,7 +138,7 @@ public class ZookeeperTestServer implements AutoCloseable {
         final Condition<ZooKeeper> condition = o -> {
             try {
                 return (o.getState() == ZooKeeper.States.CONNECTED) && o.exists("/", true) != null;
-            } catch (final Exception ke) {
+            } catch(final Exception ke) {
                 return false;
             }
         };
@@ -145,7 +146,7 @@ public class ZookeeperTestServer implements AutoCloseable {
         assertTrue(poll(5000, origZk, condition));
 
         boolean done = false;
-        while (!done) {
+        while(!done) {
             final long sessionid = origZk.getSessionId();
             final byte[] pw = origZk.getSessionPasswd();
             final KWatcher kwatcher = new KWatcher();
@@ -155,12 +156,12 @@ public class ZookeeperTestServer implements AutoCloseable {
             // wait until we get a close
             final boolean calledBack = poll(5000, kwatcher, o -> o.closed.get());
 
-            if (!calledBack)
+            if(!calledBack)
                 killer.close();
 
             final AtomicBoolean isExpired = new AtomicBoolean(false);
             final ZooKeeper check = new ZooKeeper("127.0.0.1:" + port, 5000, event -> {
-                if (event.getState() == Watcher.Event.KeeperState.Expired)
+                if(event.getState() == Watcher.Event.KeeperState.Expired)
                     isExpired.set(true);
             }, sessionid, pw);
 
@@ -185,23 +186,23 @@ public class ZookeeperTestServer implements AutoCloseable {
         }
 
         public boolean waitForStart() throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
-            while (serverSillRunning.get()) {
+            while(serverSillRunning.get()) {
                 final ServerCnxnFactory cnxnFactory = getCnxnFactory();
-                if (cnxnFactory != null) {
+                if(cnxnFactory != null) {
                     try {
-                        if (cnxnFactory.getLocalPort() == server.port)
+                        if(cnxnFactory.getLocalPort() == server.port)
                             return true;
-                    } catch (final NullPointerException npe) {
+                    } catch(final NullPointerException npe) {
                         // This is a total hack. The cnxnFactory will throw a NPE if it's not
                         // running yet. Retards!
                         try {
                             Thread.sleep(500);
-                        } catch (final InterruptedException e) {}
+                        } catch(final InterruptedException e) {}
                     }
                 }
                 try {
                     Thread.sleep(1);
-                } catch (final InterruptedException ie) {}
+                } catch(final InterruptedException ie) {}
             }
             return false;
         }
@@ -209,7 +210,7 @@ public class ZookeeperTestServer implements AutoCloseable {
         private ServerCnxnFactory getCnxnFactory() throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
             final Field f = ZooKeeperServerMain.class.getDeclaredField("cnxnFactory");
             f.setAccessible(true);
-            return (ServerCnxnFactory) f.get(this);
+            return (ServerCnxnFactory)f.get(this);
         }
     }
 
@@ -219,7 +220,7 @@ public class ZookeeperTestServer implements AutoCloseable {
 
     public void start(final boolean newDataDir) throws IOException {
         // if this is a restart we want to use the same directory
-        if (zkDir == null || newDataDir)
+        if(zkDir == null || newDataDir)
             zkDir = genZookeeperDataDir();
         zkConfig = genZookeeperConfig(zkDir, port);
         zkServer = startZookeeper(zkConfig, this);
@@ -239,15 +240,15 @@ public class ZookeeperTestServer implements AutoCloseable {
     }
 
     public void shutdown(final boolean deleteDataDir) {
-        if (zkServer != null) {
+        if(zkServer != null) {
             try {
                 zkServer.shutdown();
-            } catch (final Throwable th) {
+            } catch(final Throwable th) {
                 LOGGER.error("Failed to shutdown the internal Zookeeper server:", th);
             }
         }
 
-        if (zkDir != null && deleteDataDir)
+        if(zkDir != null && deleteDataDir)
             deleteRecursivly(zkDir);
     }
 
@@ -255,11 +256,11 @@ public class ZookeeperTestServer implements AutoCloseable {
         File zkDir = null;
         try {
             zkDir = File.createTempFile("zoo", "data");
-            if (!zkDir.delete())
+            if(!zkDir.delete())
                 throw new IOException("Can't rm zkDir " + zkDir.getCanonicalPath());
-            if (!zkDir.mkdir())
+            if(!zkDir.mkdir())
                 throw new IOException("Can't mkdir zkDir " + zkDir.getCanonicalPath());
-        } catch (final IOException e) {
+        } catch(final IOException e) {
             fail("Can't make zookeeper data dir");
         }
         return zkDir;
@@ -280,11 +281,11 @@ public class ZookeeperTestServer implements AutoCloseable {
         props.setProperty("syncLimit", "5");
         try {
             props.setProperty("dataDir", zkDir.getCanonicalPath());
-        } catch (final IOException e) {
+        } catch(final IOException e) {
             fail("Can't create zkConfig, zkDir has no path");
         }
 
-        if (port <= 0)
+        if(port <= 0)
             port = findNextPort();
         props.setProperty("clientPort", String.valueOf(port));
         return props;
@@ -311,14 +312,14 @@ public class ZookeeperTestServer implements AutoCloseable {
 
                     try {
                         int failedCount = 0;
-                        for (boolean done = false; !done;) {
+                        for(boolean done = false; !done;) {
                             done = true;
                             try {
                                 server.runFromConfig(sConfig);
-                            } catch (final BindException be) {
+                            } catch(final BindException be) {
                                 // assume this is because the port was in use, let's try again.
                                 failedCount++;
-                                if (failedCount > 10) {
+                                if(failedCount > 10) {
                                     LOGGER.error("Apparent failure to bind. Giving up.", be);
                                     done = true;
                                 } else {
@@ -331,14 +332,17 @@ public class ZookeeperTestServer implements AutoCloseable {
                                         sConfig = new ServerConfig();
                                         sConfig.readFrom(qpConfig);
                                         done = false;
-                                    } catch (final Exception ioe) {
+                                    } catch(final Exception ioe) {
                                         LOGGER.error("Now I can't even find the port. Giving up", ioe);
                                         fail("can't start zookeeper");
                                     }
                                 }
-                            } catch (final IOException ioe) {
+                            } catch(final IOException ioe) {
                                 LOGGER.error(MarkerFactory.getMarker("FATAL"), "", ioe);
                                 fail("can't start zookeeper");
+                            } catch(final Exception e) {
+                                LOGGER.error(MarkerFactory.getMarker("FATAL"), "Zookeeper test server startup threw an unexpected exception", e);
+                                fail("Zookeeper test server startup threw an unexpected exception");
                             }
                         }
                     } finally {
@@ -348,7 +352,7 @@ public class ZookeeperTestServer implements AutoCloseable {
             }, "ZookeeperTestServer-" + serverCount.getAndIncrement());
             t.start();
             Thread.sleep(2000); // give the server time to start
-        } catch (final Exception e) {
+        } catch(final Exception e) {
             LOGGER.error("Can't start zookeeper", e);
             fail("Can't start zookeeper");
         }
@@ -356,9 +360,9 @@ public class ZookeeperTestServer implements AutoCloseable {
     }
 
     private static void deleteRecursivly(final File path) {
-        if (path.isDirectory())
-            for (final File f : path.listFiles())
-                deleteRecursivly(f);
+        if(path.isDirectory())
+            for(final File f: path.listFiles())
+            deleteRecursivly(f);
 
         LOGGER.debug("Deleting zookeeper data directory:" + path);
         path.delete();

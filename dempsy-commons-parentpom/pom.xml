@@ -45,7 +45,7 @@
       <dependency> <!-- needed for the zookeeper cluster management implementation -->
         <groupId>org.apache.zookeeper</groupId>
         <artifactId>zookeeper</artifactId>
-        <version>3.4.6</version>
+        <version>3.5.5</version>
       </dependency>
       <dependency> <!-- needed for the json serializer -->
         <groupId>com.fasterxml.jackson.core</groupId>
