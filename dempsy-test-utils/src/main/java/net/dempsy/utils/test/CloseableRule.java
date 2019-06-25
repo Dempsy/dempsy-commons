@@ -17,8 +17,8 @@ import org.junit.rules.ExternalResource;
  * {@code
  * &#64;ClassRule
  * public static final ClosableRule closables = new ClosableRule(new ClassPathXmlApplicationContext(...));
- * 
-</pre>
+ * }
+ * </pre>
  */
 public class CloseableRule extends ExternalResource {
     private final AutoCloseable[] autoCloseables;

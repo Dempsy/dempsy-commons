@@ -217,7 +217,7 @@ public class MessageBufferOutput extends OutputStream {
     }
 
     /**
-     * Converts the buffer's contents into a string decoding bytes using the platform's default character set. The length of the new <tt>String</tt> is a function of the character set, and hence may not be
+     * Converts the buffer's contents into a string decoding bytes using the platform's default character set. The length of the new {@code String} is a function of the character set, and hence may not be
      * equal to the size of the buffer.
      * 
      * <p>
@@ -233,7 +233,7 @@ public class MessageBufferOutput extends OutputStream {
     }
 
     /**
-     * Converts the buffer's contents into a string by decoding the bytes using the specified {@link java.nio.charset.Charset} name. The length of the new <tt>String</tt> is a function of the charset, and hence
+     * Converts the buffer's contents into a string by decoding the bytes using the specified {@link java.nio.charset.Charset} name. The length of the new {@code String} is a function of the charset, and hence
      * may not be equal to the length of the byte array.
      * 
      * <p>
@@ -252,7 +252,7 @@ public class MessageBufferOutput extends OutputStream {
     }
 
     /**
-     * Closing a <tt>ByteArrayOutputStream</tt> has no effect. The methods in this class can be called after the stream has been closed without generating an <tt>IOException</tt>.
+     * Closing a {@code ByteArrayOutputStream} has no effect. The methods in this class can be called after the stream has been closed without generating an {@code IOException}.
      * <p>
      * 
      */

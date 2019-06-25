@@ -94,7 +94,7 @@ public class RingBufferControlMultiplexor {
     * the consumer can retrieve information and resources about which
     * {@link RingBufferControl} can be retrieved using
     * {@link RingBufferControlMultiplexor#getCurrentIndex()} and
-    * {@link RingBufferControlMultiplexor#getCurrentControlled()}, which should only
+    * which should only
     * be called from the consumer side once a normal sequence has been
     * returned.
     * </p>

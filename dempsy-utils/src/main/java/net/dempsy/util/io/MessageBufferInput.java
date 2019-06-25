@@ -250,7 +250,7 @@ public class MessageBufferInput extends InputStream {
     }
 
     /**
-     * Closing a <tt>ByteArrayInputStream</tt> has no effect. The methods in this class can be called after the stream has been closed without generating an <tt>IOException</tt>.
+     * Closing a {@code ByteArrayInputStream} has no effect. The methods in this class can be called after the stream has been closed without generating an {@code IOException}.
      * <p>
      */
     @Override
