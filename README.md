@@ -413,3 +413,14 @@ These two base primitives can only be used with one consuming thread and one pub
    * version 1.1 javadocs - <b>deprecated</b>.
    * [Javadocs for other released versions](http://dempsy.github.io/dempsy-commons/)
 
+## Current versions
+
+Overall `dempsy-commons` version (bom version) 2.2.0
+
+dempsy-serialization 2.1.x
+dempsy-distconfig 2.0.x
+dempsy-cluster 2.1.x
+dempsy-ringbuffer 2.2.x
+dempsy-utils 2.2.x
+dempsy-test-utils 2.2.x
+
