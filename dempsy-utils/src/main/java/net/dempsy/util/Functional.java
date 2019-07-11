@@ -31,9 +31,9 @@ public class Functional {
      * A functional interface that analogous to a {@link Supplier} that throws a checked {@link Exception}
      *
      * @param <T>
-     *            is the type that is supplied by the function.
+     *     is the type that is supplied by the function.
      * @param <E>
-     *            is the exception type that's thrown.
+     *     is the exception type that's thrown.
      */
     @FunctionalInterface
     public static interface SupplierThrows<T, E extends Exception> {
@@ -44,9 +44,9 @@ public class Functional {
      * A functional interface that analogous to a {@link Consumer} that throws a checked {@link Exception}
      *
      * @param <T>
-     *            is the type that is consumed by the function.
+     *     is the type that is consumed by the function.
      * @param <E>
-     *            is the exception type that's thrown.
+     *     is the exception type that's thrown.
      */
     @FunctionalInterface
     public static interface ConsumerThrows<T, E extends Exception> {
@@ -57,7 +57,7 @@ public class Functional {
      * A functional interface that analogous to a {@link Runnable} that throws a checked {@link Exception}
      *
      * @param <E>
-     *            is the exception type that's thrown.
+     *     is the exception type that's thrown.
      */
     @FunctionalInterface
     public static interface RunnableThrows<E extends Exception> {
@@ -139,6 +139,8 @@ public class Functional {
         } catch(final Exception fse) {
             if(handler != null)
                 handler.accept((E)fse);
+            else // default handling is to log it.
+                LOGGER.debug("Ignoring exception.", fse);
         }
     }
 
@@ -172,14 +174,14 @@ public class Functional {
      * </pre>
      *
      * @param <T>
-     *            is the type that is supplied by the function, f.
+     *     is the type that is supplied by the function, f.
      * @param <E>
-     *            is the exception type that's thrown by f.
+     *     is the exception type that's thrown by f.
      * @param f
-     *            is a {@link SupplierThrows} that throws an exception
+     *     is a {@link SupplierThrows} that throws an exception
      * @return the value that the supplier throws,
      * @throws UncheckingExcpetion
-     *             which is a specific {@link RuntimeException} that wraps the underlying exception.
+     *     which is a specific {@link RuntimeException} that wraps the underlying exception.
      */
     public static <T, E extends Exception> T uncheck(final SupplierThrows<T, E> f) {
         try {
@@ -216,11 +218,11 @@ public class Functional {
      * </pre>
      *
      * @param <E>
-     *            is the exception type that's thrown by f.
+     *     is the exception type that's thrown by f.
      * @param f
-     *            is a {@link RunnableThrows} that throws an exception
+     *     is a {@link RunnableThrows} that throws an exception
      * @throws UncheckingExcpetion
-     *             which is a specific {@link RuntimeException} that wraps the underlying exception.
+     *     which is a specific {@link RuntimeException} that wraps the underlying exception.
      */
     public static <E extends Exception> void uncheck(final RunnableThrows<E> f) {
         try {
@@ -271,10 +273,10 @@ public class Functional {
      * </pre>
      *
      * @param <T>
-     *            is the type that is supplied by the function, f.
+     *     is the type that is supplied by the function, f.
      * @param <E>
-     *            is the exception type that's wrapped inside of 'f' having been passed to
-     *            {@link #uncheck(SupplierThrows)}.
+     *     is the exception type that's wrapped inside of 'f' having been passed to
+     *     {@link #uncheck(SupplierThrows)}.
      */
     @SuppressWarnings("unchecked")
     public static <T, E extends Exception> T recheck(final Supplier<T> f) throws E {
@@ -367,12 +369,12 @@ public class Functional {
      * unchecked) exceptions.
      *
      * @param f
-     *            is the lambda to remap.
+     *     is the lambda to remap.
      * @param mapException
-     *            is the function to do the mapping
+     *     is the function to do the mapping
      * @return whatever the lambda returns if no exception occurs.
      * @throws Eout
-     *             when the function maps an exception, it is thrown from the method call.
+     *     when the function maps an exception, it is thrown from the method call.
      */
     @SuppressWarnings("unchecked")
     public static <T, Ein extends Exception, Eout extends Exception> T mapChecked(final SupplierThrows<T, Ein> f,
@@ -391,11 +393,11 @@ public class Functional {
      * unchecked) exceptions.
      *
      * @param f
-     *            is the lambda to remap.
+     *     is the lambda to remap.
      * @param mapException
-     *            is the function to do the mapping
+     *     is the function to do the mapping
      * @throws Eout
-     *             when the function maps an exception, it is thrown from the method call.
+     *     when the function maps an exception, it is thrown from the method call.
      */
     @SuppressWarnings("unchecked")
     public static <Ein extends Exception, Eout extends Exception> void mapChecked(final RunnableThrows<Ein> f, final Function<Ein, Eout> mapException)
