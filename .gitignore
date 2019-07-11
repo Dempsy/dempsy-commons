@@ -6,8 +6,5 @@ bin
 .settings
 .classpath
 
-# because eclise w/ scala sometimes generate these
-.gitignore
-
 # mvn versions:set droppings
 *.versionsBackup
