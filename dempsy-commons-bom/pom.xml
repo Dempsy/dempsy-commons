@@ -36,7 +36,7 @@
     <dempsy-distconfig.clusterinfo.version>2.0.2</dempsy-distconfig.clusterinfo.version>
     <dempsy-distconfig.apachevfs.version>2.0.1</dempsy-distconfig.apachevfs.version>
     <dempsy-distconfig.main.version>2.0.2</dempsy-distconfig.main.version>
-    <dempsy-distconfig.classpath.version>2.0.2</dempsy-distconfig.classpath.version>
+    <dempsy-distconfig.classpath.version>2.0.3-SNAPSHOT</dempsy-distconfig.classpath.version>
   </properties>
 
   <!-- This section provides some unifority of dependencies for all dempsy-commons projects -->

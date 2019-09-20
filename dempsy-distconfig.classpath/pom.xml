@@ -11,7 +11,7 @@
   </parent>
 
   <artifactId>dempsy-distconfig.classpath</artifactId>
-  <version>2.0.2</version>
+  <version>2.0.3-SNAPSHOT</version>
   <name>dempsy-distconfig implementation for reading from classpath.</name>
 
   <dependencies>

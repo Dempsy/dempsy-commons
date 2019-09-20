@@ -35,7 +35,7 @@
 <!--    <module>dempsy-cluster.zookeeper</module> -->
 
 <!--    <module>dempsy-distconfig.api</module> -->
-<!--    <module>dempsy-distconfig.classpath</module> -->
+    <module>dempsy-distconfig.classpath</module>
 <!--    <module>dempsy-distconfig.clusterinfo</module> -->
 <!--    <module>dempsy-distconfig.apachevfs</module> -->
 <!--    <module>dempsy-distconfig.main</module> -->
