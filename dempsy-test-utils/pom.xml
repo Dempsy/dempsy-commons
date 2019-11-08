@@ -6,12 +6,12 @@
   <parent>
     <groupId>net.dempsy</groupId>
     <artifactId>dempsy-commons</artifactId>
-    <version>2.3.0-SNAPSHOT</version>
+    <version>2.3.0</version>
     <relativePath>../dempsy-commons-parentpom/pom.xml</relativePath>
   </parent>
 
   <artifactId>dempsy-test-utils</artifactId>
-  <version>2.2.1-SNAPSHOT</version>
+  <version>2.2.1</version>
   <name>Dempsy Utilities to support internal tests.</name>
   
   <dependencies>
