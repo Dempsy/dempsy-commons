@@ -45,6 +45,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MarkerFactory;
 
 import net.dempsy.utils.test.ConditionPoll.Condition;
+import net.dempsy.utils.test.SystemPropertyManager;
 
 @Ignore
 public class ZookeeperTestServer implements AutoCloseable {
@@ -52,6 +53,13 @@ public class ZookeeperTestServer implements AutoCloseable {
     private File zkDir = null;
     private Properties zkConfig = null;
     private TestZookeeperServerIntern zkServer = null;
+
+    private final SystemPropertyManager props = new SystemPropertyManager()
+        .set("zookeeper.nio.numWorkerThreads", "0")
+        .set("zookeeper.commitProcessor.numWorkerThreads", "0")
+        .set("zookeeper.nio.numSelectorThreads", "1")
+
+    ;
 
     public int port;
 
@@ -240,6 +248,7 @@ public class ZookeeperTestServer implements AutoCloseable {
     }
 
     public void shutdown(final boolean deleteDataDir) {
+        props.close();
         if(zkServer != null) {
             try {
                 zkServer.shutdown();
@@ -279,6 +288,7 @@ public class ZookeeperTestServer implements AutoCloseable {
         props.setProperty("timeTick", "2000");
         props.setProperty("initLimit", "10");
         props.setProperty("syncLimit", "5");
+        props.setProperty("zookeeper.nio.numWorkerThreads", "3");
         try {
             props.setProperty("dataDir", zkDir.getCanonicalPath());
         } catch(final IOException e) {
