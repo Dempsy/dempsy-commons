@@ -19,10 +19,10 @@
   </licenses>
 
   <modules>
-<!--    <module>dempsy-commons-settings</module> -->
+    <module>dempsy-commons-settings</module>
     
     <module>dempsy-commons-bom</module>
-<!--    <module>dempsy-commons-parentpom</module> -->
+    <module>dempsy-commons-parentpom</module>
     
 <!--    <module>dempsy-ringbuffer</module> -->
 <!--    <module>dempsy-serialization.api</module> -->
