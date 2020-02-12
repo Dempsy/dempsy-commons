@@ -41,7 +41,7 @@
 <!--    <module>dempsy-distconfig.main</module> -->
 
 <!--    <module>dempsy-test-utils</module> -->
-<!--    <module>dempsy-utils</module> -->
+    <module>dempsy-utils</module>
   </modules>
 
   <build>

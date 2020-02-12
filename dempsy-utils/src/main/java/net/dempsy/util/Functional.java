@@ -186,6 +186,8 @@ public class Functional {
     public static <T, E extends Exception> T uncheck(final SupplierThrows<T, E> f) {
         try {
             return f.get();
+        } catch(final RuntimeException rte) {
+            throw rte;
         } catch(final Exception fse) {
             throw new UncheckingExcpetion(fse);
         }
@@ -227,6 +229,8 @@ public class Functional {
     public static <E extends Exception> void uncheck(final RunnableThrows<E> f) {
         try {
             f.run();
+        } catch(final RuntimeException rte) {
+            throw rte;
         } catch(final Exception fse) {
             throw new UncheckingExcpetion(fse);
         }
