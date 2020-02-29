@@ -30,7 +30,7 @@ public final class AutoDisposeSingleThreadScheduler {
     private final String baseThreadName;
     private long pendingCalls = 0L;
 
-    private final AtomicLong sequence = new AtomicLong(0);
+    private static final AtomicLong sequence = new AtomicLong(0);
     private ScheduledExecutorService scheduler = null;
 
     public AutoDisposeSingleThreadScheduler(final String baseThreadName) {
