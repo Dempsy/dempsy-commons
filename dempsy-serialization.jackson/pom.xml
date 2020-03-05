@@ -6,12 +6,12 @@
   <parent>
     <groupId>net.dempsy</groupId>
     <artifactId>dempsy-commons</artifactId>
-    <version>2.3.1</version>
+    <version>2.3.2-SNAPSHOT</version>
     <relativePath>../dempsy-commons-parentpom/pom.xml</relativePath>
   </parent>
 
   <artifactId>dempsy-serialization.jackson</artifactId>
-  <version>2.1.2</version>
+  <version>2.1.3-SNAPSHOT</version>
   <name>Dempsy Serialization implementation using Jackson.</name>
 
   <dependencies>
