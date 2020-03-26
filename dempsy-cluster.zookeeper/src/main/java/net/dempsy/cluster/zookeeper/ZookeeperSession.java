@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -83,7 +83,7 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
         this.serializer = serializer;
         this.zkref = new AtomicReference<ZooKeeper>();
         final ZooKeeper newZk = makeZooKeeperClient(connectString, sessionTimeout);
-        if (newZk != null)
+        if(newZk != null)
             setNewZookeeper(newZk);
     }
 
@@ -99,8 +99,8 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
 
     @Override
     public String mkdir(final String path, final Object data, final DirMode mode) throws ClusterInfoException {
-        return (String) callZookeeper("mkdir", path, null, new DirModeObject(mode, data), (cur, pa, watcher, ud) -> {
-            final DirModeObject userdata = (DirModeObject) ud;
+        return (String)callZookeeper("mkdir", path, null, new DirModeObject(mode, data), (cur, pa, watcher, ud) -> {
+            final DirModeObject userdata = (DirModeObject)ud;
             final Object info = userdata.value;
 
             return cur.create(path, (info == null ? zeroByteArray : serializer.serialize(info)), Ids.OPEN_ACL_UNSAFE, from(userdata.dirMode));
@@ -121,7 +121,7 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
         final Object ret = callZookeeper("exists", ppath, watcher, null, (cur, path, wp, userdata) -> {
             return wp == null ? (cur.exists(path, true) == null ? false : true) : (cur.exists(path, wp) == null ? false : true);
         }, false);
-        return ((Boolean) ret).booleanValue();
+        return ((Boolean)ret).booleanValue();
     }
 
     @Override
@@ -129,7 +129,7 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
         return callZookeeper("getData", ppath, watcher, null, (cur, path, wp, userdata) -> {
             final byte[] ret = wp == null ? cur.getData(path, true, null) : cur.getData(path, wp, null);
 
-            if (ret != null && ret.length > 0)
+            if(ret != null && ret.length > 0)
                 return serializer.deserialize(ret, Object.class);
             return null;
         }, false);
@@ -139,7 +139,7 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
     public void setData(final String ppath, final Object info) throws ClusterInfoException {
         callZookeeper("mkdir", ppath, null, info, (cur, path, wp, userdata) -> {
             byte[] buf = null;
-            if (info != null)
+            if(info != null)
                 // Serialize to a byte array
                 buf = serializer.serialize(info);
 
@@ -151,14 +151,14 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
     @SuppressWarnings("unchecked")
     @Override
     public Collection<String> getSubdirs(final String ppath, final ClusterInfoWatcher pwatcher) throws ClusterInfoException {
-        return (Collection<String>) callZookeeper("getSubdirs", ppath, pwatcher, null,
-                (cur, pa, wp, userdata) -> wp == null ? cur.getChildren(pa, true) : cur.getChildren(pa, wp), false);
+        return (Collection<String>)callZookeeper("getSubdirs", ppath, pwatcher, null,
+            (cur, pa, wp, userdata) -> wp == null ? cur.getChildren(pa, true) : cur.getChildren(pa, wp), false);
     }
 
     @Override
     public void stop() {
         AtomicReference<ZooKeeper> curZk;
-        synchronized (this) {
+        synchronized(this) {
             isRunning = false;
             curZk = zkref;
             zkref = null; // this blows up any more usage
@@ -166,18 +166,21 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
 
         try {
             curZk.get().close();
-        } catch (final Throwable th) { /* let it go otherwise */}
+        } catch(final Throwable th) {
+            /* let it go otherwise */
+            logger.warn("Failed during shut down of ZooKeeper client:", th);
+        }
     }
 
     @Override
     public void disrupt() {
-        if (logger.isTraceEnabled())
+        if(logger.isTraceEnabled())
             logger.trace("Disrupting Zookeeper session by closing the session.");
-        if (zkref != null) {
+        if(zkref != null) {
             try {
                 final ZooKeeper cur = zkref.get();
                 cur.close();
-            } catch (final Throwable th) {
+            } catch(final Throwable th) {
                 logger.error("Failed disrupting ZookeeperSession", th);
             }
         }
@@ -186,7 +189,7 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
     protected static class ZkWatcher implements Watcher {
         @Override
         public void process(final WatchedEvent event) {
-            if (logger.isTraceEnabled())
+            if(logger.isTraceEnabled())
                 logger.trace("CALLBACK:Main Watcher:" + event);
         }
     }
@@ -195,7 +198,7 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
      * This is defined here to be overridden in a test.
      */
     protected ZooKeeper makeZooKeeperClient(final String connectString, final int sessionTimeout) throws IOException {
-        if (logger.isTraceEnabled())
+        if(logger.isTraceEnabled())
             logger.trace("creating new ZooKeeper client connection from scratch.");
 
         return new ZooKeeper(connectString, sessionTimeout, new ZkWatcher());
@@ -211,36 +214,36 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
 
         @Override
         public void process(final WatchedEvent event) {
-            if (logger.isTraceEnabled())
+            if(logger.isTraceEnabled())
                 logger.trace("Process called on " + SafeString.objectDescription(watcher) + " with ZooKeeper event " + event);
 
             // if we're stopped then just quit
-            if (zkref == null)
+            if(zkref == null)
                 return;
 
             // if we're disconnected then we need to reset and skip an
             // current processing.
-            if (event != null && event.getState() == Event.KeeperState.Disconnected)
+            if(event != null && event.getState() == Event.KeeperState.Disconnected)
                 resetZookeeper(zkref.get());
             else {
-                synchronized (registeredWatchers) {
+                synchronized(registeredWatchers) {
                     registeredWatchers.remove(this);
                 }
 
                 try {
-                    synchronized (this) {
+                    synchronized(this) {
                         watcher.process();
                     }
-                } catch (final RuntimeException rte) {
+                } catch(final RuntimeException rte) {
                     logger.warn("Watcher " + SafeString.objectDescription(watcher) +
-                            " threw an exception in it's \"process\" call.", rte);
+                        " threw an exception in it's \"process\" call.", rte);
                 }
             }
         }
 
         @Override
         public boolean equals(final Object o) {
-            return watcher.equals(((WatcherProxy) o).watcher);
+            return watcher.equals(((WatcherProxy)o).watcher);
         }
 
         @Override
@@ -257,7 +260,7 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
     @FunctionalInterface
     private interface ZookeeperCall {
         public Object call(ZooKeeper cur, String path, WatcherProxy watcher, Object userdata)
-                throws KeeperException, InterruptedException, IOException;
+            throws KeeperException, InterruptedException, IOException;
     }
 
     // This is broken out in order to be intercepted in tests
@@ -266,11 +269,11 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
     }
 
     private Object callZookeeper(final String name, final String path, final ClusterInfoWatcher watcher, final Object userdata,
-            final ZookeeperCall callee, final boolean mkdir) throws ClusterInfoException {
-        if (isRunning) {
+        final ZookeeperCall callee, final boolean mkdir) throws ClusterInfoException {
+        if(isRunning) {
             final WatcherProxy wp = watcher != null ? makeWatcherProxy(watcher) : null;
-            if (wp != null) {
-                synchronized (registeredWatchers) {
+            if(wp != null) {
+                synchronized(registeredWatchers) {
                     registeredWatchers.add(wp);
                 }
             }
@@ -278,22 +281,22 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
             final ZooKeeper cur = zkref.get();
             try {
                 return callee.call(cur, path, wp, userdata);
-            } catch (final KeeperException.NodeExistsException e) {
-                if (logger.isTraceEnabled())
+            } catch(final KeeperException.NodeExistsException e) {
+                if(logger.isTraceEnabled())
                     logger.trace("Failed call to " + name + " at " + path + " because the node already exists:" + e.getLocalizedMessage());
                 return null; // this is only thrown from mkdir and so if the Node Exists
                              // we simply want to return a null String
-            } catch (final KeeperException.NoNodeException e) {
-                if (mkdir)
+            } catch(final KeeperException.NoNodeException e) {
+                if(mkdir)
                     throw new ClusterInfoException.NoParentException("No parent node for " + path + " while running " + name, e);
                 else
                     throw new ClusterInfoException.NoNodeException("Node doesn't exist at " + path + " while running " + name, e);
-            } catch (final KeeperException e) {
+            } catch(final KeeperException e) {
                 resetZookeeper(cur);
                 throw new ClusterInfoException("Zookeeper failed while trying to " + name + " at " + path, e);
-            } catch (final InterruptedException e) {
+            } catch(final InterruptedException e) {
                 throw new ClusterInfoException("Interrupted while trying to " + name + " at " + path, e);
-            } catch (final IOException e) {
+            } catch(final IOException e) {
                 throw new ClusterInfoException("Failed to deserialize the object durring a " + name + " call at " + path, e);
             }
         }
@@ -305,7 +308,7 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
     private volatile AutoDisposeSingleThreadScheduler.Cancelable beingReset = null;
 
     private synchronized void resetZookeeper(final ZooKeeper failedZooKeeper) {
-        if (!isRunning)
+        if(!isRunning)
             logger.error("resetZookeeper called on stopped ZookeeperSession.");
 
         try {
@@ -313,32 +316,32 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
             // if we're not shutting down (which would be indicated by tmpZkRef == null
             // and if the failedInstance we're trying to reset is the current one, indicated by tmpZkRef.get() == failedInstance
             // and if we're not already working on beingReset
-            if (tmpZkRef != null && tmpZkRef.get() == failedZooKeeper && (beingReset == null || beingReset.isDone())) {
+            if(tmpZkRef != null && tmpZkRef.get() == failedZooKeeper && (beingReset == null || beingReset.isDone())) {
                 final Runnable runnable = new Runnable() {
                     ZooKeeper failedInstance = failedZooKeeper;
 
                     @Override
                     public void run() {
-                        if (logger.isTraceEnabled())
+                        if(logger.isTraceEnabled())
                             logger.trace("Executing ZooKeeper client reset.");
 
                         ZooKeeper newZk = null;
                         try {
                             boolean forceRebuild = false;
-                            if (failedInstance.getState().isAlive()) {
+                            if(failedInstance.getState().isAlive()) {
                                 // try to use it
                                 try {
                                     failedInstance.exists("/", null);
-                                    if (logger.isTraceEnabled())
+                                    if(logger.isTraceEnabled())
                                         logger.trace("client reset determined the failedInstance is now working.");
-                                } catch (final KeeperException th) {
-                                    if (logger.isTraceEnabled())
+                                } catch(final KeeperException th) {
+                                    if(logger.isTraceEnabled())
                                         logger.trace("client reset determined the failedInstance is not yet working.");
 
                                     // if the data directory on the server has gone away and the server was restarted we get into a
                                     // situation where we get continuous ConnectionLossExceptions and we can't tell the difference
                                     // between this state and when the connection is simply not reachable.
-                                    if (th instanceof KeeperException.ConnectionLossException && haveBeenAbleToReachAServer())
+                                    if(th instanceof KeeperException.ConnectionLossException && haveBeenAbleToReachAServer())
                                         forceRebuild = true;
                                     else
                                         // just reschedule and exit.
@@ -348,11 +351,11 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
 
                             // we should only recreate the client if it's closed.
                             newZk = failedInstance.getState().isAlive() && !forceRebuild ? failedInstance
-                                    : makeZooKeeperClient(connectString, sessionTimeout);
+                                : makeZooKeeperClient(connectString, sessionTimeout);
 
                             // this is true if the reset worked and we're not in the process
                             // of shutting down.
-                            if (newZk != null) {
+                            if(newZk != null) {
                                 // we want the setNewZookeeper and the clearing of the
                                 // beingReset flag to be atomic so future failures that result
                                 // in calls to resetZookeeper will either:
@@ -361,25 +364,25 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
                                 // what we don't want is the possibility that the reset will be skipped
                                 // even though the reset is called for this new ZooKeeper, but we haven't cleared
                                 // the beingReset flag yet.
-                                synchronized (ZookeeperSession.this) {
+                                synchronized(ZookeeperSession.this) {
                                     setNewZookeeper(newZk);
                                     beingReset = null;
                                 }
 
                                 // now notify the watchers
                                 final Collection<WatcherProxy> twatchers = new ArrayList<WatcherProxy>();
-                                synchronized (registeredWatchers) {
+                                synchronized(registeredWatchers) {
                                     twatchers.addAll(registeredWatchers);
                                 }
 
-                                for (final WatcherProxy watcher : twatchers)
+                                for(final WatcherProxy watcher: twatchers)
                                     watcher.process(null);
                             }
-                        } catch (final Throwable e) {
+                        } catch(final Throwable e) {
                             logger.warn("Failed to reset the ZooKeeper connection to " + connectString, e);
                             newZk = null;
                         } finally {
-                            if (newZk == null && isRunning)
+                            if(newZk == null && isRunning)
                                 // reschedule me.
                                 beingReset = scheduler.schedule(this, resetDelay, TimeUnit.MILLISECONDS);
                         }
@@ -389,25 +392,25 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
                     private long startTime = -1;
 
                     private boolean haveBeenAbleToReachAServer() {
-                        if (logger.isTraceEnabled())
+                        if(logger.isTraceEnabled())
                             logger.trace("testing to see if something is listening on " + connectString);
 
                         // try to create a tcp connection to any of the servers.
                         final String[] hostPorts = connectString.split(",");
-                        for (final String hostPort : hostPorts) {
+                        for(final String hostPort: hostPorts) {
                             final String[] hostAndPort = hostPort.split(":");
 
                             Socket socket = null;
                             try {
                                 socket = new Socket(hostAndPort[0], Integer.parseInt(hostAndPort[1]));
-                                if (startTime == -1)
+                                if(startTime == -1)
                                     startTime = System.currentTimeMillis();
                                 return System.currentTimeMillis() - startTime > (1.5 * sessionTimeout);
-                            } catch (final IOException ioe) {} finally {
-                                if (socket != null) {
+                            } catch(final IOException ioe) {} finally {
+                                if(socket != null) {
                                     try {
                                         socket.close();
-                                    } catch (final Throwable th) {}
+                                    } catch(final Throwable th) {}
                                 }
                             }
                         }
@@ -420,7 +423,7 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
 
                 beingReset = scheduler.schedule(runnable, 1, TimeUnit.NANOSECONDS);
             }
-        } catch (final Throwable re) {
+        } catch(final Throwable re) {
             beingReset = null;
             logger.error("resetZookeeper failed for attempted reset to " + connectString, re);
         }
@@ -428,21 +431,21 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
     }
 
     private synchronized void setNewZookeeper(final ZooKeeper newZk) {
-        if (logger.isTraceEnabled())
+        if(logger.isTraceEnabled())
             logger.trace("reestablished connection to " + connectString);
 
-        if (isRunning) {
+        if(isRunning) {
             final ZooKeeper last = zkref.getAndSet(newZk);
-            if (last != null && last != newZk) {
+            if(last != null && last != newZk) {
                 try {
                     last.close();
-                } catch (final Throwable th) {}
+                } catch(final Throwable th) {}
             }
         } else {
             // in this case with zk == null we're shutting down.
             try {
                 newZk.close();
-            } catch (final Throwable th) {}
+            } catch(final Throwable th) {}
         }
     }
 
