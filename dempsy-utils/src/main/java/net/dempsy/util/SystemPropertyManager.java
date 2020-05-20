@@ -11,6 +11,7 @@ import java.util.stream.IntStream;
  * This class allows the setting and then unsetting of System properties within the scope of a test.
  */
 public class SystemPropertyManager implements AutoCloseable {
+
     private static class OldProperty {
         public final boolean hasOldValue;
         public final String oldValue;
@@ -26,22 +27,26 @@ public class SystemPropertyManager implements AutoCloseable {
     private final List<OldProperty> oldProperties = new ArrayList<>();
 
     public SystemPropertyManager set(final String name, final String value) {
-        oldProperties.add(new OldProperty(name, System.getProperties().containsKey(name), System.getProperty(name)));
-        System.setProperty(name, value);
-        return this;
+        synchronized(SystemPropertyManager.class) {
+            return internSet(name, value);
+        }
     }
 
     public SystemPropertyManager setIfAbsent(final String name, final String value) {
-        return System.getProperties().containsKey(name) ? this : set(name, value);
+        synchronized(SystemPropertyManager.class) {
+            return System.getProperties().containsKey(name) ? this : internSet(name, value);
+        }
     }
 
     public SystemPropertyManager load(final String file) {
         final Properties props = new Properties();
-        try (FileInputStream fis = new FileInputStream(file)) {
+        try(FileInputStream fis = new FileInputStream(file)) {
             props.load(fis);
-            props.entrySet().stream().forEach(e -> set((String) e.getKey(), (String) e.getValue()));
+            synchronized(SystemPropertyManager.class) {
+                props.entrySet().stream().forEach(e -> internSet((String)e.getKey(), (String)e.getValue()));
+            }
             return this;
-        } catch (final IOException ioe) {
+        } catch(final IOException ioe) {
             throw new RuntimeException(ioe);
         }
     }
@@ -49,12 +54,21 @@ public class SystemPropertyManager implements AutoCloseable {
     @Override
     public void close() {
         final int num = oldProperties.size();
-        IntStream.range(0, num).forEach(i -> revert(oldProperties.get(num - i - 1)));
+        synchronized(SystemPropertyManager.class) {
+            IntStream.range(0, num).forEach(i -> revert(oldProperties.get(num - i - 1)));
+        }
     }
 
     private static void revert(final OldProperty op) {
-        if (op.hasOldValue)
+        if(op.hasOldValue)
             System.setProperty(op.name, op.oldValue);
-        else System.clearProperty(op.name);
+        else
+            System.clearProperty(op.name);
+    }
+
+    private SystemPropertyManager internSet(final String name, final String value) {
+        oldProperties.add(new OldProperty(name, System.getProperties().containsKey(name), System.getProperty(name)));
+        System.setProperty(name, value);
+        return this;
     }
 }
