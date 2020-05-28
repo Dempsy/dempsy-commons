@@ -44,7 +44,7 @@ import net.dempsy.util.SafeString;
 import net.dempsy.util.executor.AutoDisposeSingleThreadScheduler;
 
 public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession {
-    private static final Logger logger = LoggerFactory.getLogger(ZookeeperSession.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperSession.class);
 
     private static final byte[] zeroByteArray = new byte[0];
 
@@ -168,20 +168,20 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
             curZk.get().close();
         } catch(final Throwable th) {
             /* let it go otherwise */
-            logger.warn("Failed during shut down of ZooKeeper client:", th);
+            LOGGER.warn("Failed during shut down of ZooKeeper client:", th);
         }
     }
 
     @Override
     public void disrupt() {
-        if(logger.isTraceEnabled())
-            logger.trace("Disrupting Zookeeper session by closing the session.");
+        if(LOGGER.isTraceEnabled())
+            LOGGER.trace("Disrupting Zookeeper session by closing the session.");
         if(zkref != null) {
             try {
                 final ZooKeeper cur = zkref.get();
                 cur.close();
             } catch(final Throwable th) {
-                logger.error("Failed disrupting ZookeeperSession", th);
+                LOGGER.error("Failed disrupting ZookeeperSession", th);
             }
         }
     }
@@ -189,8 +189,8 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
     protected static class ZkWatcher implements Watcher {
         @Override
         public void process(final WatchedEvent event) {
-            if(logger.isTraceEnabled())
-                logger.trace("CALLBACK:Main Watcher:" + event);
+            if(LOGGER.isTraceEnabled())
+                LOGGER.trace("CALLBACK:Main Watcher:" + event);
         }
     }
 
@@ -198,8 +198,8 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
      * This is defined here to be overridden in a test.
      */
     protected ZooKeeper makeZooKeeperClient(final String connectString, final int sessionTimeout) throws IOException {
-        if(logger.isTraceEnabled())
-            logger.trace("creating new ZooKeeper client connection from scratch.");
+        if(LOGGER.isTraceEnabled())
+            LOGGER.trace("creating new ZooKeeper client connection from scratch.");
 
         return new ZooKeeper(connectString, sessionTimeout, new ZkWatcher());
     }
@@ -214,8 +214,8 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
 
         @Override
         public void process(final WatchedEvent event) {
-            if(logger.isTraceEnabled())
-                logger.trace("Process called on " + SafeString.objectDescription(watcher) + " with ZooKeeper event " + event);
+            if(LOGGER.isTraceEnabled())
+                LOGGER.trace("Process called on " + SafeString.objectDescription(watcher) + " with ZooKeeper event " + event);
 
             // if we're stopped then just quit
             if(zkref == null)
@@ -235,7 +235,7 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
                         watcher.process();
                     }
                 } catch(final RuntimeException rte) {
-                    logger.warn("Watcher " + SafeString.objectDescription(watcher) +
+                    LOGGER.warn("Watcher " + SafeString.objectDescription(watcher) +
                         " threw an exception in it's \"process\" call.", rte);
                 }
             }
@@ -282,8 +282,8 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
             try {
                 return callee.call(cur, path, wp, userdata);
             } catch(final KeeperException.NodeExistsException e) {
-                if(logger.isTraceEnabled())
-                    logger.trace("Failed call to " + name + " at " + path + " because the node already exists:" + e.getLocalizedMessage());
+                if(LOGGER.isTraceEnabled())
+                    LOGGER.trace("Failed call to " + name + " at " + path + " because the node already exists:" + e.getLocalizedMessage());
                 return null; // this is only thrown from mkdir and so if the Node Exists
                              // we simply want to return a null String
             } catch(final KeeperException.NoNodeException e) {
@@ -309,7 +309,7 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
 
     private synchronized void resetZookeeper(final ZooKeeper failedZooKeeper) {
         if(!isRunning)
-            logger.error("resetZookeeper called on stopped ZookeeperSession.");
+            LOGGER.error("resetZookeeper called on stopped ZookeeperSession.");
 
         try {
             final AtomicReference<ZooKeeper> tmpZkRef = zkref;
@@ -322,8 +322,8 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
 
                     @Override
                     public void run() {
-                        if(logger.isTraceEnabled())
-                            logger.trace("Executing ZooKeeper client reset.");
+                        if(LOGGER.isTraceEnabled())
+                            LOGGER.trace("Executing ZooKeeper client reset.");
 
                         ZooKeeper newZk = null;
                         try {
@@ -332,11 +332,11 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
                                 // try to use it
                                 try {
                                     failedInstance.exists("/", null);
-                                    if(logger.isTraceEnabled())
-                                        logger.trace("client reset determined the failedInstance is now working.");
+                                    if(LOGGER.isTraceEnabled())
+                                        LOGGER.trace("client reset determined the failedInstance is now working.");
                                 } catch(final KeeperException th) {
-                                    if(logger.isTraceEnabled())
-                                        logger.trace("client reset determined the failedInstance is not yet working.");
+                                    if(LOGGER.isTraceEnabled())
+                                        LOGGER.trace("client reset determined the failedInstance is not yet working.");
 
                                     // if the data directory on the server has gone away and the server was restarted we get into a
                                     // situation where we get continuous ConnectionLossExceptions and we can't tell the difference
@@ -379,7 +379,7 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
                                     watcher.process(null);
                             }
                         } catch(final Throwable e) {
-                            logger.warn("Failed to reset the ZooKeeper connection to " + connectString, e);
+                            LOGGER.warn("Failed to reset the ZooKeeper connection to " + connectString, e);
                             newZk = null;
                         } finally {
                             if(newZk == null && isRunning)
@@ -392,8 +392,8 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
                     private long startTime = -1;
 
                     private boolean haveBeenAbleToReachAServer() {
-                        if(logger.isTraceEnabled())
-                            logger.trace("testing to see if something is listening on " + connectString);
+                        if(LOGGER.isTraceEnabled())
+                            LOGGER.trace("testing to see if something is listening on " + connectString);
 
                         // try to create a tcp connection to any of the servers.
                         final String[] hostPorts = connectString.split(",");
@@ -425,14 +425,14 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
             }
         } catch(final Throwable re) {
             beingReset = null;
-            logger.error("resetZookeeper failed for attempted reset to " + connectString, re);
+            LOGGER.error("resetZookeeper failed for attempted reset to " + connectString, re);
         }
 
     }
 
     private synchronized void setNewZookeeper(final ZooKeeper newZk) {
-        if(logger.isTraceEnabled())
-            logger.trace("reestablished connection to " + connectString);
+        if(LOGGER.isTraceEnabled())
+            LOGGER.trace("reestablished connection to " + connectString);
 
         if(isRunning) {
             final ZooKeeper last = zkref.getAndSet(newZk);
