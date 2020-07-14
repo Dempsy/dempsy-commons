@@ -5,7 +5,7 @@
 
   <groupId>net.dempsy</groupId>
   <artifactId>dempsy-commons.aggregator</artifactId>
-  <version>2.3.3</version>
+  <version>2.3.4-SNAPSHOT</version>
   <name>Dempsy Commons Aggregator</name>
   <description>Dempsy Commons Aggregator</description>
   <packaging>pom</packaging>
@@ -21,12 +21,12 @@
   <modules>
 <!--    <module>dempsy-commons-settings</module> -->
     
-    <module>dempsy-commons-bom</module>
+<!--    <module>dempsy-commons-bom</module> -->
 <!--    <module>dempsy-commons-parentpom</module> -->
     
 <!--    <module>dempsy-ringbuffer</module> -->
 <!--    <module>dempsy-serialization.api</module> -->
-    <module>dempsy-serialization.jackson</module>
+<!--    <module>dempsy-serialization.jackson</module> -->
 <!--    <module>dempsy-serialization.java</module> -->
 <!--    <module>dempsy-serialization.kryo</module> -->
 
@@ -41,7 +41,7 @@
 <!--    <module>dempsy-distconfig.main</module> -->
 
 <!--    <module>dempsy-test-utils</module> -->
-    <module>dempsy-utils</module>
+<!--    <module>dempsy-utils</module> -->
   </modules>
 
   <build>
