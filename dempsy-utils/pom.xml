@@ -11,7 +11,7 @@
   </parent>
 
   <artifactId>dempsy-utils</artifactId>
-  <version>2.2.3-SNAPSHOT</version>
+  <version>2.2.3</version>
   <name>Dempsy Simple utilities with minimal dependencies.</name>
 
   <dependencies>
