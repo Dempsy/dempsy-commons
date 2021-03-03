@@ -21,7 +21,7 @@ public class TestKryoWithRegistration extends TestSerializerImplementation {
 
     public TestKryoWithRegistration(final Boolean manageExactClass) {
         super(new KryoSerializer(manageExactClass.booleanValue(), defaultMock3Optimizer, new Registration(MockClass.class.getName()),
-                new Registration(Mock3.class.getName())), false, manageExactClass.booleanValue());
+            new Registration(Mock3.class.getName())), false, manageExactClass.booleanValue());
         this.manageExactClass = manageExactClass.booleanValue();
     }
 
@@ -36,9 +36,9 @@ public class TestKryoWithRegistration extends TestSerializerImplementation {
 
     @Test
     public void testWithRegisterFromResource() throws Throwable {
-        try (@SuppressWarnings("resource")
+        try(@SuppressWarnings("resource")
         SystemPropertyManager p = new SystemPropertyManager()
-                .set(KryoSerializer.SYS_PROP_REGISTRAION_RESOURCE, "kryo/registration.txt")) {
+            .set(KryoSerializer.SYS_PROP_REGISTRAION_RESOURCE, "kryo/registration.txt")) {
             final KryoSerializer ser1 = new KryoSerializer(manageExactClass);
             final KryoSerializer ser2 = new KryoSerializer(manageExactClass);
             ser2.setKryoRegistrationRequired(true);
@@ -53,8 +53,8 @@ public class TestKryoWithRegistration extends TestSerializerImplementation {
     @Parameterized.Parameters(name = "manage exact classes: {0}")
     public static Collection<Object[]> manageExactClassParams() {
         return Arrays.asList(new Object[][] {
-                { new Boolean(true) },
-                { new Boolean(false) }
+            {Boolean.TRUE},
+            {Boolean.FALSE}
         });
     }
 }

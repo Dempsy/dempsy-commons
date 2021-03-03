@@ -17,8 +17,8 @@ public class TestKryoSerializer extends TestSerializerImplementation {
     @Parameterized.Parameters(name = "manage exact classes: {0}")
     public static Collection<Object[]> manageExactClassParams() {
         return Arrays.asList(new Object[][] {
-                { new Boolean(true) },
-                { new Boolean(false) }
+            {Boolean.TRUE},
+            {Boolean.FALSE}
         });
     }
 }
