@@ -249,8 +249,7 @@ public class KryoSerializer extends Serializer {
         if(ret == null) {
             ret = new Holder();
 
-            if(requireRegistration)
-                ret.kryo.setRegistrationRequired(requireRegistration);
+            ret.kryo.setRegistrationRequired(requireRegistration);
 
             if(optimizer != null) {
                 try {

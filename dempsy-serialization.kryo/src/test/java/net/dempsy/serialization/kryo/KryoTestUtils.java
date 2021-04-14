@@ -17,18 +17,18 @@ public class KryoTestUtils {
         }
 
         @Override
-        public UUID read(final Kryo kryo, final Input input, final Class<UUID> clazz) {
-            final long mostSigBits = longSerializer.read(kryo, input, long.class);
-            final long leastSigBits = longSerializer.read(kryo, input, long.class);
-            return new UUID(mostSigBits, leastSigBits);
-        }
-
-        @Override
         public void write(final Kryo kryo, final Output output, final UUID uuid) {
             final long mostSigBits = uuid.getMostSignificantBits();
             final long leastSigBits = uuid.getLeastSignificantBits();
             longSerializer.write(kryo, output, mostSigBits);
             longSerializer.write(kryo, output, leastSigBits);
+        }
+
+        @Override
+        public UUID read(final Kryo kryo, final Input input, final Class<? extends UUID> type) {
+            final long mostSigBits = longSerializer.read(kryo, input, long.class);
+            final long leastSigBits = longSerializer.read(kryo, input, long.class);
+            return new UUID(mostSigBits, leastSigBits);
         }
     };
 
@@ -38,8 +38,7 @@ public class KryoTestUtils {
 
         @Override
         public void postRegister(final Kryo kryo) {
-            final com.esotericsoftware.kryo.Registration reg = kryo.getRegistration(UUID.class);
-            reg.setSerializer(uuidSerializer);
+            kryo.register(UUID.class, uuidSerializer);
         }
     };
 
