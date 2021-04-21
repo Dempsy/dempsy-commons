@@ -195,7 +195,7 @@ public class ZookeeperTestServer implements AutoCloseable {
 
         public boolean waitForStart() throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
             while(serverSillRunning.get()) {
-                final ServerCnxnFactory cnxnFactory = getCnxnFactory();
+                final ServerCnxnFactory cnxnFactory = getCnxnFactoryLocal();
                 if(cnxnFactory != null) {
                     try {
                         if(cnxnFactory.getLocalPort() == server.port)
@@ -215,7 +215,7 @@ public class ZookeeperTestServer implements AutoCloseable {
             return false;
         }
 
-        private ServerCnxnFactory getCnxnFactory() throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+        private ServerCnxnFactory getCnxnFactoryLocal() throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
             final Field f = ZooKeeperServerMain.class.getDeclaredField("cnxnFactory");
             f.setAccessible(true);
             return (ServerCnxnFactory)f.get(this);

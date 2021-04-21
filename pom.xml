@@ -32,7 +32,7 @@
 
 <!--    <module>dempsy-cluster.api</module> -->
 <!--    <module>dempsy-cluster.local</module> -->
-<!--    <module>dempsy-cluster.zookeeper</module> -->
+    <module>dempsy-cluster.zookeeper</module>
 
 <!--    <module>dempsy-distconfig.api</module> -->
 <!--    <module>dempsy-distconfig.classpath</module> -->

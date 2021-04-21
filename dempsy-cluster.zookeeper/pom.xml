@@ -6,12 +6,12 @@
   <parent>
     <groupId>net.dempsy</groupId>
     <artifactId>dempsy-commons</artifactId>
-    <version>2.3.2</version>
+    <version>2.3.3-SNAPSHOT</version>
     <relativePath>../dempsy-commons-parentpom/pom.xml</relativePath>
   </parent>
 
   <artifactId>dempsy-cluster.zookeeper</artifactId>
-  <version>2.1.4</version>
+  <version>2.1.5-SNAPSHOT</version>
   <name>Dempsy cluster management implementation using ZooKeeper</name>
 
   <dependencies>
