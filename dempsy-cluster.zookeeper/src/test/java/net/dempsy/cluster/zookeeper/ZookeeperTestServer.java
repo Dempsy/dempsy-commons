@@ -44,8 +44,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MarkerFactory;
 
+import net.dempsy.util.SystemPropertyManager;
 import net.dempsy.utils.test.ConditionPoll.Condition;
-import net.dempsy.utils.test.SystemPropertyManager;
 
 @Ignore
 public class ZookeeperTestServer implements AutoCloseable {
