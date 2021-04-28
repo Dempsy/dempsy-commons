@@ -2,7 +2,10 @@ package net.dempsy.util;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.util.Enumeration;
 import java.util.Optional;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -10,6 +13,7 @@ import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -427,5 +431,29 @@ public class Functional {
             return v;
         });
         return ret.ref;
+    }
+
+    /**
+     * Given an {@link Enumeration}, an ancient construct but still used in the java
+     * network interface code, create a stream.
+     */
+    public static <T> Stream<T> enumerationAsStream(final Enumeration<T> e) {
+        return StreamSupport.stream(
+            new Spliterators.AbstractSpliterator<T>(Long.MAX_VALUE, Spliterator.ORDERED) {
+                @Override
+                public boolean tryAdvance(final Consumer<? super T> action) {
+                    if(e.hasMoreElements()) {
+                        action.accept(e.nextElement());
+                        return true;
+                    }
+                    return false;
+                }
+
+                @Override
+                public void forEachRemaining(final Consumer<? super T> action) {
+                    while(e.hasMoreElements())
+                        action.accept(e.nextElement());
+                }
+            }, false);
     }
 }

@@ -24,7 +24,7 @@
     <dempsy-serialization.java.version>2.1.0</dempsy-serialization.java.version>
     <dempsy-serialization.kryo.version>2.1.3-SNAPSHOT</dempsy-serialization.kryo.version>
 
-    <dempsy-utils.version>2.2.3</dempsy-utils.version>
+    <dempsy-utils.version>2.3.0-SNAPSHOT</dempsy-utils.version>
     <dempsy-test-utils.version>2.2.1</dempsy-test-utils.version>
     <dempsy-ringbuffer.version>2.2.1</dempsy-ringbuffer.version>
     
