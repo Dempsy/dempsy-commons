@@ -20,11 +20,11 @@ public class StupidHashMap<K, V> implements Map<K, V> {
 
     @SuppressWarnings("unchecked")
     public StupidHashMap(final int initialCapacity) {
-        if (Integer.bitCount(initialCapacity) != 1)
+        if(Integer.bitCount(initialCapacity) != 1)
             throw new IllegalArgumentException("The initial capacity must be a power of 2.");
 
         table = new Node[initialCapacity];
-        for (int i = 0; i < initialCapacity; i++)
+        for(int i = 0; i < initialCapacity; i++)
             table[i] = new Node<K, V>();
         mask = initialCapacity - 1;
     }
@@ -46,11 +46,11 @@ public class StupidHashMap<K, V> implements Map<K, V> {
     public V computeIfAbsent(final K k, final Supplier<V> v) {
         final int h = hash(k);
         final Node<K, V> b = table[h & mask];
-        while (true) {
+        while(true) {
             FinalWrapper<Node<K, V>> tmpnode = b.next;
-            if (tmpnode == null) { // this bin has no entries yet
+            if(tmpnode == null) { // this bin has no entries yet
                 waitFor(b); // grab the lock
-                if (b.next == null) { // double check - still has no entries.
+                if(b.next == null) { // double check - still has no entries.
                     b.next = new FinalWrapper<Node<K, V>>(new Node<K, V>(h, k, v.get()));
                     tmpnode = b.next;
                     b.mine.lazySet(1);
@@ -65,13 +65,13 @@ public class StupidHashMap<K, V> implements Map<K, V> {
 
             // tmpnode now has the current node value
             FinalWrapper<Node<K, V>> prev = null;
-            while (tmpnode != null) {
+            while(tmpnode != null) {
                 final Node<K, V> tmpnodevalue = tmpnode.value;
-                if (tmpnodevalue.key != null) { // it's possible for this to be null if tmpnode is pointing to
-                                                // a bin indicator. This is only possible if we had a "remove"
-                                                // collision. This is how remove collisions are managed. The
-                                                // removed node is pointed to the bin.
-                    if (tmpnodevalue.hash == h && tmpnodevalue.key.equals(k)) { // we found an existing entry
+                if(tmpnodevalue.key != null) { // it's possible for this to be null if tmpnode is pointing to
+                                               // a bin indicator. This is only possible if we had a "remove"
+                                               // collision. This is how remove collisions are managed. The
+                                               // removed node is pointed to the bin.
+                    if(tmpnodevalue.hash == h && tmpnodevalue.key.equals(k)) { // we found an existing entry
                         final Node<K, V> cur = tmpnodevalue;
                         final V ret = cur.value;
                         return ret;
@@ -87,7 +87,7 @@ public class StupidHashMap<K, V> implements Map<K, V> {
             // prev can't be null
             waitFor(prev.value);
             // double check and make sure it's still null
-            if (prev.value.next != null) {
+            if(prev.value.next != null) {
                 prev.value.mine.lazySet(1);
                 continue; // start over and try again
             }
@@ -166,15 +166,15 @@ public class StupidHashMap<K, V> implements Map<K, V> {
 
             // satisfy the memory model/final semantics
             FinalWrapper<Node<K, V>> tmpnode = b.next;
-            if (tmpnode == null) { // the entire bin is empty
+            if(tmpnode == null) { // the entire bin is empty
                 return null;
             }
 
             // tmpnode now has the current node value
             FinalWrapper<Node<K, V>> prev = null;
-            while (tmpnode != null) {
+            while(tmpnode != null) {
                 final Node<K, V> tmpnodevalue = tmpnode.value;
-                if (tmpnodevalue.key != null && tmpnodevalue.hash == h && tmpnodevalue.key.equals(k)) { // we found an existing entry
+                if(tmpnodevalue.key != null && tmpnodevalue.hash == h && tmpnodevalue.key.equals(k)) { // we found an existing entry
                     // if prev is null then we're at the first entry in the bin so we need to lock the Bin
                     final Node<K, V> prevNode = (prev == null) ? b : prev.value;
                     waitFor(tmpnodevalue); // lock THIS node so no one
@@ -184,7 +184,7 @@ public class StupidHashMap<K, V> implements Map<K, V> {
                     waitFor(prevNode); // lock the previous node (or Bin) since we're going to mod it.
 
                     // double check.
-                    if (prevNode.next != tmpnode) { // are we still in the list?
+                    if(prevNode.next != tmpnode) { // are we still in the list?
                         // if not, then start over
                         prevNode.mine.lazySet(1); // unlock
                         tmpnodevalue.mine.lazySet(1); // unlock
@@ -210,9 +210,9 @@ public class StupidHashMap<K, V> implements Map<K, V> {
             }
 
             // if we got here, then there's nothing to remove ... if we're not done then try again
-            if (done)
+            if(done)
                 return null;
-        } while (true);
+        } while(true);
 
     }
 
@@ -222,12 +222,12 @@ public class StupidHashMap<K, V> implements Map<K, V> {
         final Node<K, V> b = table[h & mask];
 
         FinalWrapper<Node<K, V>> tmpnode = b.next;
-        if (tmpnode == null)
+        if(tmpnode == null)
             return null;
 
         // tmpnode now has the current node value
-        while (tmpnode != null) {
-            if (tmpnode.value.key != null && tmpnode.value.hash == h && tmpnode.value.key.equals(k)) // we found an existing entry
+        while(tmpnode != null) {
+            if(tmpnode.value.key != null && tmpnode.value.hash == h && tmpnode.value.key.equals(k)) // we found an existing entry
                 return tmpnode.value.value;
             tmpnode = tmpnode.value.next;
         }
@@ -239,12 +239,12 @@ public class StupidHashMap<K, V> implements Map<K, V> {
         final Set<K> ret = new HashSet<>();
         final Node<K, V>[] tab = table; // snapshot of the table.
         final int cap = tab.length;
-        for (int i = 0; i < cap; i++) {
+        for(int i = 0; i < cap; i++) {
             final Node<K, V> b = table[i];
 
             FinalWrapper<Node<K, V>> tmpnode = b.next;
-            while (tmpnode != null) {
-                if (tmpnode.value.key != null)
+            while(tmpnode != null) {
+                if(tmpnode.value.key != null)
                     ret.add(tmpnode.value.key);
                 tmpnode = tmpnode.value.next;
             }
@@ -265,10 +265,10 @@ public class StupidHashMap<K, V> implements Map<K, V> {
     List<ShmEntry<K, V>> offlineCollect() {
         final Node<K, V>[] tab = table;
         final List<ShmEntry<K, V>> ret = new ArrayList<>();
-        for (int i = 0; i < tab.length; i++) {
+        for(int i = 0; i < tab.length; i++) {
             Node<K, V> cur = tab[i].next.value;
-            while (cur != null) {
-                if (cur.key != null)
+            while(cur != null) {
+                if(cur.key != null)
                     ret.add(new ShmEntry<>(cur.key, cur.value));
                 else
                     throw new IllegalStateException("Null Key in offline mode. This shouldn't happen.");
@@ -317,12 +317,13 @@ public class StupidHashMap<K, V> implements Map<K, V> {
     private static final void waitFor(final Node<?, ?> bin) {
         int counter = SPIN_TRIES;
         do {
-            if (bin.mine.compareAndSet(1, 0))
+            if(bin.mine.compareAndSet(1, 0))
                 return;
-            if (counter > 0)
+            if(counter > 0)
                 counter--;
-            else LockSupport.parkNanos(1L);
-        } while (true);
+            else
+                LockSupport.parkNanos(1L);
+        } while(true);
     }
 
     @Override

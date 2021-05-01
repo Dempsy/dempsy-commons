@@ -13,7 +13,7 @@ import org.junit.runners.Parameterized;
 
 import net.dempsy.serialization.MockClass;
 import net.dempsy.serialization.TestSerializerImplementation;
-import net.dempsy.utils.test.SystemPropertyManager;
+import net.dempsy.util.SystemPropertyManager;
 
 @RunWith(Parameterized.class)
 public class TestKryoWithRegistration extends TestSerializerImplementation {
