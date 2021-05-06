@@ -165,7 +165,9 @@ public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession 
         }
 
         try {
-            curZk.get().close();
+            // it's possible it never opened.
+            if(curZk != null && curZk.get() != null)
+                curZk.get().close();
         } catch(final Throwable th) {
             /* let it go otherwise */
             LOGGER.warn("Failed during shut down of ZooKeeper client:", th);
