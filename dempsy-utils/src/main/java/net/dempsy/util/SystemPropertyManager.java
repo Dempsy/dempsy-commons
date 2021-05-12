@@ -32,6 +32,12 @@ public class SystemPropertyManager implements AutoCloseable {
         }
     }
 
+    public SystemPropertyManager remove(final String name) {
+        synchronized(SystemPropertyManager.class) {
+            return internRemove(name);
+        }
+    }
+
     public SystemPropertyManager setIfAbsent(final String name, final String value) {
         synchronized(SystemPropertyManager.class) {
             return System.getProperties().containsKey(name) ? this : internSet(name, value);
@@ -69,6 +75,12 @@ public class SystemPropertyManager implements AutoCloseable {
     private SystemPropertyManager internSet(final String name, final String value) {
         oldProperties.add(new OldProperty(name, System.getProperties().containsKey(name), System.getProperty(name)));
         System.setProperty(name, value);
+        return this;
+    }
+
+    private SystemPropertyManager internRemove(final String name) {
+        oldProperties.add(new OldProperty(name, System.getProperties().containsKey(name), System.getProperty(name)));
+        System.getProperties().remove(name);
         return this;
     }
 }
