@@ -6,13 +6,13 @@
   <parent>
     <groupId>net.dempsy</groupId>
     <artifactId>dempsy-commons</artifactId>
-    <version>2.1.0</version>
+    <version>2.3.3-SNAPSHOT</version>
     <relativePath>../dempsy-commons-parentpom/pom.xml</relativePath>
   </parent>
 
   <artifactId>dempsy-serialization.java</artifactId>
   <name>Dempsy Serialization implementation using native java serialization.</name>
-  <version>2.1.0</version>
+  <version>2.1.1-SNAPSHOT</version>
 
   <dependencies>
     <dependency>
@@ -33,11 +33,6 @@
       <groupId>net.dempsy</groupId>
       <artifactId>dempsy-serialization.api</artifactId>
       <type>test-jar</type>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

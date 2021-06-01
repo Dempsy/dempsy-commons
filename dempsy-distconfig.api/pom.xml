@@ -6,29 +6,24 @@
   <parent>
     <groupId>net.dempsy</groupId>
     <artifactId>dempsy-commons</artifactId>
-    <version>2.1.0</version>
+    <version>2.3.3-SNAPSHOT</version>
     <relativePath>../dempsy-commons-parentpom/pom.xml</relativePath>
   </parent>
 
   <artifactId>dempsy-distconfig.api</artifactId>
-  <version>2.0.1</version>
+  <version>2.0.2-SNAPSHOT</version>
   <name>Dempsy abstraction distributed system configuration management.</name>
 
   <dependencies>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    
     <!-- Test dependencies -->
     <dependency>
       <groupId>net.dempsy</groupId>
       <artifactId>dempsy-test-utils</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

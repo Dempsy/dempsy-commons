@@ -6,23 +6,18 @@
   <parent>
     <groupId>net.dempsy</groupId>
     <artifactId>dempsy-commons</artifactId>
-    <version>2.1.0</version>
+    <version>2.3.3-SNAPSHOT</version>
     <relativePath>../dempsy-commons-parentpom/pom.xml</relativePath>
   </parent>
 
   <artifactId>dempsy-cluster.api</artifactId>
-  <version>2.1.0</version>
+  <version>2.1.1-SNAPSHOT</version>
   <name>Dempsy abstraction for cluster management.</name>
 
   <dependencies>
     <dependency>
       <groupId>net.dempsy</groupId>
       <artifactId>dempsy-test-utils</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

@@ -6,12 +6,12 @@
   <parent>
     <groupId>net.dempsy</groupId>
     <artifactId>dempsy-commons</artifactId>
-    <version>2.3.0</version>
+    <version>2.3.3-SNAPSHOT</version>
     <relativePath>../dempsy-commons-parentpom/pom.xml</relativePath>
   </parent>
 
   <artifactId>dempsy-ringbuffer</artifactId>
-  <version>2.2.1</version>
+  <version>2.2.2-SNAPSHOT</version>
   <name>Dempsy's LMax Disruptor based RingBuffer</name>
 
   <dependencies>
@@ -20,13 +20,6 @@
       <groupId>com.lmax</groupId>
       <artifactId>disruptor</artifactId>
     </dependency>
-
-    <!-- For testing -->
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+   </dependencies>
   
 </project>

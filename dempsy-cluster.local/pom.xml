@@ -6,12 +6,12 @@
   <parent>
     <groupId>net.dempsy</groupId>
     <artifactId>dempsy-commons</artifactId>
-    <version>2.1.2</version>
+    <version>2.3.3-SNAPSHOT</version>
     <relativePath>../dempsy-commons-parentpom/pom.xml</relativePath>
   </parent>
 
   <artifactId>dempsy-cluster.local</artifactId>
-  <version>2.1.1</version>
+  <version>2.1.2-SNAPSHOT</version>
   <name>Dempsy cluster management implementation for local (in proc) cluster</name>
 
   <dependencies>
@@ -38,15 +38,5 @@
     </dependency>
 
     <!-- Testing 3rd party -->
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 </project>

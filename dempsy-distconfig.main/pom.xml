@@ -6,13 +6,13 @@
   <parent>
     <groupId>net.dempsy</groupId>
     <artifactId>dempsy-commons</artifactId>
-    <version>2.3.2</version>
+    <version>2.3.3-SNAPSHOT</version>
     <relativePath>../dempsy-commons-parentpom/pom.xml</relativePath>
   </parent>
 
   <artifactId>dempsy-distconfig.main</artifactId>
   <name>dempsy-distconfig spring configurable main application</name>
-  <version>2.0.4</version>
+  <version>2.0.5-SNAPSHOT</version>
 
   <dependencies>
     <dependency>
@@ -57,11 +57,6 @@
     </dependency>
 
     <!-- Testing  -->
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
     <dependency>
       <groupId>net.dempsy</groupId> <!-- used in testing disconf functionality -->
       <artifactId>dempsy-cluster.zookeeper</artifactId>
