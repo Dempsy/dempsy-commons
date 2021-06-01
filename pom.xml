@@ -26,7 +26,7 @@
     
 <!--    <module>dempsy-ringbuffer</module> -->
 <!--    <module>dempsy-serialization.api</module> -->
-<!--    <module>dempsy-serialization.jackson</module> -->
+    <module>dempsy-serialization.jackson</module>
 <!--    <module>dempsy-serialization.java</module> -->
     <module>dempsy-serialization.kryo</module>
 
