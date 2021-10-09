@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
 /**
@@ -25,6 +26,12 @@ public class SystemPropertyManager implements AutoCloseable {
     }
 
     private final List<OldProperty> oldProperties = new ArrayList<>();
+
+    public SystemPropertyManager optionally(final boolean doIt, final Consumer<SystemPropertyManager> c) {
+        if(doIt)
+            c.accept(this);
+        return this;
+    }
 
     public SystemPropertyManager set(final String name, final String value) {
         synchronized(SystemPropertyManager.class) {
