@@ -27,14 +27,25 @@ import java.util.concurrent.atomic.AtomicLong;
  * a daemon task scheduler.
  */
 public final class AutoDisposeSingleThreadScheduler {
+    /**
+     * The daemon status of the scheduled thread is defaulted to this value.
+     */
+    public final static boolean DEFAULT_DAEMON_STATUS = false;
+
     private final String baseThreadName;
     private long pendingCalls = 0L;
 
     private static final AtomicLong sequence = new AtomicLong(0);
     private ScheduledExecutorService scheduler = null;
+    private final boolean daemon;
 
     public AutoDisposeSingleThreadScheduler(final String baseThreadName) {
+        this(baseThreadName, DEFAULT_DAEMON_STATUS);
+    }
+
+    public AutoDisposeSingleThreadScheduler(final String baseThreadName, final boolean daemon) {
         this.baseThreadName = baseThreadName;
+        this.daemon = daemon;
     }
 
     /**
@@ -108,9 +119,13 @@ public final class AutoDisposeSingleThreadScheduler {
 
     private synchronized final ScheduledExecutorService getScheduledExecutor() {
         if(scheduler == null) {
-            if(baseThreadName != null)
-                scheduler = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, baseThreadName + "-" + sequence.getAndIncrement()));
-            else
+            if(baseThreadName != null || daemon) {
+                scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+                    final Thread thread = new Thread(r, baseThreadName + "-" + sequence.getAndIncrement());
+                    thread.setDaemon(daemon);
+                    return thread;
+                });
+            } else
                 scheduler = Executors.newSingleThreadScheduledExecutor();
 
         }
