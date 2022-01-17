@@ -37,6 +37,9 @@
     <dempsy-distconfig.apachevfs.version>2.0.2-SNAPSHOT</dempsy-distconfig.apachevfs.version>
     <dempsy-distconfig.main.version>2.0.5-SNAPSHOT</dempsy-distconfig.main.version>
     <dempsy-distconfig.classpath.version>2.0.4-SNAPSHOT</dempsy-distconfig.classpath.version>
+    
+    <dempsy-vfs.api.version>2.3.0-SNAPSHOT</dempsy-vfs.api.version>
+    
   </properties>
 
   <!-- This section provides some unifority of dependencies for all dempsy-commons projects -->
@@ -130,6 +133,13 @@
         <groupId>net.dempsy</groupId>
         <artifactId>dempsy-distconfig.clusterinfo</artifactId>
         <version>${dempsy-distconfig.clusterinfo.version}</version>
+      </dependency>
+
+      <!-- Vfs -->
+      <dependency>
+        <groupId>net.dempsy</groupId>
+        <artifactId>dempsy-vfs.api</artifactId>
+        <version>${dempsy-vfs.api.version}</version>
       </dependency>
 
       <!-- General utilities -->

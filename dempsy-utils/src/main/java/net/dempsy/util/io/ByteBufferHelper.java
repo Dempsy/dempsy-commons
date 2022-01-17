@@ -5,8 +5,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import net.dempsy.util.BinaryUtils;
-
 public class ByteBufferHelper {
     /**
      * <p>
@@ -68,6 +66,26 @@ public class ByteBufferHelper {
     }
 
     /**
+     * This is an <em>absolute</em> get from the ByteBuffer. It will fill the
+     * byte array provided.
+     *
+     * @param from
+     *     is the ByteBuffer to retrieve the bytes from
+     * @param index
+     *     is where to retrieve the bytes from
+     * @param buffer
+     *     is the byte array to fill.
+     * @return
+     */
+    public static byte[] getBytes(final ByteBuffer from, final int index, final byte[] buffer, final int offset, final int length) {
+        final int oldPosition = from.position();
+        from.position(index);
+        from.get(buffer, offset, length);
+        from.position(oldPosition);
+        return buffer;
+    }
+
+    /**
      * This is an <em>absolute</em> get from the ByteBuffer.
      *
      * @param from
@@ -99,10 +117,10 @@ public class ByteBufferHelper {
      * @throws IOException
      *     if there's an IOException (duh!)
      */
-    public static long readStream(final DataInputStream dis, final MegaByteBuffer towrite, final long byteCount) throws IOException {
+    public static long readStream(final DataInputStream dis, final MegaByteBufferRelativeMetadata towrite, final long byteCount) throws IOException {
         return readStream(dis,
 
-            (buf, offset, numBytes) -> towrite.put(0, buf, offset, numBytes)
+            (buf, offset, numBytes) -> towrite.put(buf, offset, numBytes)
 
             , byteCount);
     }
@@ -144,9 +162,9 @@ public class ByteBufferHelper {
         int numBytesWritten = 0;
         final int bytesToWrite = towrite.capacity();
         final int bytesToWriteAsLongs = bytesToWrite & (~0x07);
-        for(int i = 0; i < bytesToWriteAsLongs; i += BinaryUtils.SIZEOF_LONG) {
+        for(int i = 0; i < bytesToWriteAsLongs; i += Long.BYTES) {
             dos.writeLong(towrite.getLong(i));
-            numBytesWritten += BinaryUtils.SIZEOF_LONG;
+            numBytesWritten += Long.BYTES;
         }
         for(int i = numBytesWritten; i < bytesToWrite; i++) {
             dos.write(towrite.get(i));
@@ -163,9 +181,9 @@ public class ByteBufferHelper {
         long numBytesWritten = 0;
         final long bytesToWrite = towrite.capacity();
         final long bytesToWriteAsLongs = bytesToWrite & (~0x07L);
-        for(long i = 0; i < bytesToWriteAsLongs; i += BinaryUtils.SIZEOF_LONG) {
+        for(long i = 0; i < bytesToWriteAsLongs; i += Long.BYTES) {
             dos.writeLong(towrite.getLong(i));
-            numBytesWritten += BinaryUtils.SIZEOF_LONG;
+            numBytesWritten += Long.BYTES;
         }
         for(long i = numBytesWritten; i < bytesToWrite; i++) {
             dos.write(towrite.get(i));
@@ -183,7 +201,7 @@ public class ByteBufferHelper {
         final long endByte = bytePosition + (long)byteCount;
         int j = 0;
         int i;
-        for(i = bytePosition; i < (endByte - BinaryUtils.SIZEOF_LONG); i += (long)BinaryUtils.SIZEOF_LONG, j += BinaryUtils.SIZEOF_LONG) {
+        for(i = bytePosition; i < (endByte - Long.BYTES); i += Long.BYTES, j += Long.BYTES) {
             final long val = bb.getLong(j);
             buf.putLong(i, val);
         }
@@ -192,6 +210,10 @@ public class ByteBufferHelper {
         for(; i < endByte; i++, j++)
             buf.put(i, bytes[j]);
     }
+
+    // public static InputStream makeInputStream(final ByteBuffer bb) {
+    //
+    // }
 
     @FunctionalInterface
     private static interface BufferPut {

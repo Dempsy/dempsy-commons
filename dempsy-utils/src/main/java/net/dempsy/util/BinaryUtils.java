@@ -9,42 +9,6 @@ import java.io.IOException;
  */
 public class BinaryUtils {
     /**
-     * This holds the size of the primitive in bytes (rather than bits as the
-     * java.lang version does).
-     */
-    public static final int SIZEOF_LONG = (Long.SIZE >>> 3);
-
-    /**
-     * This holds the size of the primitive in bytes (rather than bits as the
-     * java.lang version does).
-     */
-    public static final int SIZEOF_INT = (Integer.SIZE >>> 3);
-
-    /**
-     * How far do I need to shift left (right) to multiply by (divide by) the
-     * SIZEOF_INT.
-     */
-    public static final int SHIFTER_FOR_SIZEOF_INT_MULTIPLE = 2;
-
-    /**
-     * This holds the size of the primitive in bytes (rather than bits as the
-     * java.lang version does).
-     */
-    public static final int SIZEOF_SHORT = (Short.SIZE >>> 3);
-
-    /**
-     * This holds the size of the primitive in bytes (rather than bits as the
-     * java.lang version does).
-     */
-    public static final int SIZEOF_DOUBLE = (Double.SIZE >>> 3);
-
-    /**
-     * This holds the size of the primitive in bytes (rather than bits as the
-     * java.lang version does).
-     */
-    public static final int SIZEOF_FLOAT = (Float.SIZE >>> 3);
-
-    /**
      * Holds the highest unsigned short value that can be intified.
      */
     public static final int MAX_UNSIGNED_SHORT = intify((short)-1);

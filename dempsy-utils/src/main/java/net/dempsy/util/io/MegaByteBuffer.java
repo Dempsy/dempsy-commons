@@ -8,8 +8,6 @@ import java.nio.channels.FileChannel.MapMode;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
-import net.dempsy.util.BinaryUtils;
-
 /**
  * A normal byte buffer can only hold up to 2 Gig of data since the allocate and
  * allocatDirect methods take an int as the parameter. This class will take a
@@ -139,6 +137,23 @@ public abstract class MegaByteBuffer {
      *     is the ByteBuffer to retrieve the bytes from
      * @param index
      *     is where to retrieve the bytes from
+     * @param buffer
+     *     is the byte array to fill.
+     * @param offset
+     *     is the offset into the destination array to start writing to
+     * @param length
+     *     is the number of bytes to write into the destination array
+     * @return
+     */
+    public abstract byte[] getBytes(final long index, final byte[] buffer, int offset, int length);
+
+    /**
+     * This is an <em>absolute</em> get from the ByteBuffer.
+     *
+     * @param from
+     *     is the ByteBuffer to retrieve the bytes from
+     * @param index
+     *     is where to retrieve the bytes from
      * @param size
      *     is the size of the byte array to create and fill.
      * @return
@@ -199,15 +214,17 @@ public abstract class MegaByteBuffer {
 
     /**
      * This method is the analog for the ByteBuffer method of the same name. See
-     * that javadoc for a detailed description. Notice that the method deals in
-     * 'long' where the ByteBuffer version deals with 'int'.
+     * that javadoc for a detailed description. Not every MegaByteBuffer supports
+     * this method. Only MegaByteBuffer backed by a simple ByteBuffer that also
+     * supports this method.
      */
     public abstract boolean hasArray();
 
     /**
      * This method is the analog for the ByteBuffer method of the same name. See
-     * that javadoc for a detailed description. Notice that the method deals in
-     * 'long' where the ByteBuffer version deals with 'int'.
+     * that javadoc for a detailed description. Not every MegaByteBuffer supports
+     * this method. Only MegaByteBuffer backed by a simple ByteBuffer that also
+     * supports this method. You should check it with hasArray().
      */
     public abstract byte[] array();
 
@@ -354,6 +371,11 @@ public abstract class MegaByteBuffer {
         }
 
         @Override
+        public final byte[] getBytes(final long index, final byte[] buffer, final int offset, final int length) {
+            return ByteBufferHelper.getBytes(underlying, (int)index, buffer, offset, length);
+        }
+
+        @Override
         public Stream<ByteBuffer> streamOfByteBuffers() {
             return Stream.of(underlying);
         }
@@ -375,6 +397,12 @@ public abstract class MegaByteBuffer {
             MegaByteBuffer.Impl.shifting = shift;
             MegaByteBuffer.Impl.mask = mask;
             MegaByteBuffer.Impl.maxIndividualBufSize = maxBufferSize;
+        }
+
+        public static void resetBufferSizeConstantsToDefaults() {
+            shifting = 30;
+            mask = 0x000000003fffffffL;
+            maxIndividualBufSize = (Integer.MAX_VALUE >> 1) + 1;
         }
 
         final ByteBuffer[] byteBuffers;
@@ -432,7 +460,7 @@ public abstract class MegaByteBuffer {
             // if the position is within BinaryUtils.SIZEOF_INT from the end
             // then we need to do extra work.
             final int subIndex = (int)(bytePosition & mask);
-            return (maxIndividualBufSize - subIndex < BinaryUtils.SIZEOF_INT) ? smartGetInt(bytePosition)
+            return (maxIndividualBufSize - subIndex < Integer.BYTES) ? smartGetInt(bytePosition)
                 : byteBuffers[(int)(bytePosition >> shifting)].getInt(subIndex);
         }
 
@@ -441,7 +469,7 @@ public abstract class MegaByteBuffer {
             // if the position is within BinaryUtils.SIZEOF_FLOAT from the end then
             // we need to do extra work.
             final int subIndex = (int)(bytePosition & mask);
-            return (maxIndividualBufSize - subIndex < BinaryUtils.SIZEOF_FLOAT) ? smartGetFloat(bytePosition)
+            return (maxIndividualBufSize - subIndex < Float.BYTES) ? smartGetFloat(bytePosition)
                 : byteBuffers[(int)(bytePosition >> shifting)].getFloat(subIndex);
         }
 
@@ -450,21 +478,21 @@ public abstract class MegaByteBuffer {
             // if the position is within BinaryUtils.SIZEOF_FLOAT from the end then
             // we need to do extra work.
             final int subIndex = (int)(bytePosition & mask);
-            return (maxIndividualBufSize - subIndex < BinaryUtils.SIZEOF_DOUBLE) ? smartGetDouble(bytePosition)
+            return (maxIndividualBufSize - subIndex < Double.BYTES) ? smartGetDouble(bytePosition)
                 : byteBuffers[(int)(bytePosition >> shifting)].getDouble(subIndex);
         }
 
         @Override
         public final short getShort(final long bytePosition) {
             final int subIndex = (int)(bytePosition & mask);
-            return (maxIndividualBufSize - subIndex < BinaryUtils.SIZEOF_SHORT) ? smartGetShort(bytePosition)
+            return (maxIndividualBufSize - subIndex < Short.BYTES) ? smartGetShort(bytePosition)
                 : byteBuffers[(int)(bytePosition >> shifting)].getShort(subIndex);
         }
 
         @Override
         public final long getLong(final long bytePosition) {
             final int subIndex = (int)(bytePosition & mask);
-            return (maxIndividualBufSize - subIndex < BinaryUtils.SIZEOF_LONG) ? smartGetLong(bytePosition)
+            return (maxIndividualBufSize - subIndex < Long.BYTES) ? smartGetLong(bytePosition)
                 : byteBuffers[(int)(bytePosition >> shifting)].getLong((int)(bytePosition & mask));
         }
 
@@ -489,7 +517,7 @@ public abstract class MegaByteBuffer {
             final long endByte = bytePosition + byteCount;
             int j = 0;
             long i;
-            for(i = bytePosition; i < (endByte - BinaryUtils.SIZEOF_LONG); i += BinaryUtils.SIZEOF_LONG, j += BinaryUtils.SIZEOF_LONG) {
+            for(i = bytePosition; i < (endByte - Long.BYTES); i += Long.BYTES, j += Long.BYTES) {
                 final long val = bb.getLong(j);
                 putLong(i, val);
             }
@@ -502,7 +530,7 @@ public abstract class MegaByteBuffer {
         @Override
         public final void putInt(final long bytePosition, final int toPut) {
             final int subIndex = (int)(bytePosition & mask);
-            if(maxIndividualBufSize - subIndex < BinaryUtils.SIZEOF_INT)
+            if(maxIndividualBufSize - subIndex < Integer.BYTES)
                 smartPutInt(bytePosition, toPut);
             else
                 byteBuffers[(int)(bytePosition >> shifting)].putInt(subIndex, toPut);
@@ -511,7 +539,7 @@ public abstract class MegaByteBuffer {
         @Override
         public final void putShort(final long bytePosition, final short toPut) {
             final int subIndex = (int)(bytePosition & mask);
-            if(maxIndividualBufSize - subIndex < BinaryUtils.SIZEOF_SHORT)
+            if(maxIndividualBufSize - subIndex < Short.BYTES)
                 smartPutShort(bytePosition, toPut);
             else
                 byteBuffers[(int)(bytePosition >> shifting)].putShort(subIndex, toPut);
@@ -520,7 +548,7 @@ public abstract class MegaByteBuffer {
         @Override
         public final void putFloat(final long bytePosition, final float toPut) {
             final int subIndex = (int)(bytePosition & mask);
-            if(maxIndividualBufSize - subIndex < BinaryUtils.SIZEOF_FLOAT)
+            if(maxIndividualBufSize - subIndex < Float.BYTES)
                 smartPutFloat(bytePosition, toPut);
             else
                 byteBuffers[(int)(bytePosition >> shifting)].putFloat(subIndex, toPut);
@@ -529,7 +557,7 @@ public abstract class MegaByteBuffer {
         @Override
         public final void putDouble(final long bytePosition, final double toPut) {
             final int subIndex = (int)(bytePosition & mask);
-            if(maxIndividualBufSize - subIndex < BinaryUtils.SIZEOF_FLOAT)
+            if(maxIndividualBufSize - subIndex < Double.BYTES)
                 smartPutDouble(bytePosition, toPut);
             else
                 byteBuffers[(int)(bytePosition >> shifting)].putDouble(subIndex, toPut);
@@ -538,7 +566,7 @@ public abstract class MegaByteBuffer {
         @Override
         public final void putLong(final long bytePosition, final long toPut) {
             final int subIndex = (int)(bytePosition & mask);
-            if(maxIndividualBufSize - subIndex < BinaryUtils.SIZEOF_LONG)
+            if(maxIndividualBufSize - subIndex < Long.BYTES)
                 smartPutLong(bytePosition, toPut);
             else
                 byteBuffers[(int)(bytePosition >> shifting)].putLong(subIndex, toPut);
@@ -560,6 +588,13 @@ public abstract class MegaByteBuffer {
         public final byte[] getBytes(final long bytePosition, final byte[] buffer) {
             final int subIndex = (int)(bytePosition & mask);
             return (maxIndividualBufSize - subIndex < buffer.length) ? getFilledHolder(bytePosition, buffer.length, buffer)
+                : ByteBufferHelper.getBytes(byteBuffers[(int)(bytePosition >> shifting)], subIndex, buffer);
+        }
+
+        @Override
+        public final byte[] getBytes(final long bytePosition, final byte[] buffer, final int offset, final int length) {
+            final int subIndex = (int)(bytePosition & mask);
+            return (maxIndividualBufSize - subIndex < length) ? getFilledHolder(bytePosition, length, buffer, offset)
                 : ByteBufferHelper.getBytes(byteBuffers[(int)(bytePosition >> shifting)], subIndex, buffer);
         }
 
@@ -586,8 +621,26 @@ public abstract class MegaByteBuffer {
             return holder;
         }
 
+        private final byte[] getFilledHolder(final long bytePosition, final int numBytes, final byte[] pholder, final int offset) {
+            final byte[] holder = pholder == null ? new byte[numBytes + offset] : pholder;
+            final int curBuf = (int)(bytePosition >> shifting);
+            ByteBuffer buf = byteBuffers[curBuf];
+            final int subIndex = (int)(bytePosition & mask);
+            int oldPosition = buf.position();
+            buf.position(subIndex);
+            final int numBytesCurBuf = maxIndividualBufSize - subIndex;
+            buf.get(holder, offset, numBytesCurBuf);
+            buf.position(oldPosition);
+            buf = byteBuffers[curBuf + 1];
+            oldPosition = buf.position();
+            buf.position(0);
+            buf.get(holder, numBytesCurBuf + offset, numBytes - numBytesCurBuf);
+            buf.position(oldPosition);
+            return holder;
+        }
+
         private final long smartGetLong(final long bytePosition) {
-            final byte[] holder = getFilledHolder(bytePosition, BinaryUtils.SIZEOF_LONG, null);
+            final byte[] holder = getFilledHolder(bytePosition, Long.BYTES, null);
             long ret = ((holder[0]) & 0xffL) << 56;
             ret |= ((holder[1]) & 0xffL) << 48;
             ret |= ((holder[2]) & 0xffL) << 40;
@@ -600,7 +653,7 @@ public abstract class MegaByteBuffer {
         }
 
         private final int smartGetInt(final long bytePosition) {
-            final byte[] holder = getFilledHolder(bytePosition, BinaryUtils.SIZEOF_INT, null);
+            final byte[] holder = getFilledHolder(bytePosition, Integer.BYTES, null);
             int ret = (holder[0] & 0xff) << 24;
             ret |= (holder[1] & 0xff) << 16;
             ret |= (holder[2] & 0xff) << 8;
@@ -617,14 +670,14 @@ public abstract class MegaByteBuffer {
         }
 
         private final short smartGetShort(final long bytePosition) {
-            final byte[] holder = getFilledHolder(bytePosition, BinaryUtils.SIZEOF_SHORT, null);
+            final byte[] holder = getFilledHolder(bytePosition, Short.BYTES, null);
             short ret = (short)((holder[0] & 0xff) << 8);
             ret |= (holder[1] & 0xff);
             return ret;
         }
 
         private final void smartPutLong(final long bytePosition, final long toPut) {
-            final byte[] holder = new byte[BinaryUtils.SIZEOF_LONG];
+            final byte[] holder = new byte[Long.BYTES];
             holder[7] = (byte)(toPut & 0xff);
             holder[6] = (byte)((toPut >>> 8) & 0xff);
             holder[5] = (byte)((toPut >>> 16) & 0xff);
@@ -633,25 +686,25 @@ public abstract class MegaByteBuffer {
             holder[2] = (byte)((toPut >>> 40) & 0xff);
             holder[1] = (byte)((toPut >>> 48) & 0xff);
             holder[0] = (byte)((toPut >>> 56) & 0xff);
-            for(long cur = 0; cur < BinaryUtils.SIZEOF_LONG; cur++)
+            for(long cur = 0; cur < Long.BYTES; cur++)
                 put(cur + bytePosition, holder[(int)cur]);
         }
 
         private final void smartPutInt(final long bytePosition, final int toPut) {
-            final byte[] holder = new byte[BinaryUtils.SIZEOF_INT];
+            final byte[] holder = new byte[Integer.BYTES];
             holder[3] = (byte)(toPut & 0xff);
             holder[2] = (byte)((toPut >>> 8) & 0xff);
             holder[1] = (byte)((toPut >>> 16) & 0xff);
             holder[0] = (byte)((toPut >>> 24) & 0xff);
-            for(long cur = 0; cur < BinaryUtils.SIZEOF_INT; cur++)
+            for(long cur = 0; cur < Integer.BYTES; cur++)
                 put(cur + bytePosition, holder[(int)cur]);
         }
 
         private final void smartPutShort(final long bytePosition, final short toPut) {
-            final byte[] holder = new byte[BinaryUtils.SIZEOF_SHORT];
+            final byte[] holder = new byte[Short.BYTES];
             holder[1] = (byte)(toPut & 0xff);
             holder[0] = (byte)((toPut >>> 8) & 0xff);
-            for(long cur = 0; cur < BinaryUtils.SIZEOF_SHORT; cur++)
+            for(long cur = 0; cur < Short.BYTES; cur++)
                 put(cur + bytePosition, holder[(int)cur]);
         }
 

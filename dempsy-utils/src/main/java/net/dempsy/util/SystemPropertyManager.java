@@ -11,7 +11,7 @@ import java.util.stream.IntStream;
 /**
  * This class allows the setting and then unsetting of System properties within the scope of a test.
  */
-public class SystemPropertyManager implements AutoCloseable {
+public class SystemPropertyManager implements QuietCloseable {
 
     private static class OldProperty {
         public final boolean hasOldValue;

@@ -40,6 +40,8 @@
     <module>dempsy-distconfig.apachevfs</module>
     <module>dempsy-distconfig.main</module>
 
+    <module>dempsy-vfs.api</module>
+    
     <module>dempsy-test-utils</module>
     <module>dempsy-utils</module>
   </modules>
