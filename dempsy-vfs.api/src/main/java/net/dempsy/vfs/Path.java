@@ -5,26 +5,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 
 public abstract class Path {
-    private static final String SLASH = "/";
-
     protected Vfs vfs = null;
 
     void setVfs(final Vfs vfs) {
         this.vfs = vfs;
-    }
-
-    public static URI resolve(final URI base, final String child) {
-        final String path = base.getPath();
-        final String childStripped = child.startsWith(SLASH) ? child.substring(1) : child;
-        final String newpath = path.endsWith(SLASH) ? (path + childStripped) : (path + SLASH + childStripped);
-        try {
-            return new URI(base.getScheme(), base.getAuthority(), newpath, base.getQuery(), base.getFragment());
-        } catch(final URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public abstract URI uri();

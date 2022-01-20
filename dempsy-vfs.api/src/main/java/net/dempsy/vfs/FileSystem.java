@@ -33,6 +33,10 @@ public abstract class FileSystem implements AutoCloseable {
 
     protected abstract Path doCreatePath(URI uri) throws IOException;
 
+    protected Vfs getVfs() {
+        return vfs;
+    }
+
     public File toFile(final URI uri) throws UnsupportedOperationException {
         return Paths.get(uri).toFile();
     }

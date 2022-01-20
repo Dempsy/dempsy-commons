@@ -10,8 +10,6 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import net.dempsy.util.UriUtils;
-
 public class TestUriUtils {
 
     private static URI u(final String uri) {

@@ -6,7 +6,6 @@ import static net.dempsy.util.Functional.uncheck;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -63,19 +62,6 @@ public class Vfs implements AutoCloseable {
         recheck(() -> fileSystems.values().forEach(fs -> uncheck(() -> fs.close())), IOException.class);
     }
 
-    /**
-     * If the uri has no scheme, it assumes it's a file.
-     */
-    public static URI sanitize(final String uri) throws URISyntaxException {
-        final URI potentialReturn = new URI(uri);
-
-        if(potentialReturn.getScheme() == null) { // here, we assume it's a file.
-            return new File(uri).toURI();
-        }
-
-        return potentialReturn;
-    }
-
     public static class SpringHackDummyFs extends FileSystem {
 
         @Override
@@ -108,12 +94,15 @@ public class Vfs implements AutoCloseable {
 
     private void registerStandardFileSystems() throws IOException {
         final Set<String> knownSchemes = fileSystems.keySet();
+        register("tar", new TarFileSystem());
+
         try(ApacheVfsFileSystem afs = new ApacheVfsFileSystem()) {
             for(final String scheme: afs.supportedSchemes())
                 if(!knownSchemes.contains(scheme) && !"hdfs".equals(scheme))
                     register(scheme, afs);
         }
         register("classpath", new ClasspathFileSystem());
+
     }
 
     private static String valueOfClass(final Object o) {
