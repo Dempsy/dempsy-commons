@@ -1,32 +1,24 @@
 package net.dempsy.vfs;
 
-import static net.dempsy.util.Functional.uncheck;
-
+import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.net.URI;
+import java.io.InputStream;
 
-import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 
-import net.dempsy.util.UriUtils;
-
-public class TarFileSystem extends ArchiveFileSystem {
+public class TarFileSystem extends EncArchiveFileSystem {
 
     private final static String[] SCHEMES = {"tar"};
-
     private final static String ENC = "!";
 
-    @Override
-    public ArchiveInputStream createArchiveInputStream(final URI uriToTarFile) throws IOException {
-        final URI iUri = innerUri(uriToTarFile);
-        return new TarArchiveInputStream(getVfs().toPath(iUri).read());
+    public TarFileSystem() {
+        super(SCHEMES[0], ENC);
     }
 
     @Override
-    protected URI makeUriForArchiveEntry(final URI uri, final ArchiveEntry ae) throws IOException {
-        final URI innerUri = innerUri(uri);
-        return uncheck(() -> new URI("tar:" + UriUtils.resolve(innerUri, normalisePath(ae.getName()), ENC)));
+    public ArchiveInputStream createArchiveInputStream(final InputStream inner) throws IOException {
+        return new TarArchiveInputStream(new BufferedInputStream(inner));
     }
 
     @Override
@@ -36,19 +28,5 @@ public class TarFileSystem extends ArchiveFileSystem {
 
     @Override
     public void close() throws IOException {}
-
-    @Override
-    protected ArchiveUriData split(final URI uri) throws IOException {
-        final URI iUri = innerUri(uri);
-        final String iUriPath = iUri.getPath();
-        if(iUriPath.contains(ENC)) {
-            final int index = iUri.toString().indexOf(ENC);
-
-            return new ArchiveUriData(
-                uncheck(() -> new URI(uri.getScheme() + ":" + iUri.toString().substring(0, index))),
-                iUri.toString().substring(index + ENC.length()));
-        } else
-            return new ArchiveUriData(uri, "/");
-    }
 
 }

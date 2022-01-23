@@ -219,6 +219,15 @@ public class ApacheVfsFileSystem extends FileSystem {
             fileObject.createFolder();
         }
 
+        @Override
+        public long lastModifiedTime() throws IOException {
+            try {
+                return fileObject.getContent().getLastModifiedTime();
+            } catch(final FileSystemException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
     }
 
     private DefaultFileSystemManager getApacheVfs2FileSystem() {

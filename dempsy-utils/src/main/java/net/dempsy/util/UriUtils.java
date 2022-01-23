@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class UriUtils {
 
@@ -65,6 +66,68 @@ public class UriUtils {
         return uncheck(() -> URLEncoder.encode(val, StandardCharsets.UTF_8.name()));
     }
 
+    /**
+     * Returns the name of the file or directory denoted by this URI.
+     * This is just the last name in the pathname's name
+     * sequence. If the pathname's name sequence is empty, then the empty
+     * string is returned.
+     *
+     * @return The name of the file or directory denoted by this abstract
+     * pathname, or the empty string if this pathname's name sequence
+     * is empty
+     */
+    public static String getName(final URI uri) {
+        return getName(uri.getPath());
+    }
+
+    /**
+     * Returns the name of the file or directory denoted by this URI.
+     * This is just the last name in the pathname's name
+     * sequence. If the pathname's name sequence is empty, then the empty
+     * string is returned.
+     *
+     * @return The name of the file or directory denoted by this abstract
+     * pathname, or the empty string if this pathname's name sequence
+     * is empty
+     */
+    public static String getName(final String pathPartOnly) {
+        final int prefixLength = pathPartOnly.startsWith("/") ? 1 : 0;
+        final int index = pathPartOnly.lastIndexOf(SEP_CHAR);
+        if(index < prefixLength) return pathPartOnly.substring(prefixLength);
+        return pathPartOnly.substring(index + 1);
+    }
+
+    private static String removeTrailingSlash(final String str) {
+        return str.endsWith("/") ? str.substring(0, str.length() - 1) : str;
+    }
+
+    /**
+     * Returns the pathname string of this path's parent, or
+     * <code>null</code> if this pathname does not name a parent directory.
+     *
+     * <p>
+     * The <em>parent</em> of a path consists of the
+     * pathname's prefix, if any, and each name in the pathname's name
+     * sequence except for the last. If the name sequence is empty then
+     * the pathname does not name a parent directory.
+     *
+     * @return The pathname string of the parent directory named by this
+     * abstract pathname, or <code>null</code> if this pathname
+     * does not name a parent
+     */
+    public static String getParent(final String pathPartOnly) {
+        // is this a URI?
+        final String normalizedPathPartOnly = removeTrailingSlash(pathPartOnly);
+        final int prefixLength = normalizedPathPartOnly.startsWith("/") ? 1 : 0;
+        final int index = normalizedPathPartOnly.lastIndexOf(SEP_CHAR);
+        if(index < prefixLength) {
+            if((prefixLength > 0) && (normalizedPathPartOnly.length() > prefixLength))
+                return normalizedPathPartOnly.substring(0, prefixLength);
+            return null;
+        }
+        return normalizedPathPartOnly.substring(0, index);
+    }
+
     public static URI resolve(final URI base, final String child) {
         final String path = base.getPath();
         final String childStripped = child.startsWith(SEP) ? child.substring(1) : child;
@@ -76,29 +139,7 @@ public class UriUtils {
         }
     }
 
-    public static URI resolve(final URI base, final String child, final String enc) {
-        final String path = base.getPath();
-        final String childStripped = child.startsWith(SEP) ? child.substring(1) : child;
-        final String parentPath = path.endsWith(SEP) ? path.substring(0, path.length() - 1) : path;
-        final String newpath = parentPath + enc + childStripped;
-        try {
-            return new URI(base.getScheme(), base.getAuthority(), newpath, base.getQuery(), base.getFragment());
-        } catch(final URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static String getParent(final String pathPartOnly) {
-        // is this a URI?
-        final int prefixLength = pathPartOnly.startsWith("/") ? 1 : 0;
-        final int index = pathPartOnly.lastIndexOf(SEP_CHAR);
-        if(index < prefixLength) {
-            if((prefixLength > 0) && (pathPartOnly.length() > prefixLength))
-                return pathPartOnly.substring(0, prefixLength);
-            return null;
-        }
-        return pathPartOnly.substring(0, index);
-    }
+    private static Set<String> allRoots = Set.of(".", "./", "/", "");
 
     /**
      * If the return value of {@link UriUtils#getParent(String)} is passed to this, it
@@ -106,7 +147,9 @@ public class UriUtils {
      * In this case it will be true if the path is '/' or null.
      */
     public static boolean isRoot(final String path) {
-        return(path == null || SEP.equals(path));
+        if(path == null)
+            return true;
+        return allRoots.contains(path);
     }
 
     public static URI getParent(final URI uri) {

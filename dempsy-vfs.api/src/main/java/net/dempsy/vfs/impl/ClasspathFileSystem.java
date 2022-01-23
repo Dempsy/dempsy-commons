@@ -107,6 +107,8 @@ public class ClasspathFileSystem extends FileSystem {
         final private String path;
         final boolean isGzipped;
 
+        private Resource resource = null;
+
         private ClasspathPath(final URI uriuri) {
             this.uriuri = uriuri;
             path = getPath(uriuri);
@@ -147,7 +149,7 @@ public class ClasspathFileSystem extends FileSystem {
             if(!exists())
                 throw new FileNotFoundException("Directory \"" + this.uri() + "\" doesn't seem to exist.");
 
-            final Resource thsResource = new PathMatchingResourcePatternResolver().getResource(path);
+            final Resource thsResource = getResource();
             final String mappedPath = getPathPotentialJarPath(uncheck(() -> thsResource.getURI()));
 
             String lpath = path;
@@ -194,6 +196,17 @@ public class ClasspathFileSystem extends FileSystem {
         @Override
         public URI uri() {
             return uriuri;
+        }
+
+        @Override
+        public long lastModifiedTime() throws IOException {
+            return getResource().lastModified();
+        }
+
+        private Resource getResource() {
+            if(resource == null)
+                resource = new PathMatchingResourcePatternResolver().getResource(path);
+            return resource;
         }
     }
 

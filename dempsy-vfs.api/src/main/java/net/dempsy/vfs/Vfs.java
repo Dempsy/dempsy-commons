@@ -22,14 +22,21 @@ public class Vfs implements AutoCloseable {
     private final ConcurrentHashMap<String, FileSystem> fileSystems = new ConcurrentHashMap<>();
 
     public Vfs(final FileSystem... fileSystems) throws IOException {
-        registerStandardFileSystems();
-
         if(fileSystems != null && fileSystems.length > 0)
             recheck(() -> Arrays.stream(fileSystems).forEach(s -> uncheck(() -> register(s))), IOException.class);
+
+        registerStandardFileSystems();
     }
 
     public String[] supportedSchemes() {
         return fileSystems.keySet().stream().toArray(String[]::new);
+    }
+
+    public FileSystem fileSystemFromScheme(final String scheme) {
+        if(scheme == null)
+            throw new NullPointerException("Null scheme used to look up a FileSystem");
+
+        return fileSystems.get(scheme);
     }
 
     public FileSystem fileSystem(final URI uri) {
@@ -84,8 +91,9 @@ public class Vfs implements AutoCloseable {
 
     private void register(final String scheme, final FileSystem fs) {
         if(fileSystems.containsKey(scheme))
-            LOGGER.warn("File system for " + scheme + " of type " + valueOfClass(fileSystems.get(scheme))
-                + " is being ignored because a previously registered filesystem of type " + valueOfClass(fs) + " is already handling it.");
+            LOGGER.warn(
+                "File system for scheme \"{}\" of type {} is being ignored because a previously registered filesystem of type {} is already handling it.",
+                scheme, valueOfClass(fs), valueOfClass(fileSystems.get(scheme)));
         else {
             fileSystems.put(scheme, fs);
             fs.setVfs(this);
@@ -94,15 +102,14 @@ public class Vfs implements AutoCloseable {
 
     private void registerStandardFileSystems() throws IOException {
         final Set<String> knownSchemes = fileSystems.keySet();
-        register("tar", new TarFileSystem());
+        // register("tar", new TarFileSystem());
+        register("classpath", new ClasspathFileSystem());
 
         try(ApacheVfsFileSystem afs = new ApacheVfsFileSystem()) {
             for(final String scheme: afs.supportedSchemes())
                 if(!knownSchemes.contains(scheme) && !"hdfs".equals(scheme))
                     register(scheme, afs);
         }
-        register("classpath", new ClasspathFileSystem());
-
     }
 
     private static String valueOfClass(final Object o) {

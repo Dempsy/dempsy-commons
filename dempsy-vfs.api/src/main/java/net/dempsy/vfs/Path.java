@@ -23,6 +23,19 @@ public abstract class Path {
 
     public abstract void delete() throws IOException;
 
+    public abstract long lastModifiedTime() throws IOException;
+
+    /**
+     * This should return {@code null} if the {@link Path} isn't a directory/folder.
+     * An empty folder will be an array with no elements. A {@link FileNotFoundException}
+     * will be thrown if the path doesn't exist at all.
+     */
+    public abstract Path[] list() throws IOException;
+
+    public boolean isDirectory() throws IOException {
+        return list() != null;
+    }
+
     public boolean handlesUngzipping() {
         return false;
     }
@@ -38,14 +51,4 @@ public abstract class Path {
         throw new UnsupportedOperationException("'mkdir' isn't supported for file system implementation " + this.getClass().getSimpleName());
     }
 
-    /**
-     * This should return {@code null} if the {@link Path} isn't a directory/folder.
-     * An empty folder will be an array with no elements. A {@link FileNotFoundException}
-     * will be thrown if the path doesn't exist at all.
-     */
-    public abstract Path[] list() throws IOException;
-
-    public boolean isDirectory() throws IOException {
-        return list() != null;
-    }
 }
