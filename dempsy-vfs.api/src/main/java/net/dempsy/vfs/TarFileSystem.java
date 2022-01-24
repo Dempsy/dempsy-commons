@@ -3,22 +3,33 @@ package net.dempsy.vfs;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
+import org.apache.commons.compress.compressors.xz.XZCompressorInputStream;
 
 public class TarFileSystem extends EncArchiveFileSystem {
 
-    private final static String[] SCHEMES = {"tar"};
-    private final static String ENC = "!";
+    public final static String[] SCHEMES = {"tar","tgz","tbz2","txz"};
+    public final static String ENC = "!";
 
     public TarFileSystem() {
-        super(SCHEMES[0], ENC);
+        super(ENC);
     }
 
+    @SuppressWarnings("resource")
     @Override
-    public ArchiveInputStream createArchiveInputStream(final InputStream inner) throws IOException {
-        return new TarArchiveInputStream(new BufferedInputStream(inner));
+    public ArchiveInputStream createArchiveInputStream(final String scheme, final InputStream inner) throws IOException {
+        InputStream ret = new BufferedInputStream(inner);
+        if("tgz".equals(scheme))
+            ret = new GZIPInputStream(ret);
+        else if("tbz2".equals(scheme))
+            ret = new BZip2CompressorInputStream(ret);
+        else if("txz".equals(scheme))
+            ret = new XZCompressorInputStream(ret);
+        return new TarArchiveInputStream(ret);
     }
 
     @Override
@@ -28,5 +39,4 @@ public class TarFileSystem extends EncArchiveFileSystem {
 
     @Override
     public void close() throws IOException {}
-
 }

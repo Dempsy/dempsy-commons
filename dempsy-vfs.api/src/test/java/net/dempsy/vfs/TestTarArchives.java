@@ -16,15 +16,15 @@ import org.apache.commons.io.IOUtils;
 import org.apache.tika.Tika;
 import org.junit.Test;
 
-public class TestTarArchives {
+public class TestTarArchives extends BaseTest {
 
     @Test
     public void testTarEntryDirectToFile() throws Exception {
-        try(final Vfs vfs = new Vfs(new TarFileSystem());) {
+        try(final Vfs vfs = getVfs();) {
             final Path p = vfs.toPath(new URI("tar:file://" + vfs.toFile(new URI("classpath:///tar.tar")).getAbsolutePath() + "!./log4j.properties"));
             assertFalse(p.isDirectory());
             try(var is = p.read();) {
-                System.out.println(IOUtils.toString(is, Charset.defaultCharset()));
+                assertNotNull(IOUtils.toString(is, Charset.defaultCharset()));
             }
         }
     }
@@ -37,15 +37,13 @@ public class TestTarArchives {
 
     private void testTarEntryDirectToDirectory(final String pathToDir) throws Exception {
 
-        try(final Vfs vfs = new Vfs(new TarFileSystem());) {
+        try(final Vfs vfs = getVfs();) {
             final Path p = vfs.toPath(new URI("tar:file://" + vfs.toFile(new URI("classpath:///tar.tar")).getAbsolutePath() + "!" + pathToDir));
             assertTrue(p.isDirectory());
             final Path[] subs = p.list();
             assertEquals(11, subs.length);
             Arrays.stream(subs)
                 .forEach(u -> {
-                    System.out.println("" + uncheck(() -> u.isDirectory()) + ":" + u.uri());
-
                     try {
                         assertTrue(!u.isDirectory());
                         try(var is = u.read();) {
@@ -61,17 +59,15 @@ public class TestTarArchives {
     @Test
     public void testTar() throws Exception {
 
-        try(final Vfs vfs = new Vfs(new TarFileSystem());) {
+        try(final Vfs vfs = getVfs();) {
             final Path p = vfs.toPath(new URI("tar://" + vfs.toFile(new URI("classpath:///tar.tar")).getAbsolutePath()));
             assertTrue(p.isDirectory());
             Arrays.stream(p.list())
                 .forEach(u -> {
-                    System.out.println("" + uncheck(() -> u.isDirectory()) + ":" + u.uri());
-
                     try {
                         if(!u.isDirectory()) {
                             try(var is = u.read();) {
-                                System.out.println(IOUtils.toString(is, Charset.defaultCharset()));
+                                assertNotNull(IOUtils.toString(is, Charset.defaultCharset()));
                             }
                         }
                     } catch(final IOException ioe) {
@@ -82,8 +78,35 @@ public class TestTarArchives {
     }
 
     @Test
+    public void testTarInTarInTar() throws Exception {
+        try(final Vfs vfs = getVfs();) {
+            final String tarFile = vfs.toFile(new URI("classpath:///trippleTarInTar.tar")).getAbsolutePath();
+            Path p = vfs.toPath(new URI("tar:file://" + tarFile));
+            assertTrue(p.isDirectory());
+            assertEquals(1, p.list().length);
+
+            p = vfs.toPath(new URI("tar:tar:file://" + tarFile + "!./tar.tar"));
+            assertTrue(p.isDirectory());
+            assertEquals(1, p.list().length);
+            p = vfs.toPath(new URI("tar:tar:tar:file://" + tarFile + "!./tar.tar!./tar.tar"));
+            assertTrue(p.isDirectory());
+            assertEquals(2, p.list().length);
+
+            p = vfs.toPath(new URI("tar:tar:tar:file://" + tarFile + "!./tar.tar!./tar.tar!./classpathReading"));
+            assertTrue(p.isDirectory());
+            assertEquals(11, p.list().length);
+
+            p = vfs.toPath(new URI("tar:tar:tar:file://" + tarFile + "!./tar.tar!./tar.tar!./classpathReading/test2.txt"));
+            assertFalse(p.isDirectory());
+            try(InputStream is = p.read();) {
+                assertEquals("Hello World", IOUtils.toString(is, Charset.defaultCharset()));
+            }
+        }
+    }
+
+    @Test
     public void testTarInTar() throws Exception {
-        try(final Vfs vfs = new Vfs(new TarFileSystem());) {
+        try(final Vfs vfs = getVfs();) {
             testTarInTar(vfs, vfs.toFile(new URI("classpath:///simpleTarInTar.tar")).getAbsolutePath(), "./", 0);
             testTarInTar(vfs, vfs.toFile(new URI("classpath:///simpleTarInTar2.tar")).getAbsolutePath(), "", 0);
             testTarInTar(vfs, vfs.toFile(new URI("classpath:///simpleTarInTar3.tar")).getAbsolutePath(), "/tmp/junk/", 2);
@@ -92,7 +115,7 @@ public class TestTarArchives {
     }
 
     private void testTarInTar(final Vfs vfs, final String tarFile, final String pathInTar, final int depth) throws Exception {
-        final Path p = vfs.toPath(new URI("tar:file://" + tarFile));
+        Path p = vfs.toPath(new URI("tar:file://" + tarFile));
         assertTrue(p.isDirectory());
         Path[] subs = p.list();
         if(depth != 0) {
@@ -106,9 +129,7 @@ public class TestTarArchives {
         assertFalse(innerTarAsFile.isDirectory());
         // we know it's a tar file inside a tar file so let's construct the appropriate uri
         final URI innerTarUriX = new URI("tar:" + innerTarAsFile.uri().toString());
-        System.out.println(innerTarUriX);
         final URI innerTarUri = new URI("tar:tar:file://" + tarFile + "!" + pathInTar + "tar.tar");
-        System.out.println(innerTarUri);
         // the first entry should be the tar.tar file and NOT the tar.tar.gz file
         assertEquals(innerTarUri, innerTarUriX);
         final Path innerTar = vfs.toPath(innerTarUri);
@@ -124,23 +145,69 @@ public class TestTarArchives {
 
         Arrays.stream(subs)
             .forEach(u -> {
-                System.out.println("" + uncheck(() -> u.isDirectory()) + ":" + u.uri());
-
                 try {
                     if(!u.isDirectory()) {
                         try(var is = u.read();) {
-                            System.out.println(IOUtils.toString(is, Charset.defaultCharset()));
+                            assertNotNull(IOUtils.toString(is, Charset.defaultCharset()));
                         }
                     }
                 } catch(final IOException ioe) {
                     throw new RuntimeException(ioe);
                 }
             });
+
+        final String innerGzTarAsFile = "gz:tar:file://" + tarFile + "!" + pathInTar + "tar.tar.gz";
+        p = vfs.toPath(new URI(innerGzTarAsFile));
+        assertTrue(p.exists());
+        assertFalse(p.isDirectory());
+
+        p = vfs.toPath(new URI("tar:" + innerGzTarAsFile));
+        assertTrue(p.exists());
+        assertTrue(p.isDirectory());
+        subs = p.list();
+        if(depth != 0) {
+            assertNotNull(subs);
+            assertEquals(1, subs.length);
+            for(int i = 0; i < depth; i++)
+                subs = subs[0].list();
+        }
+        assertEquals(2, subs.length);
+
+        // The test files are slightly inconsistent. In 3 the log4j.properties file comes before the classpathReading directory
+        final int indexOfDir = subs[0].isDirectory() ? 0 : 1;
+        Path indirect = subs[indexOfDir]; // classpathReading directory
+        assertEquals(new URI("tar:" + innerGzTarAsFile + "!" + pathInTar + "classpathReading/"), indirect.uri());
+        // so the other one is the log4j.properties file
+        assertEquals(new URI("tar:" + innerGzTarAsFile + "!" + pathInTar + "log4j.properties"), subs[1 - indexOfDir].uri());
+
+        p = vfs.toPath(new URI("tar:" + innerGzTarAsFile + "!" + pathInTar + "classpathReading"));
+        assertTrue(p.exists());
+        assertTrue(p.isDirectory());
+
+        p = vfs.toPath(new URI("tar:" + innerGzTarAsFile + "!" + pathInTar + "classpathReading/"));
+        assertTrue(p.exists());
+        assertTrue(p.isDirectory());
+
+        indirect = Arrays.stream(indirect.list()).filter(pa -> pa.uri().toString().contains("test2.txt")).findAny().orElse(null);
+        assertNotNull(indirect);
+        p = vfs.toPath(new URI("tar:" + innerGzTarAsFile + "!" + pathInTar + "classpathReading/test2.txt"));
+        assertTrue(p.exists());
+        assertFalse(p.isDirectory());
+        try(InputStream is = p.read();) {
+            assertEquals("Hello World", IOUtils.toString(is, Charset.defaultCharset()));
+        }
+        p = indirect;
+        assertTrue(p.exists());
+        assertFalse(p.isDirectory());
+        try(InputStream is = p.read();) {
+            assertEquals("Hello World", IOUtils.toString(is, Charset.defaultCharset()));
+        }
+
     }
 
     @Test
     public void testTarInTarDirect() throws Exception {
-        try(final Vfs vfs = new Vfs(new TarFileSystem());) {
+        try(final Vfs vfs = getVfs();) {
             testTarInTarDirect(vfs, vfs.toFile(new URI("classpath:///simpleTarInTar.tar")).getAbsolutePath(), "./", 0);
             testTarInTarDirect(vfs, vfs.toFile(new URI("classpath:///simpleTarInTar2.tar")).getAbsolutePath(), "", 0);
             testTarInTarDirect(vfs, vfs.toFile(new URI("classpath:///simpleTarInTar3.tar")).getAbsolutePath(), "/tmp/junk/", 2);
@@ -214,10 +281,14 @@ public class TestTarArchives {
     }
 
     @Test
-    public void testTarGz() throws Exception {
-        try(final Vfs vfs = new Vfs(new TarFileSystem());) {
-            final Path p = vfs.toPath(new URI("tar:gz://" + vfs.toFile(new URI("classpath:///tar.tar.gz")).getAbsolutePath()));
-            System.out.println(p);
+    public void testTarInGzTar() throws Exception {
+        try(final Vfs vfs = getVfs();) {
+            final String file = vfs.toFile(new URI("classpath:///simpleTarInTar.tar")).getAbsolutePath();
+            Path p = vfs.toPath(new URI("gz:tar://" + file + "!./tar.tar.gz"));
+            assertFalse(p.isDirectory());
+            try(var tis = p.read();) {}
+
+            p = vfs.toPath(new URI("tar:gz:tar://" + file + "!./tar.tar.gz"));
             assertTrue(p.isDirectory());
             Arrays.stream(p.list())
                 .forEach(u -> System.out.println("" + uncheck(() -> u.isDirectory()) + ":" + u.uri()));
@@ -225,15 +296,48 @@ public class TestTarArchives {
     }
 
     @Test
-    public void testTarXz() throws Exception {
-        try(final Vfs vfs = new Vfs(new TarFileSystem());) {
-            final Path p = vfs.toPath(new URI("tar:xz://" + vfs.toFile(new URI("classpath:///tar.tar.xz")).getAbsolutePath()));
-            System.out.println(p);
-            assertTrue(p.isDirectory());
-            Arrays.stream(p.list())
-                .forEach(u -> {
-                    System.out.println("" + uncheck(() -> u.isDirectory()) + ":" + u);
-                });
+    public void testCompressedTar() throws Exception {
+        try(final Vfs vfs = getVfs();) {
+            testCompressedTar(vfs, vfs.toFile(new URI("classpath:///tar.tar.gz")).getAbsolutePath(), "tar:gz", "tgz");
+            testCompressedTar(vfs, vfs.toFile(new URI("classpath:///tar.tar.bz2")).getAbsolutePath(), "tar:bz2", "tbz2");
+            testCompressedTar(vfs, vfs.toFile(new URI("classpath:///tar.tar.xz")).getAbsolutePath(), "tar:xz", "txz");
+        }
+    }
+
+    private void testCompressedTar(final Vfs vfs, final String file, final String compositeScheme, final String singleScheme) throws Exception {
+
+        testCompressedTar(vfs, compositeScheme + "://" + file);
+        testCompressedTar(vfs, singleScheme + "://" + file);
+    }
+
+    private void testCompressedTar(final Vfs vfs, final String urlPrefix) throws Exception {
+        Path path;
+        path = vfs.toPath(new URI(urlPrefix));
+        assertTrue(path.isDirectory());
+        assertEquals(2, path.list().length);
+
+        final Path[] subs = path.list();
+        path = subs[0];
+        assertTrue(path.isDirectory());
+        assertEquals(11, path.list().length);
+        final URI uri = path.uri();
+        path = vfs.toPath(new URI(urlPrefix + "!./classpathReading/"));
+        assertEquals(uri, path.uri());
+        assertTrue(path.isDirectory());
+        assertEquals(11, path.list().length);
+
+        final Path text2Path = Arrays.stream(path.list())
+            .filter(u -> u.uri().toString().contains("test2.txt"))
+            .findAny()
+            .get();
+
+        try(InputStream is = text2Path.read();) {
+            assertEquals("Hello World", IOUtils.toString(is, Charset.defaultCharset()));
+        }
+
+        path = vfs.toPath(new URI(urlPrefix + "!./classpathReading/test2.txt"));
+        try(InputStream is = path.read();) {
+            assertEquals("Hello World", IOUtils.toString(is, Charset.defaultCharset()));
         }
     }
 }

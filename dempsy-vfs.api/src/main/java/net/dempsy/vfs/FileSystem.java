@@ -14,6 +14,8 @@ import java.nio.file.Paths;
 public abstract class FileSystem implements AutoCloseable {
     protected Vfs vfs = null;
 
+    private final String encToIgnore = getBogusEnc();
+
     /**
      * This is called automatically by the {@link Vfs} instance as part of registering
      * the file system.
@@ -46,34 +48,44 @@ public abstract class FileSystem implements AutoCloseable {
 
     public static class SplitUri {
         public final URI baseUri;
+        public final String enc;
         public final String remainder;
 
-        public SplitUri(final URI baseUri, final String remainder) {
+        public SplitUri(final URI baseUri, final String enc, final String remainder) {
             this.baseUri = baseUri;
+            this.enc = enc;
             this.remainder = remainder;
         }
     }
 
-    /**
-     * By default this will split the URI around the outerEnc. For example, if the URI is:
-     * <p>
-     * file:///path/to/file.tar!inside/archive/file.xyz
-     * <p>
-     * With an enc of '!' then The result will be:
-     * <p>
-     * { innerUri: file:///path/to/file.tar , remainder = inside/archive/file.xyz }
-     * <p>
-     * Notice, the remainder DOES NOT include the enc.
-     * <p>
-     * Recursive URIs will return slightly different results.
-     */
-    public SplitUri splitUri(final String uri, final String outerEnc) throws URISyntaxException {
-        final int encIndex = uri.indexOf(outerEnc);
-        if(encIndex < 0)
-            return new SplitUri(new URI(uri), "");
-        return new SplitUri(new URI(uri.substring(0, encIndex)), uri.substring(encIndex + 1));
-    }
-
     @Override
     public abstract void close() throws IOException;
+
+    /**
+     * Currently this is very hacky. The enc passed can be one of 3 things. It can
+     * be an enc (for example, '!' separating an archive URI from it's entry for a tar file).
+     * It can be null which means we're at the top of the recursion. It can be a flag
+     * meant to be ignored. This can be tested by calling {@link FileSystem#ignoreEnc(String)}
+     */
+    protected SplitUri splitUri(final String uri, final String outerEnc) throws URISyntaxException {
+        if(outerEnc == null || ignoreEnc(outerEnc))
+            return new SplitUri(new URI(uri), outerEnc, "");
+        final int encIndex = uri.indexOf(outerEnc);
+        if(encIndex < 0)
+            return new SplitUri(new URI(uri), outerEnc, "");
+        return new SplitUri(new URI(uri.substring(0, encIndex)), outerEnc, uri.substring(encIndex + 1));
+    }
+
+    protected boolean ignoreEnc(final String enc) {
+        return enc == encToIgnore;
+    }
+
+    protected String ignoreEnc() {
+        return encToIgnore;
+    }
+
+    private String getBogusEnc() {
+        return "!!!!BOGUS!!!!";
+    }
+
 }

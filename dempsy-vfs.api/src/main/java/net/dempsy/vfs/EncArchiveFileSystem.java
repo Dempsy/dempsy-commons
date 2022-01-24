@@ -10,22 +10,21 @@ import net.dempsy.util.UriUtils;
 
 public abstract class EncArchiveFileSystem extends ArchiveFileSystem {
     public final String enc;
-    public final String scheme;
 
-    protected EncArchiveFileSystem(final String scheme, final String enc) {
+    protected EncArchiveFileSystem(final String enc) {
         this.enc = enc;
-        this.scheme = scheme;
     }
 
     @Override
-    protected URI makeUriForArchiveEntry(final URI uri, final String pathInsideTarFile) throws IOException {
-        return uncheck(() -> new URI(scheme + ":" + resolve(uri, pathInsideTarFile /* normalizePath(pathInsideTarFile) */, enc)));
+    protected URI makeUriForArchiveEntry(final String scheme, final URI uri, final String pathInsideTarFile) throws IOException {
+        return uncheck(() -> new URI(scheme + ":" + resolve(uri, pathInsideTarFile, enc)));
     }
 
     @Override
     public SplitUri splitUri(final String uri, final String outerEnc) throws URISyntaxException {
         // first we take the scheme off.
         final URI hackedUri = new URI(uri);
+        final String scheme = hackedUri.getScheme();
         // curScheme will be assumed to be supported by this FileSystem
         final String otherThanScheme = hackedUri.getSchemeSpecificPart();
         final URI otherThanSchemeUri = UriUtils.sanitize(otherThanScheme);
@@ -38,16 +37,17 @@ public abstract class EncArchiveFileSystem extends ArchiveFileSystem {
 
         // we're not the outermost. Therefore we're an archive within an archive. We need to adjust
         // our content so that the base url contains the remainder - the newremainder
+        if(ignoreEnc(outerEnc))
+            return new SplitUri(new URI(scheme + ":" + innerSplitUri.baseUri.toString() + innerSplitUri.enc + innerSplitUri.remainder), outerEnc, "");
 
         // using the outer enc I need to truncate the innerInner's remainder
         final int encIndex = innerSplitUri.remainder.indexOf(outerEnc);
         if(encIndex < 0)
-            return new SplitUri(new URI(scheme + ":" + innerSplitUri.baseUri.toString() + enc + innerSplitUri.remainder), "");
+            return new SplitUri(new URI(scheme + ":" + innerSplitUri.baseUri.toString() + innerSplitUri.enc + innerSplitUri.remainder), outerEnc, "");
 
-        final String newUriStr = scheme + ":" + innerSplitUri.baseUri.toString() + enc + innerSplitUri.remainder.substring(0, encIndex);
-        final String newRemainder = innerSplitUri.remainder.substring(encIndex + 1);
+        final String newUriStr = scheme + ":" + innerSplitUri.baseUri.toString() + innerSplitUri.enc + innerSplitUri.remainder.substring(0, encIndex);
+        final String newRemainder = innerSplitUri.remainder.substring(encIndex + outerEnc.length());
 
-        return new SplitUri(new URI(newUriStr), newRemainder);
+        return new SplitUri(new URI(newUriStr), outerEnc, newRemainder);
     }
-
 }

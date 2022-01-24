@@ -22,7 +22,7 @@ import org.apache.commons.compress.archivers.ArchiveInputStream;
 
 import net.dempsy.util.UriUtils;
 
-public abstract class ArchiveFileSystem extends FileSystem {
+public abstract class ArchiveFileSystem extends RecursiveFileSystem {
 
     public class ArchiveEntryPath extends Path {
         private final URI archiveUri;
@@ -32,6 +32,7 @@ public abstract class ArchiveFileSystem extends FileSystem {
         private final boolean isRoot;
         private final List<ArchiveEntryPath> children = new ArrayList<>();
         private final long lastModifiedTime;
+        private final String scheme;
 
         public ArchiveEntryPath(final URI uri, final URI entryUri, final String pathInsideArchive, final boolean isDirectory, final long lastModifiedTime) {
             this.archiveUri = uri;
@@ -40,6 +41,7 @@ public abstract class ArchiveFileSystem extends FileSystem {
             this.pathInsideArchive = pathInsideArchive;
             this.isRoot = UriUtils.isRoot(pathInsideArchive);
             this.lastModifiedTime = lastModifiedTime;
+            this.scheme = entryUri.getScheme();
         }
 
         public ArchiveEntryPath(final URI uri, final URI entryUri, final ArchiveEntry ae) {
@@ -59,7 +61,7 @@ public abstract class ArchiveFileSystem extends FileSystem {
         @Override
         public InputStream read() throws IOException {
 
-            final ArchiveInputStream is = createArchiveInputStream(vfs.toPath(archiveUri).read());
+            final ArchiveInputStream is = createArchiveInputStream(scheme, vfs.toPath(archiveUri).read());
             try {
                 for(ArchiveEntry cur = is.getNextEntry(); cur != null; cur = is.getNextEntry()) {
                     final String curPathInside = cur.getName();
@@ -114,9 +116,9 @@ public abstract class ArchiveFileSystem extends FileSystem {
         }
     }
 
-    protected abstract ArchiveInputStream createArchiveInputStream(InputStream streamToInnerUriFileSystem) throws IOException;
+    protected abstract ArchiveInputStream createArchiveInputStream(String scheme, InputStream streamToInnerUriFileSystem) throws IOException;
 
-    protected abstract URI makeUriForArchiveEntry(URI archiveFileUri, String pathInsideArchive) throws IOException;
+    protected abstract URI makeUriForArchiveEntry(final String scheme, final URI uri, final String pathInsideTarFile) throws IOException;
 
     @Override
     protected Path doCreatePath(final URI uriX) throws IOException {
@@ -124,7 +126,7 @@ public abstract class ArchiveFileSystem extends FileSystem {
         final SplitUri split = uncheck(() -> splitUri(uriX.toString(), null));
 
         final LinkedHashMap<String, ArchiveEntryPath> cache = new LinkedHashMap<>();
-        final var root = buildTree(split.baseUri, cache);
+        final var root = buildTree(uriX.getScheme(), split.baseUri, cache);
 
         final String searchPath = removeTrailingSlash(split.remainder);
         final var ret = UriUtils.isRoot(searchPath) ? root : cache.get(searchPath);
@@ -170,8 +172,8 @@ public abstract class ArchiveFileSystem extends FileSystem {
         return ret;
     }
 
-    private ArchiveEntryPath makePathForArchiveEntry(final URI uriOfArchive, final ArchiveEntry ae) throws IOException {
-        final URI entryUri = makeUriForArchiveEntry(uriOfArchive, ae.getName());
+    private ArchiveEntryPath makePathForArchiveEntry(final String thsScheme, final URI uriOfArchive, final ArchiveEntry ae) throws IOException {
+        final URI entryUri = makeUriForArchiveEntry(thsScheme, uriOfArchive, ae.getName());
         return chain(new ArchiveEntryPath(uriOfArchive, entryUri, ae), p -> p.setVfs(vfs));
     }
 
@@ -179,8 +181,8 @@ public abstract class ArchiveFileSystem extends FileSystem {
         return str.endsWith("/") ? str.substring(0, str.length() - 1) : str;
     }
 
-    private ArchiveEntryPath buildTree(final URI archiveUri, final LinkedHashMap<String, ArchiveEntryPath> cache) throws IOException {
-        try(final ArchiveInputStream is = createArchiveInputStream(vfs.toPath(archiveUri).read());) {
+    private ArchiveEntryPath buildTree(final String thsScheme, final URI archiveUri, final LinkedHashMap<String, ArchiveEntryPath> cache) throws IOException {
+        try(final ArchiveInputStream is = createArchiveInputStream(thsScheme, vfs.toPath(archiveUri).read());) {
             for(ArchiveEntry cur = is.getNextEntry(); cur != null; cur = is.getNextEntry()) {
 
                 final String curPath = removeTrailingSlash(cur.getName());
@@ -189,7 +191,7 @@ public abstract class ArchiveFileSystem extends FileSystem {
                     throw new IllegalStateException(
                         "There appears to be two files with the same name (\"" + curPath + "\") inside of the archive at " + archiveUri);
 
-                final ArchiveEntryPath curAePath = makePathForArchiveEntry(archiveUri, cur);
+                final ArchiveEntryPath curAePath = makePathForArchiveEntry(thsScheme, archiveUri, cur);
                 cache.put(curPath, curAePath);
             }
         }
@@ -207,7 +209,7 @@ public abstract class ArchiveFileSystem extends FileSystem {
                 final ArchiveEntryPath parent;
                 final boolean isRoot = UriUtils.isRoot(parentPath);
                 if(!cache.containsKey(parentPath)) {
-                    parent = makeArchiveEntryPath(archiveUri, parentPath);
+                    parent = makeArchiveEntryPath(thsScheme, archiveUri, parentPath);
                     if(isRoot) {
                         if(tree != null)
                             throw new IllegalStateException("Multiple roots to the tree? " + archiveUri);
@@ -235,9 +237,10 @@ public abstract class ArchiveFileSystem extends FileSystem {
         return tree;
     }
 
-    private ArchiveEntryPath makeArchiveEntryPath(final URI uriOfArchive, final String pathInsideArchive) throws IOException {
+    private ArchiveEntryPath makeArchiveEntryPath(final String scheme, final URI uriOfArchive, final String pathInsideArchive) throws IOException {
         return chain(
-            new ArchiveEntryPath(uriOfArchive, makeUriForArchiveEntry(uriOfArchive, pathInsideArchive), pathInsideArchive, true, System.currentTimeMillis()),
+            new ArchiveEntryPath(uriOfArchive, makeUriForArchiveEntry(scheme, uriOfArchive, pathInsideArchive), pathInsideArchive, true,
+                System.currentTimeMillis()),
             p -> p.setVfs(vfs));
     }
 
