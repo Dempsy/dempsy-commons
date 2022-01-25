@@ -33,8 +33,10 @@ public abstract class ArchiveFileSystem extends RecursiveFileSystem {
         private final List<ArchiveEntryPath> children = new ArrayList<>();
         private final long lastModifiedTime;
         private final String scheme;
+        private final long length;
 
-        public ArchiveEntryPath(final URI uri, final URI entryUri, final String pathInsideArchive, final boolean isDirectory, final long lastModifiedTime) {
+        public ArchiveEntryPath(final URI uri, final URI entryUri, final String pathInsideArchive, final boolean isDirectory, final long lastModifiedTime,
+            final long length) {
             this.archiveUri = uri;
             this.entryUri = entryUri;
             this.isDirectory = isDirectory;
@@ -42,10 +44,11 @@ public abstract class ArchiveFileSystem extends RecursiveFileSystem {
             this.isRoot = UriUtils.isRoot(pathInsideArchive);
             this.lastModifiedTime = lastModifiedTime;
             this.scheme = entryUri.getScheme();
+            this.length = length;
         }
 
         public ArchiveEntryPath(final URI uri, final URI entryUri, final ArchiveEntry ae) {
-            this(uri, entryUri, ae.getName(), ae.isDirectory(), ae.getLastModifiedDate().getTime());
+            this(uri, entryUri, ae.getName(), ae.isDirectory(), ae.getLastModifiedDate().getTime(), ae.getSize());
         }
 
         @Override
@@ -103,6 +106,11 @@ public abstract class ArchiveFileSystem extends RecursiveFileSystem {
         @Override
         public long lastModifiedTime() throws IOException {
             return lastModifiedTime;
+        }
+
+        @Override
+        public long length() throws IOException {
+            return length;
         }
     }
 
@@ -166,6 +174,11 @@ public abstract class ArchiveFileSystem extends RecursiveFileSystem {
 
                 @Override
                 public long lastModifiedTime() throws IOException {
+                    throw new FileNotFoundException(uriX + " doesn't exist.");
+                }
+
+                @Override
+                public long length() throws IOException {
                     throw new FileNotFoundException(uriX + " doesn't exist.");
                 }
             };
@@ -240,7 +253,7 @@ public abstract class ArchiveFileSystem extends RecursiveFileSystem {
     private ArchiveEntryPath makeArchiveEntryPath(final String scheme, final URI uriOfArchive, final String pathInsideArchive) throws IOException {
         return chain(
             new ArchiveEntryPath(uriOfArchive, makeUriForArchiveEntry(scheme, uriOfArchive, pathInsideArchive), pathInsideArchive, true,
-                System.currentTimeMillis()),
+                System.currentTimeMillis(), 0),
             p -> p.setVfs(vfs));
     }
 

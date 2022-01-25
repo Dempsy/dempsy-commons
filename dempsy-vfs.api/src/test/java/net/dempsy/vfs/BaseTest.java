@@ -12,7 +12,8 @@ public class BaseTest {
             new GzFileSystem(),
             new ZipFileSystem(),
             new ZCompressedFileSystem(),
-            new Bz2FileSystem()
+            new Bz2FileSystem(),
+            new XzFileSystem()
 
         );
     }

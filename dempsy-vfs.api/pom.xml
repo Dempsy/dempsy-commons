@@ -37,15 +37,15 @@
       <groupId>org.springframework</groupId>
       <artifactId>spring-core</artifactId>
     </dependency>
-    <dependency>
-      <groupId>com.github.asieira</groupId>
-      <artifactId>vfs2-xz</artifactId>
-      <version>1.1</version>
-    </dependency>
 
-    <dependency> <!-- Required if using the tar utils.vfs -->
+    <dependency> <!-- Required if using the tar utils.vfs or many compression file systems -->
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-compress</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency><!-- Required if using the xz utils.vfs file system -->
+      <groupId>org.tukaani</groupId>
+      <artifactId>xz</artifactId>
       <optional>true</optional>
     </dependency>
 

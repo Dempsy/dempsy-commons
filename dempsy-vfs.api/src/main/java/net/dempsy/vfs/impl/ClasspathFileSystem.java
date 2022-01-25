@@ -203,11 +203,17 @@ public class ClasspathFileSystem extends FileSystem {
             return getResource().lastModified();
         }
 
+        @Override
+        public long length() throws IOException {
+            return getResource().contentLength();
+        }
+
         private Resource getResource() {
             if(resource == null)
                 resource = new PathMatchingResourcePatternResolver().getResource(path);
             return resource;
         }
+
     }
 
 }

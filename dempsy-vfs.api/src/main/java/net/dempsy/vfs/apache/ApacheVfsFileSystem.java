@@ -228,6 +228,15 @@ public class ApacheVfsFileSystem extends FileSystem {
             }
         }
 
+        @Override
+        public long length() throws IOException {
+            try {
+                return fileObject.getContent().getSize();
+            } catch(final FileSystemException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
     }
 
     private DefaultFileSystemManager getApacheVfs2FileSystem() {

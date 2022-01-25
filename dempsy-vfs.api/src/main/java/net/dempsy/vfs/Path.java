@@ -25,6 +25,8 @@ public abstract class Path {
 
     public abstract long lastModifiedTime() throws IOException;
 
+    public abstract long length() throws IOException;
+
     /**
      * This should return {@code null} if the {@link Path} isn't a directory/folder.
      * An empty folder will be an array with no elements. A {@link FileNotFoundException}
@@ -50,5 +52,4 @@ public abstract class Path {
     public void mkdirs() throws IOException {
         throw new UnsupportedOperationException("'mkdir' isn't supported for file system implementation " + this.getClass().getSimpleName());
     }
-
 }

@@ -60,6 +60,11 @@ public abstract class CompressedFileSystem extends RecursiveFileSystem {
             public void delete() throws IOException {
                 innerPath.delete();
             }
+
+            @Override
+            public long length() throws IOException {
+                return innerPath.length();
+            }
         };
     }
 
