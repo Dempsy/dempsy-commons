@@ -2,6 +2,7 @@ package net.dempsy.vfs;
 
 import static net.dempsy.util.Functional.uncheck;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -37,7 +38,7 @@ public abstract class CompressedFileSystem extends RecursiveFileSystem {
 
             @Override
             public InputStream read() throws IOException {
-                return wrap(innerPath.read());
+                return wrap(new BufferedInputStream(innerPath.read()));
             }
 
             // compressed filesystems paths are never directories. Think gzip, not zip or tar.

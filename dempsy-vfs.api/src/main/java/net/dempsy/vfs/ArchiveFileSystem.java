@@ -3,6 +3,7 @@ package net.dempsy.vfs;
 import static net.dempsy.util.Functional.chain;
 import static net.dempsy.util.Functional.uncheck;
 
+import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -64,7 +65,7 @@ public abstract class ArchiveFileSystem extends RecursiveFileSystem {
         @Override
         public InputStream read() throws IOException {
 
-            final ArchiveInputStream is = createArchiveInputStream(scheme, vfs.toPath(archiveUri).read());
+            final ArchiveInputStream is = createArchiveInputStream(scheme, new BufferedInputStream(vfs.toPath(archiveUri).read()));
             try {
                 for(ArchiveEntry cur = is.getNextEntry(); cur != null; cur = is.getNextEntry()) {
                     final String curPathInside = cur.getName();
@@ -195,7 +196,7 @@ public abstract class ArchiveFileSystem extends RecursiveFileSystem {
     }
 
     private ArchiveEntryPath buildTree(final String thsScheme, final URI archiveUri, final LinkedHashMap<String, ArchiveEntryPath> cache) throws IOException {
-        try(final ArchiveInputStream is = createArchiveInputStream(thsScheme, vfs.toPath(archiveUri).read());) {
+        try(final ArchiveInputStream is = createArchiveInputStream(thsScheme, new BufferedInputStream(vfs.toPath(archiveUri).read()));) {
             for(ArchiveEntry cur = is.getNextEntry(); cur != null; cur = is.getNextEntry()) {
 
                 final String curPath = removeTrailingSlash(cur.getName());

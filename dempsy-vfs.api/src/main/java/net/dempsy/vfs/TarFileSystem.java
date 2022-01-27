@@ -1,6 +1,5 @@
 package net.dempsy.vfs;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
@@ -22,7 +21,7 @@ public class TarFileSystem extends EncArchiveFileSystem {
     @SuppressWarnings("resource")
     @Override
     public ArchiveInputStream createArchiveInputStream(final String scheme, final InputStream inner) throws IOException {
-        InputStream ret = new BufferedInputStream(inner);
+        InputStream ret = inner;
         if("tgz".equals(scheme))
             ret = new GZIPInputStream(ret);
         else if("tbz2".equals(scheme))
