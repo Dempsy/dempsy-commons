@@ -1,6 +1,7 @@
 package net.dempsy.vfs;
 
 import static net.dempsy.util.Functional.uncheck;
+import static net.dempsy.util.UriUtils.SEP;
 
 import java.io.IOException;
 import java.net.URI;
@@ -21,16 +22,16 @@ public abstract class EncArchiveFileSystem extends ArchiveFileSystem {
     }
 
     @Override
-    public SplitUri splitUri(final String uri, final String outerEnc) throws URISyntaxException {
+    public SplitUri splitUri(final URI uri, final String outerEnc) throws URISyntaxException {
         // first we take the scheme off.
-        final URI hackedUri = new URI(uri);
+        final URI hackedUri = uri;
         final String scheme = hackedUri.getScheme();
         // curScheme will be assumed to be supported by this FileSystem
         final String otherThanScheme = hackedUri.getSchemeSpecificPart();
         final URI otherThanSchemeUri = UriUtils.sanitize(otherThanScheme);
 
         final FileSystem innerFileSystem = vfs.fileSystemFromScheme(otherThanSchemeUri.getScheme());
-        final SplitUri innerSplitUri = innerFileSystem.splitUri(otherThanSchemeUri.toString(), enc);
+        final SplitUri innerSplitUri = innerFileSystem.splitUri(otherThanSchemeUri, enc);
 
         if(outerEnc == null) // then there is no outer and this is the top of the recursion
             return innerSplitUri;
@@ -49,5 +50,13 @@ public abstract class EncArchiveFileSystem extends ArchiveFileSystem {
         final String newRemainder = innerSplitUri.remainder.substring(encIndex + outerEnc.length());
 
         return new SplitUri(new URI(newUriStr), outerEnc, newRemainder);
+    }
+
+    private static URI resolve(final URI base, final String child, final String enc) {
+        final String path = base.toString();
+        final String parentPath = path.endsWith(SEP) ? path.substring(0, path.length() - 1) : path;
+
+        final String newpath = parentPath + enc + UriUtils.encodePath(child);
+        return uncheck(() -> new URI(newpath));
     }
 }

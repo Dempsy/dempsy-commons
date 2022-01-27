@@ -23,7 +23,7 @@ public abstract class CompressedFileSystem extends RecursiveFileSystem {
         final URI otherThanSchemeUri = uncheck(() -> UriUtils.sanitize(otherThanScheme));
         final Path innerPath = vfs.toPath(otherThanSchemeUri);
 
-        return new Path() {
+        return setVfs(new Path() {
 
             @Override
             public OutputStream write() throws IOException {
@@ -57,18 +57,15 @@ public abstract class CompressedFileSystem extends RecursiveFileSystem {
             }
 
             @Override
-            public void delete() throws IOException {
-                innerPath.delete();
+            public boolean delete() throws IOException {
+                return innerPath.delete();
             }
 
             @Override
             public long length() throws IOException {
                 return innerPath.length();
             }
-        };
+        });
     }
-
-    @Override
-    public void close() throws IOException {}
 
 }

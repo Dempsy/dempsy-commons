@@ -60,9 +60,6 @@ public class ClasspathFileSystem extends FileSystem {
             return ret;
     }
 
-    @Override
-    public void close() {}
-
     private static InputStream buffer(final InputStream is, final boolean gzipped) throws IOException {
         return new BufferedInputStream(gzipped ? new GZIPInputStream(is) : is);
     }
@@ -130,7 +127,7 @@ public class ClasspathFileSystem extends FileSystem {
         }
 
         @Override
-        public void delete() throws IOException {
+        public boolean delete() throws IOException {
             throw new UnsupportedOperationException("Delete is not supported for \"classpath:\" uris.");
         }
 

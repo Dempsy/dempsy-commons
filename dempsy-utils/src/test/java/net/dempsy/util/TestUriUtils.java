@@ -1,6 +1,9 @@
 package net.dempsy.util;
 
 import static net.dempsy.util.Functional.uncheck;
+import static net.dempsy.util.UriUtils.decodePath;
+import static net.dempsy.util.UriUtils.encodePath;
+import static net.dempsy.util.UriUtils.extractPath;
 import static org.junit.Assert.assertEquals;
 
 import java.net.URI;
@@ -14,6 +17,105 @@ public class TestUriUtils {
 
     private static URI u(final String uri) {
         return uncheck(() -> new URI(uri));
+    }
+
+    @Test
+    public void testExtractBadPath() throws Exception {
+        assertEquals("", extractPath("tar:gz:file:hello://"));
+        assertEquals("/path/to/Ichiban no Takaramono `Yui final ver.`",
+            extractPath("tar:gz:file:///path/to/Ichiban no Takaramono `Yui final ver.`"));
+        assertEquals("path/to/Ichiban no Takaramono `Yui final ver.`",
+            extractPath("tar:gz:file:path/to/Ichiban no Takaramono `Yui final ver.`"));
+        assertEquals("/path/to/Ichiban no Takaramono `Yui final ver.`",
+            extractPath("tar:gz:file://auth[bank]:9/path/to/Ichiban no Takaramono `Yui final ver.`"));
+    }
+
+    @Test
+    public void testExtractPath() throws Exception {
+        testExtractPath("");
+        testExtractPath("medapath");
+        testExtractPath("/medapath");
+        testExtractPath("//medapath");
+        testExtractPath("///medapath");
+        testExtractPath("////medapath");
+        testExtractPath("a/medapath");
+        testExtractPath("a//medapath");
+        testExtractPath("a///medapath");
+        testExtractPath("a////medapath");
+        testExtractPath("a/////medapath");
+        testExtractPath("tar:gz:file:hello:/");
+        testExtractPath("tar:gz:file:hello://a");
+        testExtractPath("tar:gz:file:hello:what:path//path2");
+        testExtractPath("tar:gz:file://where@host:9/am/i!youarehere.txt!more?query=[hell]#frag");
+        testExtractPath("tar:gz:file:wherehost:9ami!youarehere.txt!more?query=[hell]#frag");
+        testExtractPath("tar:gz:file:x?");
+        testExtractPath("tar:gz:file:/x");
+        testExtractPath("tar:gz:file://x");
+        testExtractPath("tar:gz:file:///x");
+        testExtractPath("tar:gz:file:////x");
+        testExtractPath("tar:gz:file:x?query=[hell]");
+        testExtractPath("tar:gz:file:/x?query=[hell]");
+        testExtractPath("tar:gz:file://x?query=[hell]");
+        testExtractPath("tar:gz:file:///x?query=[hell]");
+        testExtractPath("tar:gz:file:////x?query=[hell]");
+        testExtractPath("tar:gz:file:x#frag");
+        testExtractPath("tar:gz:file:/x#frag");
+        testExtractPath("tar:gz:file://x#frag");
+        testExtractPath("tar:gz:file:///x#frag");
+        testExtractPath("tar:gz:file:////x#frag");
+        testExtractPath("tar:gz:file:x?query=[hell]#frag");
+        testExtractPath("tar:gz:file:/x?query=[hell]#frag");
+        testExtractPath("tar:gz:file://x?query=[hell]#frag");
+        testExtractPath("tar:gz:file:///x?query=[hell]#frag");
+        testExtractPath("tar:gz:file:////x?query=[hell]#frag");
+        testExtractPath("tar:gz:file:noslashhere:more?the:end=joe&fritz?who=tmp#?kog=fang");
+    }
+
+    @Test
+    public void testEncodePath() throws Exception {
+        assertEquals("other/dir%20With%20Brackets%5Bsquare%5D/", encodePath("other/dir With Brackets[square]/"));
+        assertEquals("other/dir With Brackets[square]/", decodePath(encodePath("other/dir With Brackets[square]/")));
+
+        assertEquals("", encodePath(""));
+        assertEquals("", decodePath(encodePath("")));
+        assertEquals("/", encodePath("/"));
+        assertEquals("/", decodePath(encodePath("/")));
+        assertEquals("a://x", encodePath("a://x"));
+        // decode path collapses slashes
+        assertEquals("a:/x", decodePath(encodePath("a://x")));
+        assertEquals("a://", encodePath("a://"));
+        assertEquals("a:/", decodePath(encodePath("a://")));
+        // decode path collapses slashes
+        assertEquals("a:/", encodePath("a:/"));
+        assertEquals("a:///", encodePath("a:///"));
+        // decode path collapses slashes
+        assertEquals("a:/", decodePath(encodePath("a:///")));
+        assertEquals("a%20a:/%20junk//://", encodePath("a a:/ junk//://"));
+        // decode path collapses slashes
+        assertEquals("a a:/ junk/:/", decodePath(encodePath("a a:/ junk//://")));
+        assertEquals("/aNormal/absolute/path/to/some/file.txt", encodePath("/aNormal/absolute/path/to/some/file.txt"));
+        assertEquals("/aNormal/absolute/path/to/some/file.txt", decodePath(encodePath("/aNormal/absolute/path/to/some/file.txt")));
+        assertEquals("aNormal/relative/path/to/some/file.txt", encodePath("aNormal/relative/path/to/some/file.txt"));
+        assertEquals("aNormal/relative/path/to/some/file.txt", decodePath(encodePath("aNormal/relative/path/to/some/file.txt")));
+    }
+
+    private void testExtractPath(final String uri) throws Exception {
+
+        String uriRelStr = uri;
+        String path = null;
+        while(true) {
+            final URI u = new URI(uriRelStr);
+
+            path = u.getPath();
+            if(path != null) {
+                UriUtils.dumpUri(u);
+                break;
+            }
+            uriRelStr = u.getRawSchemeSpecificPart();
+        }
+
+        // System.out.println("Extracted Path: \"" + extractPath(uri) + "\"");
+        assertEquals(path, extractPath(uri));
     }
 
     @Test

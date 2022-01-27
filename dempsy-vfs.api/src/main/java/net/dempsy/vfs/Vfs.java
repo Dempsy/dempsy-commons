@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import net.dempsy.vfs.apache.ApacheVfsFileSystem;
 import net.dempsy.vfs.impl.ClasspathFileSystem;
+import net.dempsy.vfs.local.LocalFileSystem;
 
 public class Vfs implements AutoCloseable {
     private static final Logger LOGGER = LoggerFactory.getLogger(Vfs.class);
@@ -66,7 +67,7 @@ public class Vfs implements AutoCloseable {
 
     @Override
     public void close() throws IOException {
-        recheck(() -> fileSystems.values().forEach(fs -> uncheck(() -> fs.close())), IOException.class);
+        // recheck(() -> fileSystems.values().forEach(fs -> uncheck(() -> fs.close())), IOException.class);
     }
 
     public static class SpringHackDummyFs extends FileSystem {
@@ -80,9 +81,6 @@ public class Vfs implements AutoCloseable {
         public String[] supportedSchemes() {
             return new String[] {};
         }
-
-        @Override
-        public void close() throws IOException {}
     }
 
     private void register(final FileSystem fs) {
@@ -102,14 +100,16 @@ public class Vfs implements AutoCloseable {
 
     private void registerStandardFileSystems() throws IOException {
         final Set<String> knownSchemes = fileSystems.keySet();
-        // register("tar", new TarFileSystem());
-        register("classpath", new ClasspathFileSystem());
+        if(!knownSchemes.contains("classpath"))
+            register("classpath", new ClasspathFileSystem());
 
-        try(ApacheVfsFileSystem afs = new ApacheVfsFileSystem()) {
-            for(final String scheme: afs.supportedSchemes())
-                if(!knownSchemes.contains(scheme) && !"hdfs".equals(scheme))
-                    register(scheme, afs);
-        }
+        if(!knownSchemes.contains("file"))
+            register("file", new LocalFileSystem());
+
+        final ApacheVfsFileSystem afs = new ApacheVfsFileSystem();
+        for(final String scheme: afs.supportedSchemes())
+            if(!knownSchemes.contains(scheme) && !"hdfs".equals(scheme))
+                register(scheme, afs);
     }
 
     private static String valueOfClass(final Object o) {

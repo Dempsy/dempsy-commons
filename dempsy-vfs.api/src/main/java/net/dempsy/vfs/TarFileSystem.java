@@ -36,7 +36,4 @@ public class TarFileSystem extends EncArchiveFileSystem {
     public String[] supportedSchemes() {
         return SCHEMES;
     }
-
-    @Override
-    public void close() throws IOException {}
 }

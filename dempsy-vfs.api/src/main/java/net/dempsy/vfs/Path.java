@@ -1,5 +1,6 @@
 package net.dempsy.vfs;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,7 +22,7 @@ public abstract class Path {
 
     public abstract OutputStream write() throws IOException;
 
-    public abstract void delete() throws IOException;
+    public abstract boolean delete() throws IOException;
 
     public abstract long lastModifiedTime() throws IOException;
 
@@ -51,5 +52,17 @@ public abstract class Path {
      */
     public void mkdirs() throws IOException {
         throw new UnsupportedOperationException("'mkdir' isn't supported for file system implementation " + this.getClass().getSimpleName());
+    }
+
+    public File toFile() throws IOException {
+        return vfs.toFile(uri());
+    }
+
+    /**
+     * Helper for allowing implementors to set the vfs on newly create Paths
+     */
+    protected <T extends Path> T setVfs(final T p) {
+        p.setVfs(vfs);
+        return p;
     }
 }

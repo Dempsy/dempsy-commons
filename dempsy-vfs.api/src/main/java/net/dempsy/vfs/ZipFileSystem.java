@@ -9,8 +9,8 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 
 public class ZipFileSystem extends EncArchiveFileSystem {
 
-    public final static String[] SCHEMES = {"zip"};
-    public final static String ENC = "XX";
+    public final static String[] SCHEMES = {"zip","jar"};
+    public final static String ENC = "!XX!";
 
     public ZipFileSystem() {
         super(ENC);
@@ -25,7 +25,4 @@ public class ZipFileSystem extends EncArchiveFileSystem {
     public String[] supportedSchemes() {
         return SCHEMES;
     }
-
-    @Override
-    public void close() throws IOException {}
 }

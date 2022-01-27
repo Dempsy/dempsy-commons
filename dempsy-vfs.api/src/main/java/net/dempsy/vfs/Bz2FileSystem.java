@@ -17,9 +17,6 @@ public class Bz2FileSystem extends CompressedFileSystem {
     }
 
     @Override
-    public void close() throws IOException {}
-
-    @Override
     protected InputStream wrap(final InputStream is) throws IOException {
         return new BZip2CompressorInputStream(is);
     }

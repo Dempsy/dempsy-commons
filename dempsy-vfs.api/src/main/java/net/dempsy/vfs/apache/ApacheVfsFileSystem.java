@@ -4,11 +4,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileNotFoundException;
 import org.apache.commons.vfs2.FileObject;
@@ -60,6 +66,7 @@ public class ApacheVfsFileSystem extends FileSystem {
 
             if(schemeSet.contains(proxiedScheme) && !schemeSet.contains(scheme)) {
                 manager.addProvider(scheme, new Http4FileProvider() {
+
                     @Override
                     public FileObject createFileSystem(final String scheme, final FileObject file, final FileSystemOptions fileSystemOptions)
                         throws FileSystemException {
@@ -73,6 +80,7 @@ public class ApacheVfsFileSystem extends FileSystem {
             }
         }
         {
+
             final String proxiedScheme = "http5s";
             final String scheme = "https";
 
@@ -122,9 +130,6 @@ public class ApacheVfsFileSystem extends FileSystem {
     }
 
     @Override
-    public void close() {}
-
-    @Override
     protected Path doCreatePath(final URI uriuri) throws IOException {
         final String uri = uriuri.toString();
         return new ApacheVfsPath(getApacheVfs2FileSystem().resolveFile(uri));
@@ -159,10 +164,10 @@ public class ApacheVfsFileSystem extends FileSystem {
         }
 
         @Override
-        public void delete() throws IOException {
+        public boolean delete() throws IOException {
             try {
                 fileObject.close();
-                fileObject.delete(new AllFileSelector());
+                return fileObject.delete(new AllFileSelector()) != 0;
             } catch(final FileNotFoundException fnfe) {
                 LOGGER.info(FILE_NOT_FOUND, fnfe);
                 throw new java.io.FileNotFoundException(fnfe.getLocalizedMessage());
@@ -189,7 +194,7 @@ public class ApacheVfsFileSystem extends FileSystem {
 
             final Path[] ret = new Path[rets.length];
             for(int i = 0; i < rets.length; i++)
-                ret[i] = new ApacheVfsPath(rets[i]);
+                ret[i] = setVfs(new ApacheVfsPath(rets[i]));
 
             return ret;
         }
@@ -199,13 +204,36 @@ public class ApacheVfsFileSystem extends FileSystem {
             return fileObject.toString();
         }
 
+        // private static final List<Pair<Pattern, String>> subs = new ArrayList<>(
+        //
+        // Arrays.asList(
+        // Pair.of(Pattern.compile("\\["), URLEncoder.encode("[", StandardCharsets.UTF_8)),
+        // Pair.of(Pattern.compile("\\]"), URLEncoder.encode("]", StandardCharsets.UTF_8)),
+        // Pair.of(Pattern.compile("\\`"), URLEncoder.encode("`", StandardCharsets.UTF_8))
+        //
+        // )
+        //
+        // );
+
         @Override
         public URI uri() {
-            try {
-                return fileObject.getURL().toURI();
-            } catch(FileSystemException | URISyntaxException e) {
-                throw new RuntimeException(e);
-            }
+            // // the default apache vfs implementation of fileObject.getURI() is:
+            // // URI.create(URI.create(getName().getURI()).toASCIIString());
+            // //
+            // // but this fails because it doesn't encode everything correctly. It currently fails on:
+            // // 1. square brackets.
+            // // 2. backtick
+            // //
+            // // so lets fix it.
+            // String tmp = fileObject.getName().toString();
+            // if(tmp.startsWith("file:")) {
+            // return Paths.get(tmp.substring("file:".length())).toUri();
+            // }
+            // for(final Pair<Pattern, String> cur: subs) {
+            // tmp = cur.getLeft().matcher(tmp).replaceAll(cur.getRight());
+            // }
+            // return URI.create(URI.create(tmp).toASCIIString());
+            return fileObject.getURI();
         }
 
         @Override

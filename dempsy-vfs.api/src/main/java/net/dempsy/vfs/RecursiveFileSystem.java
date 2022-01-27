@@ -8,9 +8,9 @@ import net.dempsy.util.UriUtils;
 public abstract class RecursiveFileSystem extends FileSystem {
 
     @Override
-    public SplitUri splitUri(final String uri, final String outerEnc) throws URISyntaxException {
+    public SplitUri splitUri(final URI uri, final String outerEnc) throws URISyntaxException {
         // first we take the scheme off.
-        final URI hackedUri = new URI(uri);
+        final URI hackedUri = uri;
         final String scheme = hackedUri.getScheme();
         // curScheme will be assumed to be supported by this FileSystem
         final String otherThanScheme = hackedUri.getSchemeSpecificPart();
@@ -19,9 +19,9 @@ public abstract class RecursiveFileSystem extends FileSystem {
         final FileSystem innerFileSystem = vfs.fileSystemFromScheme(otherThanSchemeUri.getScheme());
 
         if(outerEnc == null) // then there is no outer and this is the top of the recursion
-            return innerFileSystem.splitUri(otherThanSchemeUri.toString(), ignoreEnc());
+            return innerFileSystem.splitUri(otherThanSchemeUri, ignoreEnc());
 
-        final SplitUri innerSplitUri = innerFileSystem.splitUri(otherThanSchemeUri.toString(), outerEnc);
+        final SplitUri innerSplitUri = innerFileSystem.splitUri(otherThanSchemeUri, outerEnc);
 
         return new SplitUri(new URI(scheme + ":" + innerSplitUri.baseUri.toString()), innerSplitUri.enc, innerSplitUri.remainder);
     }

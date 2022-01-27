@@ -11,7 +11,7 @@ import java.nio.file.Paths;
  * to an instance of a {@link Path}, which is the means by which the file system
  * is accessed.
  */
-public abstract class FileSystem implements AutoCloseable {
+public abstract class FileSystem {
     protected Vfs vfs = null;
 
     private final String encToIgnore = getBogusEnc();
@@ -58,22 +58,19 @@ public abstract class FileSystem implements AutoCloseable {
         }
     }
 
-    @Override
-    public abstract void close() throws IOException;
-
     /**
      * Currently this is very hacky. The enc passed can be one of 3 things. It can
      * be an enc (for example, '!' separating an archive URI from it's entry for a tar file).
      * It can be null which means we're at the top of the recursion. It can be a flag
      * meant to be ignored. This can be tested by calling {@link FileSystem#ignoreEnc(String)}
      */
-    protected SplitUri splitUri(final String uri, final String outerEnc) throws URISyntaxException {
+    protected SplitUri splitUri(final URI uri, final String outerEnc) throws URISyntaxException {
         if(outerEnc == null || ignoreEnc(outerEnc))
-            return new SplitUri(new URI(uri), outerEnc, "");
-        final int encIndex = uri.indexOf(outerEnc);
+            return new SplitUri(uri, outerEnc, "");
+        final int encIndex = uri.toASCIIString().indexOf(outerEnc);
         if(encIndex < 0)
-            return new SplitUri(new URI(uri), outerEnc, "");
-        return new SplitUri(new URI(uri.substring(0, encIndex)), outerEnc, uri.substring(encIndex + 1));
+            return new SplitUri(uri, outerEnc, "");
+        return new SplitUri(new URI(uri.toASCIIString().substring(0, encIndex)), outerEnc, uri.toASCIIString().substring(encIndex + 1));
     }
 
     protected boolean ignoreEnc(final String enc) {
@@ -82,6 +79,14 @@ public abstract class FileSystem implements AutoCloseable {
 
     protected String ignoreEnc() {
         return encToIgnore;
+    }
+
+    /**
+     * Helper for allowing implementors to set the vfs on newly create Paths
+     */
+    protected <T extends Path> T setVfs(final T p) {
+        p.setVfs(vfs);
+        return p;
     }
 
     private String getBogusEnc() {

@@ -2,7 +2,6 @@ package net.dempsy.vfs;
 
 import static net.dempsy.util.Functional.chain;
 import static net.dempsy.util.Functional.uncheck;
-import static net.dempsy.util.UriUtils.SEP;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -15,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
@@ -99,7 +99,7 @@ public abstract class ArchiveFileSystem extends RecursiveFileSystem {
         }
 
         @Override
-        public void delete() throws IOException {
+        public boolean delete() throws IOException {
             throw new UnsupportedOperationException("tar file entries are not deletable.");
         }
 
@@ -129,37 +129,37 @@ public abstract class ArchiveFileSystem extends RecursiveFileSystem {
     protected abstract URI makeUriForArchiveEntry(final String scheme, final URI uri, final String pathInsideTarFile) throws IOException;
 
     @Override
-    protected Path doCreatePath(final URI uriX) throws IOException {
+    protected Path doCreatePath(final URI uri) throws IOException {
 
-        final SplitUri split = uncheck(() -> splitUri(uriX.toString(), null));
+        final SplitUri split = uncheck(() -> splitUri(uri, null));
 
         final LinkedHashMap<String, ArchiveEntryPath> cache = new LinkedHashMap<>();
-        final var root = buildTree(uriX.getScheme(), split.baseUri, cache);
+        final var root = buildTree(uri.getScheme(), split.baseUri, cache);
 
-        final String searchPath = removeTrailingSlash(split.remainder);
+        final String searchPath = removeTrailingSlash(UriUtils.decodePath(split.remainder));
         final var ret = UriUtils.isRoot(searchPath) ? root : cache.get(searchPath);
 
         if(ret == null)
-            return new Path() {
+            return setVfs(new Path() {
 
                 @Override
                 public OutputStream write() throws IOException {
-                    throw new FileNotFoundException(uriX + " doesn't exist.");
+                    throw new FileNotFoundException(uri + " doesn't exist.");
                 }
 
                 @Override
                 public URI uri() {
-                    return uriX;
+                    return uri;
                 }
 
                 @Override
                 public InputStream read() throws IOException {
-                    throw new FileNotFoundException(uriX + " doesn't exist.");
+                    throw new FileNotFoundException(uri + " doesn't exist.");
                 }
 
                 @Override
                 public Path[] list() throws IOException {
-                    throw new FileNotFoundException(uriX + " doesn't exist.");
+                    throw new FileNotFoundException(uri + " doesn't exist.");
                 }
 
                 @Override
@@ -168,20 +168,20 @@ public abstract class ArchiveFileSystem extends RecursiveFileSystem {
                 }
 
                 @Override
-                public void delete() throws IOException {
-                    throw new FileNotFoundException(uriX + " doesn't exist.");
+                public boolean delete() throws IOException {
+                    throw new FileNotFoundException(uri + " doesn't exist.");
                 }
 
                 @Override
                 public long lastModifiedTime() throws IOException {
-                    throw new FileNotFoundException(uriX + " doesn't exist.");
+                    throw new FileNotFoundException(uri + " doesn't exist.");
                 }
 
                 @Override
                 public long length() throws IOException {
-                    throw new FileNotFoundException(uriX + " doesn't exist.");
+                    throw new FileNotFoundException(uri + " doesn't exist.");
                 }
-            };
+            });
         return ret;
     }
 
@@ -217,8 +217,7 @@ public abstract class ArchiveFileSystem extends RecursiveFileSystem {
             ArchiveEntryPath prev = entry.getValue();
 
             for(boolean done = false; !done;) {
-                final String tPp = UriUtils.getParent(prev.pathInsideArchive);
-                final String parentPath = tPp == null ? "" : UriUtils.getParent(prev.pathInsideArchive);
+                final String parentPath = Optional.ofNullable(UriUtils.getParent(prev.pathInsideArchive)).orElse("");
                 final ArchiveEntryPath parent;
                 final boolean isRoot = UriUtils.isRoot(parentPath);
                 if(!cache.containsKey(parentPath)) {
@@ -251,17 +250,8 @@ public abstract class ArchiveFileSystem extends RecursiveFileSystem {
     }
 
     private ArchiveEntryPath makeArchiveEntryPath(final String scheme, final URI uriOfArchive, final String pathInsideArchive) throws IOException {
-        return chain(
+        return setVfs(
             new ArchiveEntryPath(uriOfArchive, makeUriForArchiveEntry(scheme, uriOfArchive, pathInsideArchive), pathInsideArchive, true,
-                System.currentTimeMillis(), 0),
-            p -> p.setVfs(vfs));
+                System.currentTimeMillis(), 0));
     }
-
-    protected static URI resolve(final URI base, final String child, final String enc) {
-        final String path = base.toString();
-        final String parentPath = path.endsWith(SEP) ? path.substring(0, path.length() - 1) : path;
-        final String newpath = parentPath + enc + child;
-        return uncheck(() -> new URI(newpath));
-    }
-
 }

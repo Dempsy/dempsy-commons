@@ -54,12 +54,17 @@ public class PathImplTest {
     public static Collection<Object[]> setup() throws IOException {
 
         final File tmpdir = Files.createTempDirectory("test").toFile();
-        return Arrays.<Object[]>asList(new Object[] {"ram","//" + tmpdir.toURI().getPath(),preconf},
+        return Arrays.<Object[]>asList(
+
+            new Object[] {"ram","//" + tmpdir.toURI().getPath(),preconf},
             new Object[] {"classpath","classpathReading/",preconf},
             new Object[] {"classpath","//classpathReading/",preconf},
             new Object[] {"classpath","///classpathReading/",preconf},
             new Object[] {"file","//" + tmpdir.toURI().getPath(),
-                (FSSource)() -> () -> FileUtils.deleteDirectory(tmpdir)});
+                (FSSource)() -> {
+                    tmpdir.mkdirs();
+                    return () -> FileUtils.deleteDirectory(tmpdir);
+                }});
     }
 
     private final String scheme;

@@ -17,9 +17,6 @@ public class XzFileSystem extends CompressedFileSystem {
     }
 
     @Override
-    public void close() throws IOException {}
-
-    @Override
     protected InputStream wrap(final InputStream is) throws IOException {
         return new XZCompressorInputStream(is);
     }
