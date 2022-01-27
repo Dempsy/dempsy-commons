@@ -12,6 +12,7 @@ import java.net.URI;
 import java.nio.channels.FileChannel;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Optional;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -113,10 +114,10 @@ public class LocalFileSystem extends FileSystem {
 
         @Override
         public Path[] list() throws IOException {
-            return Arrays.stream(file.list())
+            return file.isDirectory() ? Optional.ofNullable(file.list()).map(l -> Arrays.stream(l)
                 .map(subdir -> new File(file, subdir))
                 .map(f -> setVfs(new LocalFile(f)))
-                .toArray(Path[]::new);
+                .toArray(Path[]::new)).orElse(null) : null;
         }
 
         @Override
