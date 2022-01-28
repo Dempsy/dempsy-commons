@@ -397,6 +397,16 @@ public abstract class MegaByteBuffer {
             MegaByteBuffer.Impl.shifting = shift;
             MegaByteBuffer.Impl.mask = mask;
             MegaByteBuffer.Impl.maxIndividualBufSize = maxBufferSize;
+
+            // verify the constraints are consistent
+            if(Integer.bitCount(maxBufferSize) != 1)
+                throw new IllegalStateException("Max individual buffer size must be a non-zero power of 2");
+            if(mask + 1 != maxBufferSize)
+                throw new IllegalStateException("Max is inconsistent with maxBufferSize.");
+            int shch = 0;
+            for(shch = 0; (maxBufferSize >>> shch) != 1; shch++);
+            if(shch != shift)
+                throw new IllegalStateException("The shift is incorrect.");
         }
 
         public static void resetBufferSizeConstantsToDefaults() {
@@ -595,7 +605,9 @@ public abstract class MegaByteBuffer {
         public final byte[] getBytes(final long bytePosition, final byte[] buffer, final int offset, final int length) {
             final int subIndex = (int)(bytePosition & mask);
             return (maxIndividualBufSize - subIndex < length) ? getFilledHolder(bytePosition, length, buffer, offset)
-                : ByteBufferHelper.getBytes(byteBuffers[(int)(bytePosition >> shifting)], subIndex, buffer);
+                // : ByteBufferHelper.getBytes(byteBuffers[(int)(bytePosition >> shifting)], subIndex, buffer);
+                : ByteBufferHelper.getBytes(byteBuffers[(int)(bytePosition >> shifting)], subIndex, buffer, offset, length);
+
         }
 
         @Override

@@ -23,7 +23,25 @@ public class TestMegaByteBuffer {
     }
 
     @Test
-    public void testOverlapGet() throws Throwable {
+    public void testReading() throws Exception {
+        try(var qc = setConstants(true, 7, 0x000000000000007fL, 128);) {
+            final int sz = (128 * 5) + 43;
+            final MegaByteBuffer buf = MegaByteBuffer.allocateDirect(sz);
+
+            for(int i = 0; i < sz; i++)
+                buf.put(i, (byte)(i & 0xff));
+
+            final byte[] d = new byte[8192];
+            // this is a test that reproduced a BufferUnderflowException.
+            buf.getBytes(sz - 30, d, 0, 30);
+
+            for(int i = 0; i < 30; i++)
+                assertEquals((byte)((sz - 30 + i) & 0xff), d[i]);
+        }
+    }
+
+    @Test
+    public void testOverlapGet() throws Exception {
         try(var qc = setConstants(true, 3, 0x0000000000000007L, 8);) {
 
             final MegaByteBuffer buf = MegaByteBuffer.allocateDirect(20);
@@ -69,7 +87,7 @@ public class TestMegaByteBuffer {
     }
 
     @Test
-    public void testOverlapPutInt() throws Throwable {
+    public void testOverlapPutInt() throws Exception {
         try(var qc = setConstants(true, 3, 0x0000000000000007L, 8);) {
 
             final MegaByteBuffer buf = MegaByteBuffer.allocateDirect(20);
@@ -107,7 +125,7 @@ public class TestMegaByteBuffer {
     }
 
     @Test
-    public void testOverlapPutLong() throws Throwable {
+    public void testOverlapPutLong() throws Exception {
         try(var qc = setConstants(true, 3, 0x0000000000000007L, 8);) {
 
             final MegaByteBuffer buf = MegaByteBuffer.allocateDirect(20);
@@ -139,7 +157,7 @@ public class TestMegaByteBuffer {
     }
 
     @Test
-    public void testStreamWrite() throws Throwable {
+    public void testStreamWrite() throws Exception {
         try(var qc = setConstants(true, 3, 0x0000000000000007L, 8);) {
 
             final MegaByteBuffer buf = MegaByteBuffer.allocateDirect(20);
@@ -158,7 +176,7 @@ public class TestMegaByteBuffer {
     }
 
     @Test
-    public void testStreamWriteAligned() throws Throwable {
+    public void testStreamWriteAligned() throws Exception {
         try(var qc = setConstants(true, 3, 0x0000000000000007L, 8);) {
 
             final MegaByteBuffer buf = MegaByteBuffer.allocateDirect(24);

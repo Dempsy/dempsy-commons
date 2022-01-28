@@ -11,7 +11,7 @@ import org.junit.Test;
 public class TestByteBufferHelper {
 
     @Test
-    public void testStreamWrite() throws Throwable {
+    public void testStreamWrite() throws Exception {
         final ByteBuffer buf = ByteBuffer.allocateDirect(20);
         for(byte i = 0; i < 20; i++)
             buf.put(i, i);
@@ -26,7 +26,7 @@ public class TestByteBufferHelper {
     }
 
     @Test
-    public void testStreamWriteAligned() throws Throwable {
+    public void testStreamWriteAligned() throws Exception {
         final ByteBuffer buf = ByteBuffer.allocateDirect(24);
         for(byte i = 0; i < 24; i++)
             buf.put(i, i);

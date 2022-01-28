@@ -4,9 +4,7 @@ import static net.dempsy.util.Functional.uncheck;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -37,6 +35,7 @@ public class TestMegaByteBufferLargeRandomFile {
     public static byte[] expectedLongStraddleBytes = new byte[Long.BYTES];
     public static long expectedLongStraddleLong;
     public static File dstFile;
+    public static String md5OfSequence;
 
     @ClassRule public static CloseableRule setupFile = new CloseableRule(() -> {
         try {
@@ -49,6 +48,7 @@ public class TestMegaByteBufferLargeRandomFile {
             {
                 System.out.println("Building file ...");
                 final Random rand = new Random(seed);
+                final MessageDigest md = uncheck(() -> MessageDigest.getInstance("MD5"));
                 try(final RandomAccessFile f = new RandomAccessFile(dstFile, "rws");) {
                     final FileChannel channel = f.getChannel();
                     channel.truncate(FILE_SIZE);
@@ -66,6 +66,7 @@ public class TestMegaByteBufferLargeRandomFile {
                     mbb.streamOfByteBuffers().forEach(bb -> {
                         while(bb.hasRemaining()) {
                             final byte val = (byte)rand.nextInt();
+                            md.update(val);
                             bb.put(val);
                             // pick out the byte array that straddles a couple partitions to use
                             // as an expected value in test asserts
@@ -83,7 +84,9 @@ public class TestMegaByteBufferLargeRandomFile {
 
                     mbb.force();
                 }
-                System.out.println("DONE!");
+                final byte[] hash = md.digest();
+                md5OfSequence = HexStringUtil.bytesToHex(hash);
+                System.out.println("DONE! ... MD5 of sequence is " + md5OfSequence);
             }
 
             final RandomAccessFile f = new RandomAccessFile(dstFile, "r");
@@ -106,25 +109,46 @@ public class TestMegaByteBufferLargeRandomFile {
         {
             System.out.println("MD5 using stream ...");
             final MessageDigest md = uncheck(() -> MessageDigest.getInstance("MD5"));
-            try(DigestInputStream dis = new DigestInputStream(new BufferedInputStream(new FileInputStream(dstFile)), md);) {
+            final long startTime = System.currentTimeMillis();
+            try(DigestInputStream dis = new DigestInputStream(new MegaByteBufferInputStream(underTest), md);) {
                 while(dis.read() >= 0);
             }
             final byte[] hash = md.digest();
             md5UsingStream = HexStringUtil.bytesToHex(hash);
-            System.out.println("Done! MD5 is " + md5UsingStream);
+            System.out.println("Done! MD5 is " + md5UsingStream + " " + (System.currentTimeMillis() - startTime) + " millis");
         }
+        assertEquals(md5OfSequence, md5UsingStream);
+
+        final String md5UsingStreamBr;
+        {
+            System.out.println("MD5 using stream with block reads ...");
+            final MessageDigest md = uncheck(() -> MessageDigest.getInstance("MD5"));
+            final long startTime = System.currentTimeMillis();
+            final byte[] data = new byte[1024 * 1024];
+            try(DigestInputStream dis = new DigestInputStream(new MegaByteBufferInputStream(underTest), md);) {
+                while(dis.read(data, 0, 8192) >= 0);
+            }
+            final byte[] hash = md.digest();
+            md5UsingStreamBr = HexStringUtil.bytesToHex(hash);
+            System.out.println("Done! MD5 is " + md5UsingStreamBr + " " + (System.currentTimeMillis() - startTime) + " millis");
+        }
+        assertEquals(md5OfSequence, md5UsingStreamBr);
+
         final String md5UsingMbb;
         {
             System.out.println("MD5 using MegaByteBuffer ...");
             final MessageDigest md = uncheck(() -> MessageDigest.getInstance("MD5"));
+            final long startTime = System.currentTimeMillis();
             underTest.streamOfByteBuffers()
                 .forEach(bb -> md.update(bb));
             final byte[] hash = md.digest();
             md5UsingMbb = HexStringUtil.bytesToHex(hash);
-            System.out.println("Done! MD5 is " + md5UsingMbb);
+            System.out.println("Done! MD5 is " + md5UsingMbb + " " + (System.currentTimeMillis() - startTime) + " millis");
         }
 
         assertEquals(md5UsingStream, md5UsingMbb);
+
+        assertEquals(md5OfSequence, md5UsingMbb);
     }
 
     @Test
@@ -149,6 +173,12 @@ public class TestMegaByteBufferLargeRandomFile {
 
         for(int i = 0; i < HALF_TEST_BUF_LEN * 2; i++)
             assertEquals(expected[i], vals[i + offset]);
+    }
+
+    @Test
+    public void testReadingFromVeryEnd() throws Exception {
+        final byte[] data = new byte[8192];
+        underTest.getBytes(FILE_SIZE - 10, data, 0, 10);
     }
 
     @Test
