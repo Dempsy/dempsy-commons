@@ -53,7 +53,7 @@ public class Vfs implements AutoCloseable {
     public Path toPath(final URI uri) throws IOException {
         final FileSystem fs = fileSystem(uri);
         if(fs == null)
-            throw new IOException("Unsupported scheme " + uri.getScheme() + " for URI " + uri);
+            throw new IOException("Unsupported scheme \"" + uri.getScheme() + "\" for URI " + uri);
 
         return fs.createPath(uri);
     }
@@ -61,7 +61,7 @@ public class Vfs implements AutoCloseable {
     public File toFile(final URI uri) throws IOException {
         final FileSystem fs = fileSystem(uri);
         if(fs == null)
-            throw new IOException("Unsupported scheme " + uri.getScheme() + " for URI " + uri);
+            throw new IOException("Unsupported scheme \"" + uri.getScheme() + "\" for URI " + uri);
         return fs.toFile(uri);
     }
 

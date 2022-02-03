@@ -138,6 +138,27 @@ public class TestZipArchives extends BaseTest {
     }
 
     @Test
+    public void testZipWithNonAsciiEncodedFilename() throws Exception {
+        try(final Vfs vfs = getVfs();) {
+            final String file = vfs.toFile(new URI("classpath:///encoding.zip")).getAbsolutePath();
+            Path p = vfs.toPath(new URI("zip://" + file));
+            assertTrue(p.exists());
+            assertTrue(p.isDirectory());
+            assertEquals(1, p.list().length);
+            String name = UriUtils.getName(p.list()[0].uri());
+            // without a root directory '/' UriUtils.getName will leave the ENC on the uri
+            name = name.substring(name.indexOf('!') + 1);
+            assertEquals("Français.txt", name);
+            p = vfs.toPath(new URI("zip://" + file + "!" + name));
+            assertTrue(p.exists());
+            assertFalse(p.isDirectory());
+            try(InputStream is = p.read();) {
+                assertEquals("Hello World", IOUtils.toString(is, Charset.defaultCharset()));
+            }
+        }
+    }
+
+    @Test
     public void testZipInTar() throws Exception {
 
         try(final Vfs vfs = getVfs();) {
@@ -151,6 +172,7 @@ public class TestZipArchives extends BaseTest {
 
             p = vfs.toPath(new URI("zip:tar://" + file + tenc + "./simpleZip.zip"));
             assertTrue(p.isDirectory());
+            Arrays.stream(p.list()).map(pa -> pa.uri()).forEach(u -> System.out.println(u));
             assertEquals(2, p.list().length);
 
             p = vfs.toPath(new URI("zip:tar://" + file + tenc + "./simpleZip.zip" + zenc + "classpathReading/"));

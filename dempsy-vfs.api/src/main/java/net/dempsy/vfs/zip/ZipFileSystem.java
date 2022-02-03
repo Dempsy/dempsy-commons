@@ -1,10 +1,12 @@
-package net.dempsy.vfs;
+package net.dempsy.vfs.zip;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
+
+import net.dempsy.vfs.EncArchiveFileSystem;
 
 public class ZipFileSystem extends EncArchiveFileSystem {
 

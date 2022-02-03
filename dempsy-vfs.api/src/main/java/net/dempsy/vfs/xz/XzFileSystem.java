@@ -1,4 +1,4 @@
-package net.dempsy.vfs;
+package net.dempsy.vfs.xz;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -6,6 +6,8 @@ import java.io.OutputStream;
 
 import org.apache.commons.compress.compressors.xz.XZCompressorInputStream;
 import org.apache.commons.compress.compressors.xz.XZCompressorOutputStream;
+
+import net.dempsy.vfs.CompressedFileSystem;
 
 public class XzFileSystem extends CompressedFileSystem {
 

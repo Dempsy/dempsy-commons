@@ -1,4 +1,4 @@
-package net.dempsy.vfs;
+package net.dempsy.vfs.tar;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,6 +8,8 @@ import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.apache.commons.compress.compressors.xz.XZCompressorInputStream;
+
+import net.dempsy.vfs.EncArchiveFileSystem;
 
 public class TarFileSystem extends EncArchiveFileSystem {
 

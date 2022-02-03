@@ -1,10 +1,12 @@
-package net.dempsy.vfs;
+package net.dempsy.vfs.gz;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+
+import net.dempsy.vfs.CompressedFileSystem;
 
 public class GzFileSystem extends CompressedFileSystem {
 

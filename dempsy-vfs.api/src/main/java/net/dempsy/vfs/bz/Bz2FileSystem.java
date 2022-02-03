@@ -1,4 +1,4 @@
-package net.dempsy.vfs;
+package net.dempsy.vfs.bz;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -6,6 +6,8 @@ import java.io.OutputStream;
 
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
+
+import net.dempsy.vfs.CompressedFileSystem;
 
 public class Bz2FileSystem extends CompressedFileSystem {
 

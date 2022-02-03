@@ -67,10 +67,10 @@ public abstract class FileSystem {
     protected SplitUri splitUri(final URI uri, final String outerEnc) throws URISyntaxException {
         if(outerEnc == null || ignoreEnc(outerEnc))
             return new SplitUri(uri, outerEnc, "");
-        final int encIndex = uri.toASCIIString().indexOf(outerEnc);
+        final int encIndex = uri.toString().indexOf(outerEnc);
         if(encIndex < 0)
             return new SplitUri(uri, outerEnc, "");
-        return new SplitUri(new URI(uri.toASCIIString().substring(0, encIndex)), outerEnc, uri.toASCIIString().substring(encIndex + 1));
+        return new SplitUri(new URI(uri.toString().substring(0, encIndex)), outerEnc, uri.toString().substring(encIndex + 1));
     }
 
     protected boolean ignoreEnc(final String enc) {

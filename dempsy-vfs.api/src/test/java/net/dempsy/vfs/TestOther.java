@@ -19,6 +19,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
 import net.dempsy.util.UriUtils;
+import net.dempsy.vfs.zip.ZipFileSystem;
 
 public class TestOther extends BaseTest {
 
