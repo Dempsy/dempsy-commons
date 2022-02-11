@@ -14,10 +14,17 @@ import java.util.Arrays;
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.Tika;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import net.dempsy.util.UriUtils;
 
+@RunWith(Parameterized.class)
 public class TestZipArchives extends BaseTest {
+
+    public TestZipArchives(final Vfs vfs) {
+        super(vfs);
+    }
 
     private void assertMime(final String mime, final Path p) throws Exception {
         final Tika tika = new Tika();
@@ -97,6 +104,8 @@ public class TestZipArchives extends BaseTest {
                 .get();
             assertTrue(p.exists());
             assertFalse(p.isDirectory());
+            assertTrue(p.lastModifiedTime() >= 1642335069000L);
+            assertTrue(p.lastModifiedTime() <= (1642335069000L + 1000L));
             try(InputStream is = p.read();) {
                 assertEquals("Hello World", IOUtils.toString(is, Charset.defaultCharset()));
             }
@@ -108,6 +117,8 @@ public class TestZipArchives extends BaseTest {
             assertEquals(tmps, p.uri().toString());
             assertTrue(p.exists());
             assertFalse(p.isDirectory());
+            assertTrue(p.lastModifiedTime() >= 1642335069000L);
+            assertTrue(p.lastModifiedTime() <= (1642335069000L + 1000L));
             try(InputStream is = p.read();) {
                 assertEquals("Hello World", IOUtils.toString(is, Charset.defaultCharset()));
             }

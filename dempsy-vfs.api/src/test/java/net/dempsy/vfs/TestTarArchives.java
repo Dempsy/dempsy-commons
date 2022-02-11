@@ -15,8 +15,15 @@ import java.util.Arrays;
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.Tika;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
+@RunWith(Parameterized.class)
 public class TestTarArchives extends BaseTest {
+
+    public TestTarArchives(final Vfs vfs) {
+        super(vfs);
+    }
 
     @Test
     public void testTarEntryDirectToFile() throws Exception {
@@ -176,7 +183,7 @@ public class TestTarArchives extends BaseTest {
         // The test files are slightly inconsistent. In 3 the log4j.properties file comes before the classpathReading directory
         final int indexOfDir = subs[0].isDirectory() ? 0 : 1;
         Path indirect = subs[indexOfDir]; // classpathReading directory
-        assertEquals(new URI("tar:" + innerGzTarAsFile + "!" + pathInTar + "classpathReading/"), indirect.uri());
+        assertEquals(new URI("tar:" + innerGzTarAsFile + "!" + pathInTar + "classpathReading"), removeTrailingSlash(indirect.uri()));
         // so the other one is the log4j.properties file
         assertEquals(new URI("tar:" + innerGzTarAsFile + "!" + pathInTar + "log4j.properties"), subs[1 - indexOfDir].uri());
 
@@ -306,8 +313,8 @@ public class TestTarArchives extends BaseTest {
 
     private void testCompressedTar(final Vfs vfs, final String file, final String compositeScheme, final String singleScheme) throws Exception {
 
-        testCompressedTar(vfs, compositeScheme + "://" + file);
         testCompressedTar(vfs, singleScheme + "://" + file);
+        testCompressedTar(vfs, compositeScheme + "://" + file);
     }
 
     private void testCompressedTar(final Vfs vfs, final String urlPrefix) throws Exception {
@@ -332,11 +339,15 @@ public class TestTarArchives extends BaseTest {
             .get();
 
         try(InputStream is = text2Path.read();) {
+            assertTrue(text2Path.lastModifiedTime() >= 1642335069000L);
+            assertTrue(text2Path.lastModifiedTime() <= (1642335069000L + 1000L));
             assertEquals("Hello World", IOUtils.toString(is, Charset.defaultCharset()));
         }
 
         path = vfs.toPath(new URI(urlPrefix + "!./classpathReading/test2.txt"));
         try(InputStream is = path.read();) {
+            assertTrue(path.lastModifiedTime() >= 1642335069000L);
+            assertTrue(path.lastModifiedTime() <= (1642335069000L + 1000L));
             assertEquals("Hello World", IOUtils.toString(is, Charset.defaultCharset()));
         }
     }

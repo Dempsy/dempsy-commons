@@ -48,11 +48,6 @@
       <artifactId>xz</artifactId>
       <optional>true</optional>
     </dependency>
-    <dependency><!-- Required if using the optimized zip utils.vfs file system -->
-      <groupId>net.lingala.zip4j</groupId>
-      <artifactId>zip4j</artifactId>
-      <optional>true</optional>
-    </dependency>
     <dependency><!-- Required if using the 7zip utils.vfs file system (includes RAR)-->
       <groupId>net.sf.sevenzipjbinding</groupId>
       <artifactId>sevenzipjbinding</artifactId>

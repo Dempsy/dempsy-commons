@@ -17,11 +17,18 @@ import java.util.Arrays;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import net.dempsy.util.UriUtils;
 import net.dempsy.vfs.zip.ZipFileSystem;
 
+@RunWith(Parameterized.class)
 public class TestOther extends BaseTest {
+
+    public TestOther(final Vfs vfs) {
+        super(vfs);
+    }
 
     @Test
     public void testCrazyNestedWithBadChars() throws Exception {
@@ -284,6 +291,39 @@ public class TestOther extends BaseTest {
             testBadCharsFile(vfs, dirWithFiles, "file with back`tick.txt");
             testBadCharsFilePath(vfs, vfs.toPath(dirWithFiles.toURI()), "file with back`tick.txt");
 
+        }
+    }
+
+    @Test
+    public void testArchiveWithDoubleEntry() throws Exception {
+        try(final Vfs vfs = getVfs();) {
+            final File otherTestFile = vfs.toFile(new URI("classpath:///TimeZoneUtility.zip"));
+            assertTrue(otherTestFile.exists());
+
+            final String otherTestUriStr = "zip:" + otherTestFile.toURI().toString();
+            final URI otherTestUri = new URI(otherTestUriStr);
+            final Path otherTestZip = vfs.toPath(otherTestUri);
+            assertTrue(otherTestZip.exists());
+            assertTrue(otherTestZip.isDirectory());
+
+            assertEquals(2, otherTestZip.list().length);
+
+            Path p = vfs.toPath(UriUtils.resolve(otherTestUri, "!lib/common/TimeZoneUtility.jar"));
+            assertTrue(p.exists());
+            assertFalse(p.isDirectory());
+
+            p = vfs.toPath(new URI("zip:" + p.uri()));
+            assertTrue(p.exists());
+            assertTrue(p.isDirectory());
+
+            p = vfs.toPath(new URI(p.uri().toString() + "com/timezone/utility"));
+            assertTrue(p.exists());
+            assertTrue(p.isDirectory());
+
+            // some implementations of the filesystem can't handle duplicates and some can.
+            // so the number of children is going to be 1, if it can't handle dups. 2 otherwise.
+            final int len = p.list().length;
+            assertTrue(len == 1 || len == 2);
         }
     }
 

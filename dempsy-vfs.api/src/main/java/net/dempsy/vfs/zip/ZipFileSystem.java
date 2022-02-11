@@ -1,12 +1,15 @@
 package net.dempsy.vfs.zip;
 
-import java.io.IOException;
-import java.io.InputStream;
+import static net.dempsy.vfs.internal.DempsyArchiveInputStream.wrap;
 
-import org.apache.commons.compress.archivers.ArchiveInputStream;
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.net.URI;
+
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 
 import net.dempsy.vfs.EncArchiveFileSystem;
+import net.dempsy.vfs.internal.DempsyArchiveInputStream;
 
 public class ZipFileSystem extends EncArchiveFileSystem {
 
@@ -18,8 +21,8 @@ public class ZipFileSystem extends EncArchiveFileSystem {
     }
 
     @Override
-    protected ArchiveInputStream createArchiveInputStream(final String scheme, final InputStream inner) throws IOException {
-        return new ZipArchiveInputStream(inner);
+    protected DempsyArchiveInputStream createArchiveInputStream(final String scheme, final URI archiveUri, final boolean listingOnly) throws IOException {
+        return wrap(new ZipArchiveInputStream(new BufferedInputStream(vfs.toPath(archiveUri).read())));
     }
 
     @Override

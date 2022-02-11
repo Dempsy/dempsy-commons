@@ -18,7 +18,16 @@ public class ZCompressedFileSystem extends CompressedFileSystem {
 
     @Override
     protected InputStream wrap(final InputStream is) throws IOException {
-        return new ZCompressorInputStream(is);
+        final InputStream ret;
+        try {
+            ret = new ZCompressorInputStream(is);
+        } catch(final IllegalArgumentException | ArrayIndexOutOfBoundsException iae) {
+            // Apache's ZCompressorInputStream throws an IllegalArgumentException
+            // if the stream isn't actually Z compressed. This should be an IOException
+            // for us to handle correctly.
+            throw new IOException("The stream doesn't appear to be Z compressed.", iae);
+        }
+        return ret;
     }
 
     @Override
