@@ -15,11 +15,14 @@ import java.io.RandomAccessFile;
 import java.net.URI;
 import java.nio.channels.FileChannel;
 import java.nio.file.FileSystemNotFoundException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
@@ -34,6 +37,7 @@ import net.sf.sevenzipjbinding.ExtractOperationResult;
 import net.sf.sevenzipjbinding.IArchiveExtractCallback;
 import net.sf.sevenzipjbinding.IArchiveOpenCallback;
 import net.sf.sevenzipjbinding.IArchiveOpenVolumeCallback;
+import net.sf.sevenzipjbinding.ICryptoGetTextPassword;
 import net.sf.sevenzipjbinding.IInArchive;
 import net.sf.sevenzipjbinding.IInStream;
 import net.sf.sevenzipjbinding.ISequentialOutStream;
@@ -51,6 +55,7 @@ public class SevenZFileSystem extends CopiedArchiveFileSystem {
 
     private final String[] schemes;
     private final Map<String, String> compositeSchemes;
+    private final List<String> passwordsToTry = new ArrayList<>();
 
     public SevenZFileSystem() {
         super(ENC);
@@ -78,6 +83,36 @@ public class SevenZFileSystem extends CopiedArchiveFileSystem {
     }
 
     @Override
+    public void tryPasswords(final String... passwordsToTry) {
+        // by default this does nothing. If the archive supports password protection it needs to be managed there.
+        this.passwordsToTry.addAll(Arrays.asList(passwordsToTry));
+    }
+
+    private static class PasswordProvider implements Supplier<String> {
+        private int index = -1;
+        private final List<String> passwordsToTry = new ArrayList<>();
+        private boolean wasChecked = false;
+
+        private PasswordProvider(final List<String> passwordsToTry) {
+            this.passwordsToTry.addAll(passwordsToTry);
+        }
+
+        @Override
+        public String get() {
+            wasChecked = true;
+            index++;
+            if(index >= passwordsToTry.size())
+                return null;
+            return passwordsToTry.get(index);
+        }
+
+        public boolean hasNext() {
+            return (index + 1) < passwordsToTry.size();
+        }
+
+    }
+
+    @Override
     public LinkedHashMap<String, FileDetails> extract(final String scheme, final URI archiveUri, final File destinationDirectory) throws IOException {
 
         final boolean isRar = SCHEME_RAR.equals(scheme);
@@ -88,9 +123,9 @@ public class SevenZFileSystem extends CopiedArchiveFileSystem {
         final File archiveFile = ff.file;
         final boolean deleteArchiveFile = ff.deleteArchiveFile;
 
-        try(RandomAccessFile randomAccessFile = isRar ? null : new RandomAccessFile(archiveFile, "r");
+        try(final RandomAccessFile randomAccessFile = isRar ? null : new RandomAccessFile(archiveFile, "r");
             final ArchiveOpenVolumeCallback ovcb = isRar ? new ArchiveOpenVolumeCallback() : null;
-            IInArchive inArchive = isRar ? SevenZip.openInArchive(ArchiveFormat.RAR, ovcb.getStream(archiveFile.getAbsolutePath()), ovcb)
+            final IInArchive inArchive = isRar ? SevenZip.openInArchive(ArchiveFormat.RAR, ovcb.getStream(archiveFile.getAbsolutePath()), ovcb)
                 : SevenZip.openInArchive(null, // autodetect archive type
                     new RandomAccessFileInStream(randomAccessFile));
 
@@ -130,9 +165,23 @@ public class SevenZFileSystem extends CopiedArchiveFileSystem {
                 }
             }
 
-            try(var extractor = new MyExtractCallback(inArchive, files);) {
-                inArchive.extract(in, false, // Non-test mode
-                    extractor);
+            final var passwordProvider = new PasswordProvider(passwordsToTry);
+            try(final var extractor = new MyExtractCallback(inArchive, files, passwordProvider);) {
+
+                for(boolean done = false; !done;) {
+                    try {
+                        inArchive.extract(in, false, // Non-test mode
+                            extractor);
+                        done = true;
+                    } catch(final SevenZipException e) {
+                        if(passwordProvider.wasChecked) {
+                            done = !passwordProvider.hasNext();
+                            if(done)
+                                throw e;
+                        } else
+                            throw e;
+                    }
+                }
             }
 
         } finally {
@@ -187,8 +236,7 @@ public class SevenZFileSystem extends CopiedArchiveFileSystem {
         return new ForcedFile(archiveFile, deleteArchiveFile);
     }
 
-    private static class ArchiveOpenVolumeCallback
-        implements IArchiveOpenVolumeCallback, IArchiveOpenCallback, Closeable {
+    private static class ArchiveOpenVolumeCallback implements IArchiveOpenVolumeCallback, IArchiveOpenCallback, Closeable {
 
         /**
          * Cache for opened file streams
@@ -285,14 +333,16 @@ public class SevenZFileSystem extends CopiedArchiveFileSystem {
         public void setTotal(final Long files, final Long bytes) throws SevenZipException {}
     }
 
-    private static class MyExtractCallback implements IArchiveExtractCallback, Closeable {
+    private static class MyExtractCallback implements IArchiveExtractCallback, ICryptoGetTextPassword, Closeable {
         private boolean skipExtraction;
         private final IInArchive inArchive;
         private final File[] files;
+        private final Supplier<String> fetchPassword;
 
-        public MyExtractCallback(final IInArchive inArchive, final File[] files) {
+        public MyExtractCallback(final IInArchive inArchive, final File[] files, final Supplier<String> password) {
             this.inArchive = inArchive;
             this.files = files;
+            this.fetchPassword = password;
         }
 
         int osIndex = -1;
@@ -354,6 +404,11 @@ public class SevenZFileSystem extends CopiedArchiveFileSystem {
                 LOGGER.error("Extraction error:" + extractOperationResult);
                 throw new SevenZipException("Extraction error:" + extractOperationResult);
             }
+        }
+
+        @Override
+        public String cryptoGetTextPassword() throws SevenZipException {
+            return fetchPassword.get();
         }
 
         @Override

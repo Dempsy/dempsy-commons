@@ -147,6 +147,10 @@ public abstract class ArchiveFileSystem extends RecursiveFileSystem {
 
     protected abstract URI makeUriForArchiveEntry(final String scheme, final URI uri, final String pathInsideTarFile) throws IOException;
 
+    public void tryPasswords(final String... password) {
+        // by default this does nothing. If the archive supports password protection it needs to be managed there.
+    }
+
     @Override
     protected Path doCreatePath(final URI uri) throws IOException {
 
