@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,8 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.dempsy.vfs.internal.DempsyArchiveEntry;
+import net.dempsy.vfs.internal.DempsyArchiveInputStream;
 import net.dempsy.vfs.internal.LocalArchiveInputStream.FileDetails;
 import net.sf.sevenzipjbinding.ArchiveFormat;
 import net.sf.sevenzipjbinding.ExtractAskMode;
@@ -84,8 +87,98 @@ public class SevenZFileSystem extends CopiedArchiveFileSystem {
 
     @Override
     public void tryPasswords(final String... passwordsToTry) {
-        // by default this does nothing. If the archive supports password protection it needs to be managed there.
         this.passwordsToTry.addAll(Arrays.asList(passwordsToTry));
+    }
+
+    private static class ArEntry implements DempsyArchiveEntry {
+
+        public final String name;
+        public final boolean isDir;
+        public final long size;
+        public final Date lmdate;
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public long getSize() {
+            return size;
+        }
+
+        @Override
+        public boolean isDirectory() {
+            return isDir;
+        }
+
+        @Override
+        public Date getLastModifiedDate() {
+            return lmdate;
+        }
+
+        public ArEntry(final String name, final boolean isDir, final long size, final Date lmdate) {
+            this.name = name;
+            this.isDir = isDir;
+            this.size = size;
+            this.lmdate = lmdate;
+        }
+
+        @Override
+        public File direct() {
+            return null;
+        }
+
+    }
+
+    @Override
+    public DempsyArchiveInputStream listingStream(final String scheme, final URI archiveUri) throws IOException {
+        final boolean isRar = SCHEME_RAR.equals(scheme);
+
+        final ForcedFile ff = forceToFile(scheme, archiveUri);
+        final File archiveFile = ff.file;
+        final boolean deleteArchiveFile = ff.deleteArchiveFile;
+
+        try(final RandomAccessFile randomAccessFile = isRar ? null : new RandomAccessFile(archiveFile, "r");
+            final ArchiveOpenVolumeCallback ovcb = isRar ? new ArchiveOpenVolumeCallback() : null;
+            final IInArchive inArchive = isRar ? SevenZip.openInArchive(ArchiveFormat.RAR, ovcb.getStream(archiveFile.getAbsolutePath()), ovcb)
+                : SevenZip.openInArchive(null, // autodetect archive type
+                    new RandomAccessFileInStream(randomAccessFile));
+
+        ) {
+            final int numItems = inArchive.getNumberOfItems();
+            final List<ArEntry> ret = new ArrayList<>(numItems);
+            final int[] in = new int[numItems];
+            for(int i = 0; i < in.length; i++) {
+                in[i] = i;
+                final String name = (String)inArchive.getProperty(i, PropID.PATH);
+                final Date lastModTimeObj = (Date)inArchive.getProperty(i, PropID.LAST_MODIFICATION_TIME);
+                final Long sizeObj = (Long)inArchive.getProperty(i, PropID.SIZE);
+                final long size = sizeObj == null ? -1 : sizeObj;
+                final boolean isDir = (Boolean)inArchive.getProperty(i, PropID.IS_FOLDER);
+
+                ret.add(new ArEntry(name, isDir, size, lastModTimeObj));
+            }
+
+            return new DempsyArchiveInputStream() {
+
+                private final Iterator<ArEntry> iter = ret.iterator();
+
+                @Override
+                public DempsyArchiveEntry getNextEntry() throws IOException {
+                    return iter.hasNext() ? iter.next() : null;
+                }
+
+                @Override
+                public int read() throws IOException {
+                    throw new UnsupportedOperationException("Cannot read the data from an archive entry creating for listing only");
+                }
+            };
+        } finally {
+            if(deleteArchiveFile)
+                FileUtils.deleteQuietly(archiveFile);
+        }
+
     }
 
     private static class PasswordProvider implements Supplier<String> {
