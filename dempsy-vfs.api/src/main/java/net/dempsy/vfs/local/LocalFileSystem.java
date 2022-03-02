@@ -145,6 +145,15 @@ public class LocalFileSystem extends FileSystem {
             return file.isDirectory();
         }
 
+        @Override
+        public void mkdirs() throws IOException {
+            if(file.exists()) {
+                if(!file.isDirectory())
+                    throw new IOException("The path \"" + file.getAbsolutePath() + "\" exists already but isn't a directory.");
+            } else if(!file.mkdirs())
+                throw new IOException("Failed to create the directory \"" + file.getAbsolutePath() + "\" for unknown reasons.");
+        }
+
         private static class ByteBufferResource implements Closeable {
             private final MegaByteBuffer mbb;
             private final RandomAccessFile raf;
