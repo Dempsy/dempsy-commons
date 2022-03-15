@@ -24,6 +24,7 @@ public class TarFileSystem extends EncArchiveFileSystem {
         super(ENC);
     }
 
+    @SuppressWarnings("resource")
     @Override
     public DempsyArchiveInputStream createArchiveInputStream(final String scheme, final URI archiveUri, final boolean listingOnly) throws IOException {
         InputStream ret = new BufferedInputStream(vfs.toPath(archiveUri).read());
