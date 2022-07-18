@@ -38,7 +38,11 @@ public class TestOther extends BaseTest {
 
             final String fn = "tar In Bla Bla Bla.tar.bz2";
             final String fnEncoded = encodePath(fn);
-            final String fullPathToFnEnc = new File(tDir, fnEncoded).getAbsolutePath();
+            
+            // this is to handle windows
+            String fullPathToFnEnc = new File(tDir, fnEncoded).getAbsolutePath().replace(File.separatorChar, '/');
+            if (!fullPathToFnEnc.startsWith("/"))
+            	fullPathToFnEnc = "/" + fullPathToFnEnc;
 
             final File outerFile = new File(tDir, "tar In Bla Bla Bla.tar.bz2");
             assertTrue(outerFile.exists());

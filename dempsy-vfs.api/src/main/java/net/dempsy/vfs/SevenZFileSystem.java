@@ -31,6 +31,7 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.dempsy.util.UriUtils;
 import net.dempsy.vfs.internal.DempsyArchiveEntry;
 import net.dempsy.vfs.internal.DempsyArchiveInputStream;
 import net.dempsy.vfs.internal.LocalArchiveInputStream.FileDetails;
@@ -48,6 +49,7 @@ import net.sf.sevenzipjbinding.PropID;
 import net.sf.sevenzipjbinding.SevenZip;
 import net.sf.sevenzipjbinding.SevenZipException;
 import net.sf.sevenzipjbinding.impl.RandomAccessFileInStream;
+import static net.dempsy.util.UriUtils.*;
 
 public class SevenZFileSystem extends CopiedArchiveFileSystem {
     private static final Logger LOGGER = LoggerFactory.getLogger(SevenZFileSystem.class);
@@ -130,7 +132,7 @@ public class SevenZFileSystem extends CopiedArchiveFileSystem {
         }
 
     }
-
+    
     @Override
     public DempsyArchiveInputStream listingStream(final String scheme, final URI archiveUri) throws IOException {
         final boolean isRar = SCHEME_RAR.equals(scheme);
@@ -151,7 +153,7 @@ public class SevenZFileSystem extends CopiedArchiveFileSystem {
             final int[] in = new int[numItems];
             for(int i = 0; i < in.length; i++) {
                 in[i] = i;
-                final String name = (String)inArchive.getProperty(i, PropID.PATH);
+                final String name = uriCompliantRelPath((String)inArchive.getProperty(i, PropID.PATH));
                 final Date lastModTimeObj = (Date)inArchive.getProperty(i, PropID.LAST_MODIFICATION_TIME);
                 final Long sizeObj = (Long)inArchive.getProperty(i, PropID.SIZE);
                 final long size = sizeObj == null ? -1 : sizeObj;
@@ -227,7 +229,7 @@ public class SevenZFileSystem extends CopiedArchiveFileSystem {
             final File[] files = new File[in.length];
             for(int i = 0; i < in.length; i++) {
                 in[i] = i;
-                final String name = (String)inArchive.getProperty(i, PropID.PATH);
+                final String name = uriCompliantRelPath((String)inArchive.getProperty(i, PropID.PATH));
                 final File file = new File(destinationDirectory, name);
 
                 final Date lastModTimeObj = (Date)inArchive.getProperty(i, PropID.LAST_MODIFICATION_TIME);

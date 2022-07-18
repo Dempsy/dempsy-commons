@@ -20,14 +20,20 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import static net.dempsy.util.UriUtils.*;
 
 @RunWith(Parameterized.class)
 public class PathImplTest {
+	
+	@Rule
+	public TemporaryFolder tmpdir = new TemporaryFolder();
 
     public static ClassPathXmlApplicationContext nfsctx;
     public static Vfs vfs;
@@ -43,55 +49,36 @@ public class PathImplTest {
         nfsctx.close();
     }
 
-    public static interface FSSource {
-        AutoCloseable register() throws Exception;
-    }
-
-    // this is used for preconfigured sources
-    static FSSource preconf = () -> () -> {};
-
     @Parameters
     public static Collection<Object[]> setup() throws IOException {
 
-        final File tmpdir = Files.createTempDirectory("test").toFile();
         return Arrays.<Object[]>asList(
 
-            new Object[] {"ram","//" + tmpdir.toURI().getPath(),preconf},
-            new Object[] {"classpath","classpathReading/",preconf},
-            new Object[] {"classpath","//classpathReading/",preconf},
-            new Object[] {"classpath","///classpathReading/",preconf},
-            new Object[] {"file","//" + tmpdir.toURI().getPath(),
-                (FSSource)() -> {
-                    tmpdir.mkdirs();
-                    return () -> FileUtils.deleteDirectory(tmpdir);
-                }});
+            new Object[] {"ram", null },
+            new Object[] {"classpath","classpathReading/"},
+            new Object[] {"classpath","//classpathReading/"},
+            new Object[] {"classpath","///classpathReading/"},
+            new Object[] {"file", null }
+            		
+            );
     }
 
     private final String scheme;
     private final String prefix;
-    private final FSSource initializer;
-    private AutoCloseable running = null;
 
-    public PathImplTest(final String scheme, final String prefix, final FSSource initializer) {
+    public PathImplTest(final String scheme, final String prefix) {
         this.scheme = scheme;
-        this.initializer = initializer;
         this.prefix = prefix;
     }
 
-    @Before
-    public void before() throws Exception {
-        running = initializer.register();
+    private String getPrefix() throws IOException {
+    	if (prefix == null)
+    		return "//" + uriCompliantAbsPath(tmpdir.newFolder().getAbsolutePath()) + "/";
+    	return prefix;
     }
-
-    @After
-    public void close() throws Exception {
-        if(running != null)
-            running.close();
-    }
-
     @Test
     public void testToFile() throws Exception {
-        final URI uri = new URI(scheme + ":" + prefix + "test.txt");
+        final URI uri = new URI(scheme + ":" + getPrefix() + "test.txt");
         if(!"ram".equals(scheme))
             assertNotNull(vfs.toFile(uri));
         else { // expect FileSystemNotFoundException
@@ -107,7 +94,7 @@ public class PathImplTest {
 
     @Test
     public void testFileWriteAndReadbackAndDelete() throws Exception {
-        final URI uri = new URI(scheme + ":" + prefix + "test.txt");
+        final URI uri = new URI(scheme + ":" + getPrefix() + "test.txt");
         final Path path = vfs.toPath(uri);
 
         assertEquals(uri, path.uri());
@@ -139,6 +126,8 @@ public class PathImplTest {
     @Test
     public void testListContents() throws Exception {
         final byte[] strBytes = "Hello World".getBytes();
+        String prefix = getPrefix();
+        
         boolean canWrite = true;
         try {
             for(int i = 0; i < 10; i++) {

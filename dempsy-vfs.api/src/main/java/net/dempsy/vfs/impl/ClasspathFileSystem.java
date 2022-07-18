@@ -21,6 +21,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
+import net.dempsy.util.UriUtils;
 import net.dempsy.vfs.FileSystem;
 import net.dempsy.vfs.Path;
 
@@ -169,7 +170,7 @@ public class ClasspathFileSystem extends FileSystem {
                 // we need to force recursion. We only want the contents of the immediate directory.
                 // .peek(r -> System.out.println(new File(getPathPotentialJarPath(uncheck(() -> r.getURI()))).getParent()))
                 .filter(r -> {
-                    String curPath = new File(getPathPotentialJarPath(uncheck(() -> r.getURI()))).getParent();
+                    String curPath = UriUtils.uriCompliantAbsPath(new File(getPathPotentialJarPath(uncheck(() -> r.getURI()))).getParent());
                     if(curPath.endsWith("/"))
                         curPath = curPath.substring(0, curPath.length() - 1);
                     return pathToCompare.equals(curPath);

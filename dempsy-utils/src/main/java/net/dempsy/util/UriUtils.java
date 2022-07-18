@@ -20,6 +20,8 @@ public class UriUtils {
 
     public static final String SEP = "/";
     public static final char SEP_CHAR = '/';
+    
+    private static boolean IS_NATURALLY_COMPLIANT = File.separatorChar == SEP_CHAR;
 
     /**
      * Parse the query string into a multi-map. Edge cases:
@@ -390,6 +392,24 @@ public class UriUtils {
 
         return r;
     }
+    
+    
+    public static String uriCompliantAbsPath(String path) {
+    	if (IS_NATURALLY_COMPLIANT)
+    		return path;
+    	else {
+    		var ret = path.replace(File.separatorChar, SEP_CHAR);
+    		return !ret.startsWith(SEP) ? ("" + SEP_CHAR + ret) : ret;
+    	}
+     }
+
+    public static String uriCompliantRelPath(String path) {
+    	if (IS_NATURALLY_COMPLIANT)
+    		return path;
+    	else {
+    		return path.replace(File.separatorChar, SEP_CHAR);
+    	}
+     }
 
     private static void add(final Map<String, List<String>> map, final String key, final String value) {
         map.computeIfAbsent(key, k -> new ArrayList<>()).add(value);

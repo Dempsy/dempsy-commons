@@ -18,6 +18,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import net.dempsy.util.UriUtils;
+import static net.dempsy.util.UriUtils.*;
 
 @RunWith(Parameterized.class)
 public class TestZipArchives extends BaseTest {
@@ -36,7 +37,7 @@ public class TestZipArchives extends BaseTest {
     @Test
     public void testRecursiveCompression() throws Exception {
         try(final Vfs vfs = getVfs();) {
-            String file = UriUtils.sanitize(vfs.toFile(new URI("classpath:///simpleTarInTar.tar.gz.bz2.Z.gz.gz.gz")).getAbsolutePath()).toString();
+            String file = UriUtils.sanitize(uriCompliantAbsPath(vfs.toFile(new URI("classpath:///simpleTarInTar.tar.gz.bz2.Z.gz.gz.gz")).getAbsolutePath())).toString();
 
             Path p = vfs.toPath(new URI(file));
             assertTrue(p.exists());
@@ -129,7 +130,7 @@ public class TestZipArchives extends BaseTest {
     public void testZip() throws Exception {
 
         try(final Vfs vfs = getVfs();) {
-            final Path p = vfs.toPath(new URI("zip://" + vfs.toFile(new URI("classpath:///simpleZip.zip")).getAbsolutePath()));
+            final Path p = vfs.toPath(new URI("zip://" + uriCompliantAbsPath(vfs.toFile(new URI("classpath:///simpleZip.zip")).getAbsolutePath())));
             assertTrue(p.isDirectory());
             Arrays.stream(p.list())
                 .forEach(u -> {
@@ -151,7 +152,7 @@ public class TestZipArchives extends BaseTest {
     @Test
     public void testZipWithNonAsciiEncodedFilename() throws Exception {
         try(final Vfs vfs = getVfs();) {
-            final String file = vfs.toFile(new URI("classpath:///encoding.zip")).getAbsolutePath();
+            final String file = uriCompliantAbsPath(vfs.toFile(new URI("classpath:///encoding.zip")).getAbsolutePath());
             Path p = vfs.toPath(new URI("zip://" + file));
             assertTrue(p.exists());
             assertTrue(p.isDirectory());
@@ -173,7 +174,7 @@ public class TestZipArchives extends BaseTest {
     public void testZipInTar() throws Exception {
 
         try(final Vfs vfs = getVfs();) {
-            final String file = vfs.toFile(new URI("classpath:///zipInTar.tar")).getAbsolutePath();
+            final String file = uriCompliantAbsPath(vfs.toFile(new URI("classpath:///zipInTar.tar")).getAbsolutePath());
 
             Path p;
 
