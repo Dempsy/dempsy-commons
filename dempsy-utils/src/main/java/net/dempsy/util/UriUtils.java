@@ -14,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 public class UriUtils {
 
@@ -367,12 +368,20 @@ public class UriUtils {
         final boolean trailingSlash = path.charAt(path.length() - 1) == SEP_CHAR;
 
         final String ftmp = tmp;
-        final URI furi = uncheck(() -> new URI("file:" + ftmp));
-
-        String r = Paths.get(furi).toFile().getPath();
-        if(File.separatorChar != SEP_CHAR)
+        
+        String r;
+        if (File.separatorChar != SEP_CHAR) { // we're not on a unixy OS ... probably windows (or maybe a Vax)
+        	String replacement = UUID.randomUUID().toString();
+            final URI furi = uncheck(() -> new URI("file:" + ftmp.replaceAll(":", replacement)));
+        	
+            r = Paths.get(furi).toFile().getPath();
             r = r.replace(File.separatorChar, SEP_CHAR);
+            r = r.replaceAll(replacement, ":");
+        } else {
+            final URI furi = uncheck(() -> new URI("file:" + ftmp));
 
+            r = Paths.get(furi).toFile().getPath();
+        }
         if(addedSep && r.charAt(0) == SEP_CHAR)
             r = r.substring(1);
 
