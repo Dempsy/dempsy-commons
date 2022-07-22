@@ -5,12 +5,12 @@
   <parent>
     <groupId>net.dempsy</groupId>
     <artifactId>dempsy-commons-settings</artifactId>
-    <version>2.3.1</version>
+    <version>2.4.0</version>
     <relativePath>../dempsy-commons-settings/pom.xml</relativePath>
   </parent>
 
   <artifactId>dempsy-commons-bom</artifactId>
-  <version>2.3.4-SNAPSHOT</version>
+  <!-- <version>2.4.0</version> -->
   <name>dempsy-commons-bom</name>
   <description>BOM for importing into your pom</description>
   <packaging>pom</packaging>
@@ -19,27 +19,26 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <!-- These are the CURRENT versions -->
-    <dempsy-serialization.api.version>2.1.3-SNAPSHOT</dempsy-serialization.api.version>
-    <dempsy-serialization.jackson.version>2.1.5-SNAPSHOT</dempsy-serialization.jackson.version>
-    <dempsy-serialization.java.version>2.1.1-SNAPSHOT</dempsy-serialization.java.version>
-    <dempsy-serialization.kryo.version>2.1.3-SNAPSHOT</dempsy-serialization.kryo.version>
+    <dempsy-serialization.api.version>2.4.0</dempsy-serialization.api.version>
+    <dempsy-serialization.jackson.version>2.4.0</dempsy-serialization.jackson.version>
+    <dempsy-serialization.java.version>2.4.0</dempsy-serialization.java.version>
+    <dempsy-serialization.kryo.version>2.4.0</dempsy-serialization.kryo.version>
 
-    <dempsy-utils.version>2.3.0-SNAPSHOT</dempsy-utils.version>
-    <dempsy-test-utils.version>2.2.2-SNAPSHOT</dempsy-test-utils.version>
-    <dempsy-ringbuffer.version>2.2.2-SNAPSHOT</dempsy-ringbuffer.version>
+    <dempsy-utils.version>2.4.0</dempsy-utils.version>
+    <dempsy-test-utils.version>2.4.0</dempsy-test-utils.version>
+    <dempsy-ringbuffer.version>2.4.0</dempsy-ringbuffer.version>
     
-    <dempsy-cluster.api.version>2.1.1-SNAPSHOT</dempsy-cluster.api.version>
-    <dempsy-cluster.zookeeper.version>2.1.5-SNAPSHOT</dempsy-cluster.zookeeper.version>
-    <dempsy-cluster.local.version>2.1.2-SNAPSHOT</dempsy-cluster.local.version>
+    <dempsy-cluster.api.version>2.4.0</dempsy-cluster.api.version>
+    <dempsy-cluster.zookeeper.version>2.4.0</dempsy-cluster.zookeeper.version>
+    <dempsy-cluster.local.version>2.4.0</dempsy-cluster.local.version>
     
-    <dempsy-distconfig.api.version>2.0.2-SNAPSHOT</dempsy-distconfig.api.version>
-    <dempsy-distconfig.clusterinfo.version>2.0.5-SNAPSHOT</dempsy-distconfig.clusterinfo.version>
-    <dempsy-distconfig.apachevfs.version>2.0.2-SNAPSHOT</dempsy-distconfig.apachevfs.version>
-    <dempsy-distconfig.main.version>2.0.5-SNAPSHOT</dempsy-distconfig.main.version>
-    <dempsy-distconfig.classpath.version>2.0.4-SNAPSHOT</dempsy-distconfig.classpath.version>
+    <dempsy-distconfig.api.version>2.4.0</dempsy-distconfig.api.version>
+    <dempsy-distconfig.clusterinfo.version>2.4.0</dempsy-distconfig.clusterinfo.version>
+    <dempsy-distconfig.apachevfs.version>2.4.0</dempsy-distconfig.apachevfs.version>
+    <dempsy-distconfig.main.version>2.4.0</dempsy-distconfig.main.version>
+    <dempsy-distconfig.classpath.version>2.4.0</dempsy-distconfig.classpath.version>
     
-    <dempsy-vfs.api.version>2.3.0-SNAPSHOT</dempsy-vfs.api.version>
-    
+    <dempsy-vfs.api.version>2.4.0</dempsy-vfs.api.version>
   </properties>
 
   <!-- This section provides some unifority of dependencies for all dempsy-commons projects -->

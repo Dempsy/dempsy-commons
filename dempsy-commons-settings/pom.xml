@@ -5,7 +5,7 @@
 
   <groupId>net.dempsy</groupId>
   <artifactId>dempsy-commons-settings</artifactId>
-  <version>2.3.1</version>
+  <version>2.4.0</version>
   <name>dempsy-commons-settings</name>
   <description>Dempsy Commons Global Settings</description>
   <packaging>pom</packaging>
