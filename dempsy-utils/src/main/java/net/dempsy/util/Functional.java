@@ -3,6 +3,7 @@ package net.dempsy.util;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
@@ -455,5 +456,15 @@ public class Functional {
                         action.accept(e.nextElement());
                 }
             }, false);
+    }
+
+    public static <T> Stream<T> iteratorAsStream(final Iterator<T> iterator) {
+
+        // Convert the iterator to Spliterator
+        final Spliterator<T> spliterator = Spliterators
+            .spliteratorUnknownSize(iterator, 0);
+
+        // Get a Sequential Stream from spliterator
+        return StreamSupport.stream(spliterator, false);
     }
 }
