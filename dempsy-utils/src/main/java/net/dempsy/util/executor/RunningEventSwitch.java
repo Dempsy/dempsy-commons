@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2022 Jim Carroll
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,7 +78,7 @@ public class RunningEventSwitch {
 
     /**
      * The worker thread can use this method to check if it's been explicitly preempted.
-     * 
+     *
      * @return
      */
     public boolean wasPreempted() {

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2022 Jim Carroll
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package net.dempsy.util;
 
 import static net.dempsy.util.Functional.uncheck;
@@ -20,7 +36,7 @@ public class UriUtils {
 
     public static final String SEP = "/";
     public static final char SEP_CHAR = '/';
-    
+
     private static boolean IS_NATURALLY_COMPLIANT = File.separatorChar == SEP_CHAR;
 
     /**
@@ -370,12 +386,12 @@ public class UriUtils {
         final boolean trailingSlash = path.charAt(path.length() - 1) == SEP_CHAR;
 
         final String ftmp = tmp;
-        
+
         String r;
-        if (File.separatorChar != SEP_CHAR) { // we're not on a unixy OS ... probably windows (or maybe a Vax)
-        	String replacement = UUID.randomUUID().toString();
+        if(File.separatorChar != SEP_CHAR) { // we're not on a unixy OS ... probably windows (or maybe a Vax)
+            final String replacement = UUID.randomUUID().toString();
             final URI furi = uncheck(() -> new URI("file:" + ftmp.replaceAll(":", replacement)));
-        	
+
             r = Paths.get(furi).toFile().getPath();
             r = r.replace(File.separatorChar, SEP_CHAR);
             r = r.replaceAll(replacement, ":");
@@ -392,24 +408,23 @@ public class UriUtils {
 
         return r;
     }
-    
-    
-    public static String uriCompliantAbsPath(String path) {
-    	if (IS_NATURALLY_COMPLIANT)
-    		return path;
-    	else {
-    		var ret = path.replace(File.separatorChar, SEP_CHAR);
-    		return !ret.startsWith(SEP) ? ("" + SEP_CHAR + ret) : ret;
-    	}
-     }
 
-    public static String uriCompliantRelPath(String path) {
-    	if (IS_NATURALLY_COMPLIANT)
-    		return path;
-    	else {
-    		return path.replace(File.separatorChar, SEP_CHAR);
-    	}
-     }
+    public static String uriCompliantAbsPath(final String path) {
+        if(IS_NATURALLY_COMPLIANT)
+            return path;
+        else {
+            final var ret = path.replace(File.separatorChar, SEP_CHAR);
+            return !ret.startsWith(SEP) ? ("" + SEP_CHAR + ret) : ret;
+        }
+    }
+
+    public static String uriCompliantRelPath(final String path) {
+        if(IS_NATURALLY_COMPLIANT)
+            return path;
+        else {
+            return path.replace(File.separatorChar, SEP_CHAR);
+        }
+    }
 
     private static void add(final Map<String, List<String>> map, final String key, final String value) {
         map.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
