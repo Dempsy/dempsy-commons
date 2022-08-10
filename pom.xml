@@ -42,7 +42,7 @@
 
     <!-- <module>dempsy-vfs.api</module> -->
     
-    <!-- <module>dempsy-test-utils</module> -->
+    <module>dempsy-test-utils</module>
     <module>dempsy-utils</module>
   </modules>
 
