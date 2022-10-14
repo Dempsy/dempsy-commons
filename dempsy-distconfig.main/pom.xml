@@ -6,13 +6,13 @@
   <parent>
     <groupId>net.dempsy</groupId>
     <artifactId>dempsy-commons</artifactId>
-    <version>2.4.0</version>
+    <version>2.4.1-SNAPSHOT</version>
     <relativePath>../dempsy-commons-parentpom/pom.xml</relativePath>
   </parent>
 
   <artifactId>dempsy-distconfig.main</artifactId>
   <name>dempsy-distconfig spring configurable main application</name>
-  <!-- <version>2.4.0</version> -->
+  <!-- <version>2.4.1-SNAPSHOT</version> -->
 
   <dependencies>
     <dependency>

@@ -38,9 +38,9 @@
     <!-- <module>dempsy-distconfig.classpath</module> -->
     <!-- <module>dempsy-distconfig.clusterinfo</module> -->
     <!-- <module>dempsy-distconfig.apachevfs</module> -->
-    <!-- <module>dempsy-distconfig.main</module> -->
+    <module>dempsy-distconfig.main</module>
 
-    <!-- <module>dempsy-vfs.api</module> -->
+    <module>dempsy-vfs.api</module>
     
     <module>dempsy-test-utils</module>
     <module>dempsy-utils</module>
