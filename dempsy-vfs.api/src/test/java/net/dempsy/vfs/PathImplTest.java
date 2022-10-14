@@ -1,24 +1,20 @@
 package net.dempsy.vfs;
 
+import static net.dempsy.util.UriUtils.uriCompliantAbsPath;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.nio.file.FileSystemNotFoundException;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collection;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -27,13 +23,11 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import static net.dempsy.util.UriUtils.*;
 
 @RunWith(Parameterized.class)
 public class PathImplTest {
-	
-	@Rule
-	public TemporaryFolder tmpdir = new TemporaryFolder();
+
+    @Rule public TemporaryFolder tmpdir = new TemporaryFolder();
 
     public static ClassPathXmlApplicationContext nfsctx;
     public static Vfs vfs;
@@ -54,13 +48,13 @@ public class PathImplTest {
 
         return Arrays.<Object[]>asList(
 
-            new Object[] {"ram", null },
+            new Object[] {"ram",null},
             new Object[] {"classpath","classpathReading/"},
             new Object[] {"classpath","//classpathReading/"},
             new Object[] {"classpath","///classpathReading/"},
-            new Object[] {"file", null }
-            		
-            );
+            new Object[] {"file",null}
+
+        );
     }
 
     private final String scheme;
@@ -72,10 +66,11 @@ public class PathImplTest {
     }
 
     private String getPrefix() throws IOException {
-    	if (prefix == null)
-    		return "//" + uriCompliantAbsPath(tmpdir.newFolder().getAbsolutePath()) + "/";
-    	return prefix;
+        if(prefix == null)
+            return "//" + uriCompliantAbsPath(tmpdir.newFolder().getAbsolutePath()) + "/";
+        return prefix;
     }
+
     @Test
     public void testToFile() throws Exception {
         final URI uri = new URI(scheme + ":" + getPrefix() + "test.txt");
@@ -126,8 +121,8 @@ public class PathImplTest {
     @Test
     public void testListContents() throws Exception {
         final byte[] strBytes = "Hello World".getBytes();
-        String prefix = getPrefix();
-        
+        final String prefix = getPrefix();
+
         boolean canWrite = true;
         try {
             for(int i = 0; i < 10; i++) {

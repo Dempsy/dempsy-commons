@@ -1,6 +1,7 @@
 package net.dempsy.vfs;
 
 import static net.dempsy.util.Functional.uncheck;
+import static net.dempsy.util.UriUtils.uriCompliantRelPath;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -31,7 +32,6 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.dempsy.util.UriUtils;
 import net.dempsy.vfs.internal.DempsyArchiveEntry;
 import net.dempsy.vfs.internal.DempsyArchiveInputStream;
 import net.dempsy.vfs.internal.LocalArchiveInputStream.FileDetails;
@@ -49,7 +49,6 @@ import net.sf.sevenzipjbinding.PropID;
 import net.sf.sevenzipjbinding.SevenZip;
 import net.sf.sevenzipjbinding.SevenZipException;
 import net.sf.sevenzipjbinding.impl.RandomAccessFileInStream;
-import static net.dempsy.util.UriUtils.*;
 
 public class SevenZFileSystem extends CopiedArchiveFileSystem {
     private static final Logger LOGGER = LoggerFactory.getLogger(SevenZFileSystem.class);
@@ -132,7 +131,7 @@ public class SevenZFileSystem extends CopiedArchiveFileSystem {
         }
 
     }
-    
+
     @Override
     public DempsyArchiveInputStream listingStream(final String scheme, final URI archiveUri) throws IOException {
         final boolean isRar = SCHEME_RAR.equals(scheme);
