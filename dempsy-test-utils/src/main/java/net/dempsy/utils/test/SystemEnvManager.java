@@ -79,6 +79,8 @@ public class SystemEnvManager implements AutoCloseable {
             throw new RuntimeException("Something changed in java itself, or this is an unsupported platform.", cnfe);
         } catch(final IllegalAccessException iae) {
             throw new RuntimeException("Something changed in java itself, or this is an unsupported platform.", iae);
+        } catch(final Exception iae) {
+            throw new RuntimeException("Something changed in java itself, or this is an unsupported platform.", iae);
         }
         return this;
     }
