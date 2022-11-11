@@ -250,7 +250,8 @@ public class SevenZFileSystem extends CopiedArchiveFileSystem {
                         file.delete();
 
                     // touch the file
-                    try(FileChannel outChan = new FileOutputStream(file, true).getChannel()) {
+                    try(var fos = new FileOutputStream(file, true);
+                        FileChannel outChan = fos.getChannel();) {
                         outChan.truncate(0);
                     }
                 } else {
