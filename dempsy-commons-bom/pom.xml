@@ -35,10 +35,10 @@
     <dempsy-distconfig.api.version>2.4.0</dempsy-distconfig.api.version>
     <dempsy-distconfig.clusterinfo.version>2.4.0</dempsy-distconfig.clusterinfo.version>
     <dempsy-distconfig.apachevfs.version>2.4.0</dempsy-distconfig.apachevfs.version>
-    <dempsy-distconfig.main.version>2.4.0</dempsy-distconfig.main.version>
+    <dempsy-distconfig.main.version>2.4.1-SNAPSHOT</dempsy-distconfig.main.version>
     <dempsy-distconfig.classpath.version>2.4.0</dempsy-distconfig.classpath.version>
     
-    <dempsy-vfs.api.version>2.4.0</dempsy-vfs.api.version>
+    <dempsy-vfs.api.version>2.4.1-SNAPSHOT</dempsy-vfs.api.version>
   </properties>
 
   <!-- This section provides some unifority of dependencies for all dempsy-commons projects -->
