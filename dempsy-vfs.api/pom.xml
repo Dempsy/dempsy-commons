@@ -11,7 +11,7 @@
   </parent>
 
   <artifactId>dempsy-vfs.api</artifactId>
-  <!-- <version>2.4.1-SNAPSHOT</version> -->
+<!--  <version>2.4.1-SNAPSHOT</version> -->
   <name>Dempsy Simple Virtual File System api with default impls.</name>
 
   <dependencies>
@@ -63,13 +63,13 @@
       <artifactId>sevenzipjbinding-linux-arm64</artifactId>
       <optional>true</optional>
     </dependency>
-
-    <!-- Testing -->
-    <dependency>
+    <dependency> <!-- Required for FileSpec -->
       <groupId>org.apache.tika</groupId>
       <artifactId>tika-core</artifactId>
-      <scope>test</scope>
+      <optional>true</optional>
     </dependency>
+
+    <!-- Testing -->
     <dependency>
       <groupId>net.dempsy</groupId>
       <artifactId>dempsy-test-utils</artifactId>
