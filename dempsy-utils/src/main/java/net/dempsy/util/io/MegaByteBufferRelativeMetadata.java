@@ -318,7 +318,7 @@ public class MegaByteBufferRelativeMetadata {
      * @param dst
      *     The array into which bytes are to be written
      *
-     * @param offset
+     * @param dstOffset
      *     The offset within the array of the first byte to be
      *     written; must be non-negative and no larger than
      *     {@code dst.length}
@@ -430,7 +430,7 @@ public class MegaByteBufferRelativeMetadata {
      * @param src
      *     The array from which bytes are to be read
      *
-     * @param offset
+     * @param dstOffset
      *     The offset within the array of the first byte to be read;
      *     must be non-negative and no larger than {@code array.length}
      *

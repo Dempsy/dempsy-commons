@@ -30,40 +30,40 @@ import java.util.Set;
  * For example:
  * <P>
  *
- * &nbsp&nbsp&nbsp&nbsp java myclass -option value
+ * &nbsp;&nbsp;&nbsp;&nbsp; java myclass -option value
  * <P>
  *
  * will allow the following:
  * <P>
  *
- * &nbsp&nbsp static public main(String [] args) {<BR>
- * &nbsp&nbsp&nbsp&nbsp CommandLineParser clp = new CommandLineParser(args);<BR>
- * &nbsp&nbsp&nbsp&nbsp String val = clp["option"];<BR>
- * &nbsp&nbsp&nbsp&nbsp System.out.println ("option = " + val);<BR>
- * &nbsp&nbsp }
+ * &nbsp;&nbsp; static public main(String [] args) {<BR>
+ * &nbsp;&nbsp;&nbsp;&nbsp; CommandLineParser clp = new CommandLineParser(args);<BR>
+ * &nbsp;&nbsp;&nbsp;&nbsp; String val = clp["option"];<BR>
+ * &nbsp;&nbsp;&nbsp;&nbsp; System.out.println ("option = " + val);<BR>
+ * &nbsp;&nbsp; }
  * <P>
  *
  * to yield:
  * <P>
  *
- * &nbsp&nbsp option = value
+ * &nbsp;&nbsp; option = value
  * <P>
  *
  * The following:
  * <P>
  *
- * &nbsp&nbsp java myclass unoptionedvalue -option1 value1 -option2
+ * &nbsp;&nbsp; java myclass unoptionedvalue -option1 value1 -option2
  * -option3 value3
  * <P>
  *
  * will result in the following map:
- * <P>
- * <P>
+ * <P></P>
+ * <P></P>
  *
  * <table BORDER="1">
+ * <caption></caption>
  * <tr>
- * <td>
- * <B>name</B></td>
+ * <td><B>name</B></td>
  * <td><B>value</B></td>
  * </tr>
  * <tr>

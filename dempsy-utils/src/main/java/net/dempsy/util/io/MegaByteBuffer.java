@@ -136,8 +136,6 @@ public abstract class MegaByteBuffer {
      * This is an <em>absolute</em> get from the ByteBuffer. It will fill the
      * byte array provided.
      *
-     * @param from
-     *     is the ByteBuffer to retrieve the bytes from
      * @param index
      *     is where to retrieve the bytes from
      * @param buffer
@@ -149,8 +147,6 @@ public abstract class MegaByteBuffer {
     /**
      * This is an <em>absolute</em> get from the ByteBuffer.
      *
-     * @param from
-     *     is the ByteBuffer to retrieve the bytes from
      * @param index
      *     is where to retrieve the bytes from
      * @param buffer
@@ -166,8 +162,6 @@ public abstract class MegaByteBuffer {
     /**
      * This is an <em>absolute</em> get from the ByteBuffer.
      *
-     * @param from
-     *     is the ByteBuffer to retrieve the bytes from
      * @param index
      *     is where to retrieve the bytes from
      * @param size
