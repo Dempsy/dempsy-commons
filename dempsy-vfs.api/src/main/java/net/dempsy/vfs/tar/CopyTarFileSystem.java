@@ -10,6 +10,7 @@ import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.archivers.tar.TarConstants;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.apache.commons.compress.compressors.xz.XZCompressorInputStream;
 
@@ -43,6 +44,6 @@ public class CopyTarFileSystem extends CopiedArchiveFileSystem {
             ret = new BZip2CompressorInputStream(ret);
         else if("txz".equals(scheme))
             ret = new XZCompressorInputStream(ret);
-        return new TarArchiveInputStream(ret);
+        return new TarArchiveInputStream(ret,TarConstants.DEFAULT_BLKSIZE,TarConstants.DEFAULT_RCDSIZE, "UTF-8", true);
     }
 }
