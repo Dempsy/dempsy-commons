@@ -12,9 +12,9 @@ import net.dempsy.util.UriUtils;
 
 public abstract class CompressedFileSystem extends RecursiveFileSystem {
 
-    protected abstract InputStream wrap(InputStream is) throws IOException;
+    protected abstract InputStream wrap(Path path, InputStream is) throws IOException;
 
-    protected abstract OutputStream wrap(OutputStream os) throws IOException;
+    protected abstract OutputStream wrap(Path path, OutputStream os) throws IOException;
 
     @Override
     protected Path doCreatePath(final URI uri) throws IOException {
@@ -28,7 +28,7 @@ public abstract class CompressedFileSystem extends RecursiveFileSystem {
 
             @Override
             public OutputStream write() throws IOException {
-                return wrap(innerPath.write());
+                return wrap(this, innerPath.write());
             }
 
             @Override
@@ -38,7 +38,7 @@ public abstract class CompressedFileSystem extends RecursiveFileSystem {
 
             @Override
             public InputStream read() throws IOException {
-                return wrap(new BufferedInputStream(innerPath.read()));
+                return wrap(this, new BufferedInputStream(innerPath.read()));
             }
 
             // compressed filesystems paths are never directories. Think gzip, not zip or tar.

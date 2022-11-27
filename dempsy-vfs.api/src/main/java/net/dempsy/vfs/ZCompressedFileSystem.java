@@ -17,7 +17,7 @@ public class ZCompressedFileSystem extends CompressedFileSystem {
     }
 
     @Override
-    protected InputStream wrap(final InputStream is) throws IOException {
+    protected InputStream wrap(final Path path, final InputStream is) throws IOException {
         final InputStream ret;
         try {
             ret = new ZCompressorInputStream(is);
@@ -31,7 +31,7 @@ public class ZCompressedFileSystem extends CompressedFileSystem {
     }
 
     @Override
-    protected OutputStream wrap(final OutputStream os) throws IOException {
+    protected OutputStream wrap(final Path path, final OutputStream os) throws IOException {
         return new ZstdCompressorOutputStream(os);
     }
 

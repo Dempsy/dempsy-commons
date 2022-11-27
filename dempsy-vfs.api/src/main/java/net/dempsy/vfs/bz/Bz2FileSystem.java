@@ -8,6 +8,7 @@ import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 
 import net.dempsy.vfs.CompressedFileSystem;
+import net.dempsy.vfs.Path;
 
 public class Bz2FileSystem extends CompressedFileSystem {
 
@@ -19,12 +20,12 @@ public class Bz2FileSystem extends CompressedFileSystem {
     }
 
     @Override
-    protected InputStream wrap(final InputStream is) throws IOException {
+    protected InputStream wrap(final Path path, final InputStream is) throws IOException {
         return new BZip2CompressorInputStream(is);
     }
 
     @Override
-    protected OutputStream wrap(final OutputStream os) throws IOException {
+    protected OutputStream wrap(final Path path, final OutputStream os) throws IOException {
         return new BZip2CompressorOutputStream(os);
     }
 

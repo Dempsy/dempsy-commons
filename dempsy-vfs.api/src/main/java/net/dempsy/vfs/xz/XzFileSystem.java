@@ -8,6 +8,7 @@ import org.apache.commons.compress.compressors.xz.XZCompressorInputStream;
 import org.apache.commons.compress.compressors.xz.XZCompressorOutputStream;
 
 import net.dempsy.vfs.CompressedFileSystem;
+import net.dempsy.vfs.Path;
 
 public class XzFileSystem extends CompressedFileSystem {
 
@@ -19,12 +20,12 @@ public class XzFileSystem extends CompressedFileSystem {
     }
 
     @Override
-    protected InputStream wrap(final InputStream is) throws IOException {
+    protected InputStream wrap(final Path path, final InputStream is) throws IOException {
         return new XZCompressorInputStream(is);
     }
 
     @Override
-    protected OutputStream wrap(final OutputStream os) throws IOException {
+    protected OutputStream wrap(final Path path, final OutputStream os) throws IOException {
         return new XZCompressorOutputStream(os);
     }
 }

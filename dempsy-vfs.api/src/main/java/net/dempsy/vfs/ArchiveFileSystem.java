@@ -57,7 +57,8 @@ public abstract class ArchiveFileSystem extends RecursiveFileSystem {
         }
 
         public ArchiveEntryPath(final URI uri, final URI entryUri, final DempsyArchiveEntry ae) {
-            this(uri, entryUri, ae.getName(), ae.isDirectory(), ae.getLastModifiedDate().getTime(), ae.getSize(), ae.direct());
+            this(uri, entryUri, ae.getName(), ae.isDirectory(), Optional.ofNullable(ae.getLastModifiedDate()).map(d -> d.getTime()).orElse(0L), ae.getSize(),
+                ae.direct());
         }
 
         private void updateDetails(final ArchiveEntryPath aep) {

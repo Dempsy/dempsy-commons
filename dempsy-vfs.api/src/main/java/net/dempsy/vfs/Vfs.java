@@ -7,12 +7,17 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.dempsy.util.QuietCloseable;
 import net.dempsy.vfs.apache.ApacheVfsFileSystem;
 import net.dempsy.vfs.impl.ClasspathFileSystem;
 import net.dempsy.vfs.local.LocalFileSystem;
@@ -21,6 +26,7 @@ public class Vfs implements AutoCloseable {
     private static final Logger LOGGER = LoggerFactory.getLogger(Vfs.class);
 
     private final ConcurrentHashMap<String, FileSystem> fileSystems = new ConcurrentHashMap<>();
+    private Context context = null;
 
     public Vfs(final FileSystem... fileSystems) throws IOException {
         if(fileSystems != null && fileSystems.length > 0)
@@ -63,6 +69,48 @@ public class Vfs implements AutoCloseable {
         if(fs == null)
             throw new IOException("Unsupported scheme \"" + uri.getScheme() + "\" for URI " + uri);
         return fs.toFile(uri);
+    }
+
+    public Context context() {
+        if(context == null)
+            context = new Context();
+
+        context.count++;
+        return context;
+    }
+
+    public class Context implements QuietCloseable {
+        private final LinkedList<AutoCloseable> toClose = new LinkedList<>();
+        private final Map<String, AutoCloseable> lookup = new HashMap<>();
+        private int count = 0;
+
+        public <T extends AutoCloseable> T add(final String key, final T resource) {
+            if(resource != null) {
+                toClose.add(0, resource);
+                lookup.put(key, resource);
+            }
+            return resource;
+        }
+
+        public <T extends AutoCloseable> T get(final String key, final Supplier<T> makeIfAbsent) {
+            @SuppressWarnings("unchecked")
+            T ret = (T)lookup.get(key);
+            if(ret == null && makeIfAbsent != null) {
+                ret = makeIfAbsent.get();
+                if(ret != null)
+                    add(key, ret);
+            }
+            return ret;
+        }
+
+        @Override
+        public void close() {
+            count--;
+            if(count <= 0) {
+                toClose.stream().forEach(r -> uncheck(() -> r.close()));
+                context = null;
+            }
+        }
     }
 
     @Override

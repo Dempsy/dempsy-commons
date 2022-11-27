@@ -7,6 +7,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import net.dempsy.vfs.CompressedFileSystem;
+import net.dempsy.vfs.Path;
 
 public class GzFileSystem extends CompressedFileSystem {
 
@@ -18,12 +19,12 @@ public class GzFileSystem extends CompressedFileSystem {
     }
 
     @Override
-    protected InputStream wrap(final InputStream is) throws IOException {
+    protected InputStream wrap(final Path path, final InputStream is) throws IOException {
         return new GZIPInputStream(is);
     }
 
     @Override
-    protected OutputStream wrap(final OutputStream os) throws IOException {
+    protected OutputStream wrap(final Path path, final OutputStream os) throws IOException {
         return new GZIPOutputStream(os);
     }
 }

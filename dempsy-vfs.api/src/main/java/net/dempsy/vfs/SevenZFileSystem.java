@@ -29,9 +29,12 @@ import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.tika.Tika;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.dempsy.util.MimeUtils;
+import net.dempsy.util.UriUtils;
 import net.dempsy.vfs.internal.DempsyArchiveEntry;
 import net.dempsy.vfs.internal.DempsyArchiveInputStream;
 import net.dempsy.vfs.internal.LocalArchiveInputStream.FileDetails;
@@ -56,6 +59,7 @@ public class SevenZFileSystem extends CopiedArchiveFileSystem {
     public final static String SCHEME_RAR = "rar";
     public final static String[] SCHEMES = {"sevenz",SCHEME_RAR};
     public final static String ENC = "!";
+    public final static long MAX_ARCHIVE_WITHIN_ARCHIVE_BEFORE_FULL_EXPAND = 5;
 
     private final String[] schemes;
     private final Map<String, String> compositeSchemes;
@@ -150,6 +154,8 @@ public class SevenZFileSystem extends CopiedArchiveFileSystem {
             final int numItems = inArchive.getNumberOfItems();
             final List<ArEntry> ret = new ArrayList<>(numItems);
             final int[] in = new int[numItems];
+            final Tika tika = new Tika();
+            long archiveCount = 0;
             for(int i = 0; i < in.length; i++) {
                 in[i] = i;
                 final String name = uriCompliantRelPath((String)inArchive.getProperty(i, PropID.PATH));
@@ -158,8 +164,18 @@ public class SevenZFileSystem extends CopiedArchiveFileSystem {
                 final long size = sizeObj == null ? -1 : sizeObj;
                 final boolean isDir = (Boolean)inArchive.getProperty(i, PropID.IS_FOLDER);
 
+                // check if the file is an archive (within this archive)
+                if(MimeUtils.isArchive(tika.detect(UriUtils.getName(name))))
+                    archiveCount++;
+
+                if(archiveCount > MAX_ARCHIVE_WITHIN_ARCHIVE_BEFORE_FULL_EXPAND)
+                    break;
+
                 ret.add(new ArEntry(name, isDir, size, lastModTimeObj));
             }
+
+            if(archiveCount > MAX_ARCHIVE_WITHIN_ARCHIVE_BEFORE_FULL_EXPAND)
+                return createArchiveInputStream(scheme, archiveUri, false);
 
             return new DempsyArchiveInputStream() {
 
@@ -320,12 +336,15 @@ public class SevenZFileSystem extends CopiedArchiveFileSystem {
             }
 
             if(archiveFile == null) {
-                archiveFile = new File(makeFileFromArchiveUri(archiveUri).getAbsolutePath() + ".archive");
-                try(InputStream is = new BufferedInputStream(archivePath.read());
-                    OutputStream os = new BufferedOutputStream(new FileOutputStream(archiveFile))) {
-                    IOUtils.copy(is, os);
+                try(var vfscontext = vfs.context();) {
+                    final var cache = getCache(vfscontext);
+                    archiveFile = new File(cache.makeFileFromArchiveUri(archiveUri).getAbsolutePath() + ".archive");
+                    try(InputStream is = new BufferedInputStream(archivePath.read());
+                        OutputStream os = new BufferedOutputStream(new FileOutputStream(archiveFile))) {
+                        IOUtils.copy(is, os);
+                    }
+                    deleteArchiveFile = true;
                 }
-                deleteArchiveFile = true;
             }
         }
         return new ForcedFile(archiveFile, deleteArchiveFile);
