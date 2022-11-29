@@ -1,6 +1,7 @@
-package net.dempsy.vfs;
+package net.dempsy.vfs.test;
 
 import static net.dempsy.util.Functional.uncheck;
+import static net.dempsy.util.UriUtils.uriCompliantAbsPath;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -11,6 +12,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.function.Supplier;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.Tika;
@@ -19,18 +21,21 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import net.dempsy.util.UriUtils;
-import static net.dempsy.util.UriUtils.*;
+import net.dempsy.vfs2.Path;
+import net.dempsy.vfs2.Vfs;
+
 @RunWith(Parameterized.class)
 public class TestTarArchives extends BaseTest {
 
-    public TestTarArchives(final Vfs vfs) {
+    public TestTarArchives(final Supplier<Vfs> vfs) {
         super(vfs);
     }
 
     @Test
     public void testTarEntryDirectToFile() throws Exception {
         try(final Vfs vfs = getVfs();) {
-            final Path p = vfs.toPath(new URI("tar:file://" + uriCompliantAbsPath(vfs.toFile(new URI("classpath:///tar.tar")).getAbsolutePath()) + "!./log4j.properties"));
+            final Path p = vfs
+                .toPath(new URI("tar:file://" + uriCompliantAbsPath(vfs.toFile(new URI("classpath:///tar.tar")).getAbsolutePath()) + "!./log4j.properties"));
             assertFalse(p.isDirectory());
             try(var is = p.read();) {
                 assertNotNull(IOUtils.toString(is, Charset.defaultCharset()));
@@ -47,7 +52,8 @@ public class TestTarArchives extends BaseTest {
     private void testTarEntryDirectToDirectory(final String pathToDir) throws Exception {
 
         try(final Vfs vfs = getVfs();) {
-            final Path p = vfs.toPath(new URI("tar:file://" + uriCompliantAbsPath(vfs.toFile(new URI("classpath:///tar.tar")).getAbsolutePath()) + "!" + pathToDir));
+            final Path p = vfs
+                .toPath(new URI("tar:file://" + uriCompliantAbsPath(vfs.toFile(new URI("classpath:///tar.tar")).getAbsolutePath()) + "!" + pathToDir));
             assertTrue(p.isDirectory());
             final Path[] subs = p.list();
             assertEquals(11, subs.length);
@@ -69,7 +75,7 @@ public class TestTarArchives extends BaseTest {
     public void testTar() throws Exception {
 
         try(final Vfs vfs = getVfs();) {
-            final Path p = vfs.toPath(new URI("tar://" + uriCompliantAbsPath( vfs.toFile(new URI("classpath:///tar.tar")).getAbsolutePath())));
+            final Path p = vfs.toPath(new URI("tar://" + uriCompliantAbsPath(vfs.toFile(new URI("classpath:///tar.tar")).getAbsolutePath())));
             assertTrue(p.isDirectory());
             Arrays.stream(p.list())
                 .forEach(u -> {
@@ -89,7 +95,7 @@ public class TestTarArchives extends BaseTest {
     @Test
     public void testTarInTarInTar() throws Exception {
         try(final Vfs vfs = getVfs();) {
-            final String tarFile =  UriUtils.uriCompliantAbsPath(vfs.toFile(new URI("classpath:///trippleTarInTar.tar")).getAbsolutePath());
+            final String tarFile = UriUtils.uriCompliantAbsPath(vfs.toFile(new URI("classpath:///trippleTarInTar.tar")).getAbsolutePath());
             Path p = vfs.toPath(new URI("tar:file://" + tarFile));
             assertTrue(p.isDirectory());
             assertEquals(1, p.list().length);
@@ -197,7 +203,7 @@ public class TestTarArchives extends BaseTest {
         assertTrue(p.exists());
         assertTrue(p.isDirectory());
 
-        indirect = Arrays.stream(indirect.list()).filter(pa -> pa.uri().toString().contains("test2.txt")).findAny().orElse(null);
+        indirect = Arrays.stream(indirect.list()).filter(pa -> uncheck(() -> pa.uri()).toString().contains("test2.txt")).findAny().orElse(null);
         assertNotNull(indirect);
         p = vfs.toPath(new URI("tar:" + innerGzTarAsFile + "!" + pathInTar + "classpathReading/test2.txt"));
         assertTrue(p.exists());
@@ -217,7 +223,7 @@ public class TestTarArchives extends BaseTest {
     @Test
     public void testTarInTarDirect() throws Exception {
         try(final Vfs vfs = getVfs();) {
-            testTarInTarDirect(vfs, uriCompliantAbsPath( vfs.toFile(new URI("classpath:///simpleTarInTar.tar")).getAbsolutePath()), "./", 0);
+            testTarInTarDirect(vfs, uriCompliantAbsPath(vfs.toFile(new URI("classpath:///simpleTarInTar.tar")).getAbsolutePath()), "./", 0);
             testTarInTarDirect(vfs, uriCompliantAbsPath(vfs.toFile(new URI("classpath:///simpleTarInTar2.tar")).getAbsolutePath()), "", 0);
             testTarInTarDirect(vfs, uriCompliantAbsPath(vfs.toFile(new URI("classpath:///simpleTarInTar3.tar")).getAbsolutePath()), "/tmp/junk/", 2);
             testTarInTarDirect(vfs, uriCompliantAbsPath(vfs.toFile(new URI("classpath:///simpleTarInTar4.tar")).getAbsolutePath()), "tmp/junk/", 2);
@@ -292,7 +298,7 @@ public class TestTarArchives extends BaseTest {
     @Test
     public void testTarInGzTar() throws Exception {
         try(final Vfs vfs = getVfs();) {
-            final String file = uriCompliantAbsPath( vfs.toFile(new URI("classpath:///simpleTarInTar.tar")).getAbsolutePath());
+            final String file = uriCompliantAbsPath(vfs.toFile(new URI("classpath:///simpleTarInTar.tar")).getAbsolutePath());
             Path p = vfs.toPath(new URI("gz:tar://" + file + "!./tar.tar.gz"));
             assertFalse(p.isDirectory());
             try(var tis = p.read();) {}
@@ -300,7 +306,7 @@ public class TestTarArchives extends BaseTest {
             p = vfs.toPath(new URI("tar:gz:tar://" + file + "!./tar.tar.gz"));
             assertTrue(p.isDirectory());
             Arrays.stream(p.list())
-                .forEach(u -> System.out.println("" + uncheck(() -> u.isDirectory()) + ":" + u.uri()));
+                .forEach(u -> System.out.println("" + uncheck(() -> u.isDirectory()) + ":" + uncheck(() -> u.uri())));
         }
     }
 
@@ -336,7 +342,7 @@ public class TestTarArchives extends BaseTest {
         assertEquals(11, path.list().length);
 
         final Path text2Path = Arrays.stream(path.list())
-            .filter(u -> u.uri().toString().contains("test2.txt"))
+            .filter(u -> uncheck(() -> u.uri()).toString().contains("test2.txt"))
             .findAny()
             .get();
 

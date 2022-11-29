@@ -1,4 +1,4 @@
-package net.dempsy.vfs;
+package net.dempsy.vfs2;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -10,7 +10,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -49,7 +48,7 @@ public class TestClasspathToFileCopyNeeded {
 
     @Test
     public void testCopyRequired() throws Exception {
-        try(ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("spring/vfs.xml");) {
+        try(ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("spring/vfs2.xml");) {
             final Vfs vfs = ctx.getBean(Vfs.class);
             // each Apache jar file has this file, but it doesn't exist in anything we're likely to be
             // loading up the source for.
@@ -58,43 +57,50 @@ public class TestClasspathToFileCopyNeeded {
         }
     }
 
-    @Test
     @Ignore
+    @Test
     public void testEmptyDirectoryFromJar() throws Exception {
-        try(ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("spring/vfs.xml");) {
+        try(
+            ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("spring/vfs2.xml");) {
             final Vfs vfs = ctx.getBean(Vfs.class);
 
-            final Path path = vfs.toPath(new URI("classpath:///empty"));
-            final Path[] contents = path.list();
-            assertNotNull(contents);
-            assertEquals(0, contents.length);
+            try(OpContext oc = vfs.operation();) {
+                final Path path = oc.toPath(new URI("classpath:///empty"));
+                final Path[] contents = path.list();
+                assertNotNull(contents);
+                assertEquals(0, contents.length);
 
-            assertTrue(path.isDirectory());
+                assertTrue(path.isDirectory());
+            }
         }
     }
 
     @Test
     public void testEmptyDirectoryOnFilesystem() throws Exception {
-        try(ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("spring/vfs.xml");) {
+        try(ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("spring/vfs2.xml");) {
             final Vfs vfs = ctx.getBean(Vfs.class);
-            System.out.println(Arrays.toString(vfs.supportedSchemes()));
+            try(OpContext oc = vfs.operation();) {
 
-            final Path path = vfs.toPath(new URI("classpath:///fakedir"));
-            final Path[] contents = path.list();
-            assertNotNull(contents);
-            assertEquals(0, contents.length);
+                final Path path = oc.toPath(new URI("classpath:///fakedir"));
+                final Path[] contents = path.list();
+                assertNotNull(contents);
+                assertEquals(0, contents.length);
 
-            assertTrue(path.isDirectory());
+                assertTrue(path.isDirectory());
+            }
         }
     }
 
     @Test
     public void testMissingDirectory() throws Exception {
         assertThrows(FileNotFoundException.class, () -> {
-            try(ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("spring/vfs.xml");) {
+            try(ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("spring/vfs2.xml");) {
                 final Vfs vfs = ctx.getBean(Vfs.class);
-                final Path path = vfs.toPath(new URI("classpath:///emptyx"));
-                path.list();
+                try(OpContext oc = vfs.operation();) {
+
+                    final Path path = oc.toPath(new URI("classpath:///emptyx"));
+                    path.list();
+                }
             }
         });
     }

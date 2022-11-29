@@ -34,6 +34,7 @@ public abstract class CopiedArchiveFileSystem extends EncArchiveFileSystem {
     protected static final File TMP;
     private static final LinkedList<URI> cachedExpanded = new LinkedList<>();
     private static final Map<URI, LinkedHashMap<String, FileDetails>> cachedEntries = new HashMap<>();
+    private boolean useCache = false;
     private static final int DEFAULT_CACHE_LEN = 10;
     private static int cacheLen = DEFAULT_CACHE_LEN;
 
@@ -64,6 +65,10 @@ public abstract class CopiedArchiveFileSystem extends EncArchiveFileSystem {
         return createArchiveInputStream(scheme, archiveUri, false);
     }
 
+    public void noCaching() {
+        useCache = false;
+    }
+
     @Override
     public DempsyArchiveInputStream createArchiveInputStream(final String scheme, final URI archiveUri, final boolean listingOnly) throws IOException {
 
@@ -86,7 +91,8 @@ public abstract class CopiedArchiveFileSystem extends EncArchiveFileSystem {
                     removeCached(archiveUri);
                     throw ioe;
                 }
-                addCached(archiveUri, results);
+                if(useCache)
+                    addCached(archiveUri, results);
             } else
                 results = getCached(archiveUri);
         } else {
@@ -99,7 +105,8 @@ public abstract class CopiedArchiveFileSystem extends EncArchiveFileSystem {
                 removeCached(archiveUri);
                 throw ioe;
             }
-            addCached(archiveUri, results);
+            if(useCache)
+                addCached(archiveUri, results);
         }
 
         return new LocalArchiveInputStream(dest, results);

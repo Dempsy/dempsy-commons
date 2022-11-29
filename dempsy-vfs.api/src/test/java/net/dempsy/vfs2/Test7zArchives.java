@@ -1,5 +1,6 @@
-package net.dempsy.vfs;
+package net.dempsy.vfs2;
 
+import static net.dempsy.util.UriUtils.uriCompliantAbsPath;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -14,7 +15,6 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import static net.dempsy.util.UriUtils.*;
 
 @RunWith(Parameterized.class)
 public class Test7zArchives extends BaseTest {
@@ -25,8 +25,10 @@ public class Test7zArchives extends BaseTest {
 
     @Test
     public void test7zEntryDirectToFile() throws Exception {
-        try(final Vfs vfs = getVfs();) {
-            final Path p = vfs.toPath(new URI("sevenz:file://" + uriCompliantAbsPath(vfs.toFile(new URI("classpath:///7z.7z")).getAbsolutePath()) + "!log4j.properties"));
+        try(final Vfs vfs = getVfs();
+            OpContext oc = vfs.operation();) {
+            final Path p = oc
+                .toPath(new URI("sevenz:file://" + uriCompliantAbsPath(vfs.toFile(new URI("classpath:///7z.7z")).getAbsolutePath()) + "!log4j.properties"));
             assertFalse(p.isDirectory());
             try(var is = p.read();) {
                 assertNotNull(IOUtils.toString(is, Charset.defaultCharset()));
@@ -42,8 +44,10 @@ public class Test7zArchives extends BaseTest {
 
     private void test7zEntryDirectToDirectory(final String pathToDir) throws Exception {
 
-        try(final Vfs vfs = getVfs();) {
-            final Path p = vfs.toPath(new URI("sevenz:file://" + uriCompliantAbsPath(vfs.toFile(new URI("classpath:///7z.7z")).getAbsolutePath()) + "!" + pathToDir));
+        try(final Vfs vfs = getVfs();
+            OpContext oc = vfs.operation();) {
+            final Path p = oc
+                .toPath(new URI("sevenz:file://" + uriCompliantAbsPath(vfs.toFile(new URI("classpath:///7z.7z")).getAbsolutePath()) + "!" + pathToDir));
             assertTrue(p.isDirectory());
             final Path[] subs = p.list();
             assertEquals(11, subs.length);
@@ -65,8 +69,9 @@ public class Test7zArchives extends BaseTest {
 
     @Test
     public void test7z() throws Exception {
-        try(final Vfs vfs = getVfs();) {
-            final Path p = vfs.toPath(new URI("sevenz://" + uriCompliantAbsPath(vfs.toFile(new URI("classpath:///7z.7z")).getAbsolutePath())));
+        try(final Vfs vfs = getVfs();
+            OpContext oc = vfs.operation();) {
+            final Path p = oc.toPath(new URI("sevenz://" + uriCompliantAbsPath(vfs.toFile(new URI("classpath:///7z.7z")).getAbsolutePath())));
             assertTrue(p.isDirectory());
             Arrays.stream(p.list())
                 .forEach(u -> {
@@ -96,8 +101,10 @@ public class Test7zArchives extends BaseTest {
 
     @Test
     public void test7zInTar() throws Exception {
-        try(final Vfs vfs = getVfs();) {
-            final Path p = vfs.toPath(new URI("sevenz:tar://" + uriCompliantAbsPath(vfs.toFile(new URI("classpath:///7z.7z.tar")).getAbsolutePath()) + "!./7z.7z"));
+        try(final Vfs vfs = getVfs();
+            OpContext oc = vfs.operation();) {
+            final Path p = oc
+                .toPath(new URI("sevenz:tar://" + uriCompliantAbsPath(vfs.toFile(new URI("classpath:///7z.7z.tar")).getAbsolutePath()) + "!./7z.7z"));
             assertTrue(p.isDirectory());
             Arrays.stream(p.list())
                 .forEach(u -> {

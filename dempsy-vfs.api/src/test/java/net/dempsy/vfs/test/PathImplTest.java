@@ -1,15 +1,15 @@
-package net.dempsy.vfs;
+package net.dempsy.vfs.test;
 
 import static net.dempsy.util.UriUtils.uriCompliantAbsPath;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.nio.file.FileSystemNotFoundException;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -24,6 +24,9 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+import net.dempsy.vfs2.Path;
+import net.dempsy.vfs2.Vfs;
+
 @RunWith(Parameterized.class)
 public class PathImplTest {
 
@@ -34,7 +37,7 @@ public class PathImplTest {
 
     @BeforeClass
     public static void setupClass() {
-        nfsctx = new ClassPathXmlApplicationContext("spring/vfs.xml");
+        nfsctx = new ClassPathXmlApplicationContext("spring/vfs2.xml");
         vfs = nfsctx.getBean(Vfs.class);
     }
 
@@ -77,13 +80,7 @@ public class PathImplTest {
         if(!"ram".equals(scheme))
             assertNotNull(vfs.toFile(uri));
         else { // expect FileSystemNotFoundException
-            boolean caught = false;
-            try {
-                vfs.toFile(uri);
-            } catch(final FileSystemNotFoundException fsnfe) {
-                caught = true;
-            }
-            assertTrue(caught);
+            assertNull(vfs.toFile(uri));
         }
     }
 
