@@ -13,19 +13,21 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.dempsy.util.QuietCloseable;
 import net.dempsy.vfs.apache.ApacheVfsFileSystem;
-import net.dempsy.vfs.impl.ClasspathFileSystem;
 import net.dempsy.vfs.local.LocalFileSystem;
 
-public class Vfs implements AutoCloseable {
+public class Vfs implements QuietCloseable {
     private static final Logger LOGGER = LoggerFactory.getLogger(Vfs.class);
 
     private final ConcurrentHashMap<String, FileSystem> fileSystems = new ConcurrentHashMap<>();
+    private final OpContext globalContext;
 
     public Vfs(final FileSystem... fileSystems) throws IOException {
         if(fileSystems != null && fileSystems.length > 0)
             recheck(() -> Arrays.stream(fileSystems).forEach(s -> uncheck(() -> register(s))), IOException.class);
 
+        globalContext = operation();
         registerStandardFileSystems();
     }
 
@@ -50,12 +52,12 @@ public class Vfs implements AutoCloseable {
         return fileSystems.get(scheme);
     }
 
-    public Path toPath(final URI uri) throws IOException {
-        final FileSystem fs = fileSystem(uri);
-        if(fs == null)
-            throw new IOException("Unsupported scheme \"" + uri.getScheme() + "\" for URI " + uri);
+    public OpContext operation() {
+        return new OpContext(this, null);
+    }
 
-        return fs.createPath(uri);
+    public Path toPath(final URI uri) throws IOException {
+        return globalContext.toPath(uri);
     }
 
     public File toFile(final URI uri) throws IOException {
@@ -66,14 +68,14 @@ public class Vfs implements AutoCloseable {
     }
 
     @Override
-    public void close() throws IOException {
-        // recheck(() -> fileSystems.values().forEach(fs -> uncheck(() -> fs.close())), IOException.class);
+    public void close() {
+        globalContext.close();
     }
 
     public static class SpringHackDummyFs extends FileSystem {
 
         @Override
-        protected Path doCreatePath(final URI uri) throws IOException {
+        protected Path doCreatePath(final URI uri, final OpContext ctx) throws IOException {
             return null;
         }
 

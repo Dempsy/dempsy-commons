@@ -21,7 +21,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import net.dempsy.util.UriUtils;
-import net.dempsy.vfs2.zip.ZipFileSystem;
+import net.dempsy.vfs.OpContext;
+import net.dempsy.vfs.Path;
+import net.dempsy.vfs.Vfs;
+import net.dempsy.vfs.zip.ZipFileSystem;
 
 @RunWith(Parameterized.class)
 public class TestOther extends BaseTest {

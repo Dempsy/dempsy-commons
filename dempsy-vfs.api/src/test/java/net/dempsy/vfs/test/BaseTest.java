@@ -9,15 +9,15 @@ import java.util.function.Supplier;
 
 import org.junit.runners.Parameterized;
 
-import net.dempsy.vfs2.CopyingArchiveFileSystem;
-import net.dempsy.vfs2.SevenZArchiveFileSystem;
-import net.dempsy.vfs2.Vfs;
-import net.dempsy.vfs2.ZCompressedFileSystem;
-import net.dempsy.vfs2.bz.Bz2FileSystem;
-import net.dempsy.vfs2.gz.GzFileSystem;
-import net.dempsy.vfs2.tar.TarFileSystem;
-import net.dempsy.vfs2.xz.XzFileSystem;
-import net.dempsy.vfs2.zip.ZipFileSystem;
+import net.dempsy.vfs.CopyingArchiveFileSystem;
+import net.dempsy.vfs.SevenZArchiveFileSystem;
+import net.dempsy.vfs.Vfs;
+import net.dempsy.vfs.ZCompressedFileSystem;
+import net.dempsy.vfs.bz.Bz2FileSystem;
+import net.dempsy.vfs.gz.GzFileSystem;
+import net.dempsy.vfs.tar.TarFileSystem;
+import net.dempsy.vfs.xz.XzFileSystem;
+import net.dempsy.vfs.zip.ZipFileSystem;
 
 public class BaseTest {
     public static final String tenc = TarFileSystem.ENC;

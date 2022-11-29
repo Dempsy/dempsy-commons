@@ -24,6 +24,10 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+import net.dempsy.vfs.OpContext;
+import net.dempsy.vfs.Path;
+import net.dempsy.vfs.Vfs;
+
 @RunWith(Parameterized.class)
 public class PathImplTest {
 
@@ -34,7 +38,7 @@ public class PathImplTest {
 
     @BeforeClass
     public static void setupClass() {
-        nfsctx = new ClassPathXmlApplicationContext("spring/vfs2.xml");
+        nfsctx = new ClassPathXmlApplicationContext("spring/vfs.xml");
         vfs = nfsctx.getBean(Vfs.class);
     }
 

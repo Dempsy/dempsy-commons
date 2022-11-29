@@ -15,7 +15,9 @@ import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.tika.Tika;
@@ -29,7 +31,7 @@ import net.dempsy.util.io.MegaByteBufferInputStream;
 public class FileSpec {
 
     private final Path path;
-    private final URI uri;
+    private URI uriX = null;
     private String mime = null;
 
     private Header curHeader = null;
@@ -134,22 +136,29 @@ public class FileSpec {
 
     public FileSpec(final Path path) {
         this.path = path;
-        this.uri = path.uri();
+        this.uriX = null;
     }
 
-    public URI uri() {
-        return uri;
+    public URI uri() throws IOException {
+
+        if(uriX == null) {
+            uriX = path.uri();
+        }
+        return uriX;
     }
 
     public boolean exists() throws IOException {
+
         return path.exists();
     }
 
     public boolean isDirectory() throws IOException {
+
         return path.isDirectory();
     }
 
     public boolean isRecursable() throws IOException {
+
         if(isDirectory())
             return true;
 
@@ -163,14 +172,17 @@ public class FileSpec {
     }
 
     public long lastModifiedTime() throws IOException {
+
         return path.lastModifiedTime();
     }
 
     public long size() throws IOException {
+
         return path.length();
     }
 
     public boolean supportsMemoryMap() throws IOException {
+
         File file;
         try {
             file = path.toFile();
@@ -178,22 +190,31 @@ public class FileSpec {
             file = null;
         } catch(final FileSystemNotFoundException fsnfe) {
             file = null;
+        } catch(final UnsupportedOperationException uoe) {
+            file = null;
+        } // any RTE?
+        catch(final RuntimeException rte) {
+            file = null;
         }
 
         return file != null;
     }
 
+    @SuppressWarnings("resource")
     public InputStream getStandardInputStream() throws IOException {
+
         if(curHeader != null)
             return curHeader.wrap(new BufferedInputStream(path.read()));
         return new BufferedInputStream(path.read());
     }
 
     public InputStream getEfficientInputStream() throws IOException {
+
         return getEfficientInputStream(path.length());
     }
 
     public InputStream getEfficientInputStream(final long numBytes) throws IOException {
+
         if(supportsMemoryMap()) {
             final ByteBufferResource resource = mapFile(numBytes);
             return new MegaByteBufferInputStream(resource.mbb) {
@@ -209,12 +230,14 @@ public class FileSpec {
     }
 
     public ByteBufferResource mapFile() throws IOException {
+
         return mapFile(path.length());
     }
 
     public ByteBufferResource mapFile(final long bytesToMap) throws IOException {
+
         if(!supportsMemoryMap())
-            throw new UnsupportedOperationException("The file system \"" + uri.getScheme() + "\" doesn't support memory mapping.");
+            throw new UnsupportedOperationException("The file system \"" + uri().getScheme() + "\" doesn't support memory mapping.");
         return new ByteBufferResource(toFile(), Math.min(path.length(), bytesToMap));
     }
 
@@ -224,17 +247,20 @@ public class FileSpec {
      *     built in java Paths functionality.
      */
     public File toFile() throws IOException {
+
         return path.toFile();
     }
 
     public String mimeType() throws IOException {
+
         return mimeType(DEFAULT_MIME);
     }
 
     public String mimeType(final String defaultValue) throws IOException {
+
         if(mime == null) {
             final Tika tika = new Tika();
-            final String name = UriUtils.getName(uri);
+            final String name = UriUtils.getName(uri());
             if(curHeader != null && curHeader.pos != 0) {
                 try(var is = new ByteArrayInputStream(curHeader.buffer, 0, curHeader.pos);) {
                     final String ret = tika.detect(is, name);
@@ -275,10 +301,11 @@ public class FileSpec {
     }
 
     public void delete() throws IOException {
+
         path.delete();
     }
 
-    public FileSpec[] list(final Vfs vfs) throws IOException {
+    public FileSpec[] list(final OpContext oc) throws IOException {
         if(path.isDirectory())
             return Arrays.stream(path.list())
                 .map(p -> new FileSpec(p))
@@ -288,22 +315,29 @@ public class FileSpec {
             if(recurseScheme == null)
                 return new FileSpec[0];
             final URI newPath = uncheck(() -> UriUtils.prependScheme(recurseScheme, path.uri()));
-            return new FileSpec[] {new FileSpec(vfs.toPath(newPath))};
+            return new FileSpec[] {new FileSpec(oc.toPath(newPath))};
         }
     }
 
-    public FileSpec[] listSorted(final Vfs vfs) throws IOException {
-        if(path.isDirectory())
-            return Arrays.stream(path.list())
-                .map(p -> new FileSpec(p))
-                .sorted((o1, o2) -> o1.uri().toString().compareTo(o2.uri().toString()))
-                .toArray(FileSpec[]::new);
-        else {
+    public FileSpec[] listSorted(final OpContext oc) throws IOException {
+
+        if(path.isDirectory()) {
+            final List<QuietCloseable> toClose = new ArrayList<>();
+
+            try(var qc = (QuietCloseable)() -> toClose.forEach(q -> q.close());) {
+                final var ret = Arrays.stream(path.list())
+                    .map(p -> new FileSpec(p))
+                    .sorted((o1, o2) -> uncheck(() -> o1.uri().toString().compareTo(o2.uri().toString())))
+                    .toArray(FileSpec[]::new);
+
+                return ret;
+            }
+        } else {
             final String recurseScheme = MimeUtils.recurseScheme(mimeType());
             if(recurseScheme == null)
                 return new FileSpec[0];
             final URI newPath = uncheck(() -> UriUtils.prependScheme(recurseScheme, path.uri()));
-            return new FileSpec[] {new FileSpec(vfs.toPath(newPath))};
+            return new FileSpec[] {new FileSpec(oc.toPath(newPath))};
         }
     }
 
@@ -320,6 +354,6 @@ public class FileSpec {
 
     @Override
     public String toString() {
-        return uri.toString();
+        return uncheck(() -> uri()).toString();
     }
 }

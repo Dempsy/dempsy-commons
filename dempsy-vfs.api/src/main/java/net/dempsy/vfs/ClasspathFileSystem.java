@@ -1,4 +1,4 @@
-package net.dempsy.vfs.impl;
+package net.dempsy.vfs;
 
 import static net.dempsy.util.Functional.uncheck;
 
@@ -12,7 +12,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.util.Arrays;
-import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -22,8 +21,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import net.dempsy.util.UriUtils;
-import net.dempsy.vfs.FileSystem;
-import net.dempsy.vfs.Path;
 
 public class ClasspathFileSystem extends FileSystem {
     static private final Logger LOGGER = LoggerFactory.getLogger(ClasspathFileSystem.class);
@@ -34,7 +31,7 @@ public class ClasspathFileSystem extends FileSystem {
     }
 
     @Override
-    protected Path doCreatePath(final URI uriuri) throws IOException {
+    protected Path doCreatePath(final URI uriuri, final OpContext ctx) throws IOException {
         return new ClasspathPath(uriuri);
     }
 
@@ -48,7 +45,8 @@ public class ClasspathFileSystem extends FileSystem {
                 final File newRet = File.createTempFile("classpathVfs.", ".tmp");
                 LOGGER.debug("Copying the classpath resource \"" + fullPath + "\" to the temporary file \"" + newRet.getAbsolutePath()
                     + " in order to allow access as a file.");
-                try(final InputStream is = doCreatePath(uri).read();
+                try(OpContext ctx = vfs.operation();
+                    final InputStream is = doCreatePath(uri, ctx).read();
                     final OutputStream os = new BufferedOutputStream(new FileOutputStream(newRet));) {
                     IOUtils.copy(is, os);
                     newRet.deleteOnExit();
@@ -59,10 +57,6 @@ public class ClasspathFileSystem extends FileSystem {
             }
         } else
             return ret;
-    }
-
-    private static InputStream buffer(final InputStream is, final boolean gzipped) throws IOException {
-        return new BufferedInputStream(gzipped ? new GZIPInputStream(is) : is);
     }
 
     private static String getPath(final URI uriuri) {
@@ -103,14 +97,12 @@ public class ClasspathFileSystem extends FileSystem {
     private static final class ClasspathPath extends Path {
         private final URI uriuri;
         final private String path;
-        final boolean isGzipped;
 
         private Resource resource = null;
 
         private ClasspathPath(final URI uriuri) {
             this.uriuri = uriuri;
             path = getPath(uriuri);
-            isGzipped = path.endsWith(".gz");
         }
 
         @Override
@@ -124,7 +116,7 @@ public class ClasspathFileSystem extends FileSystem {
             if(is == null)
                 throw new FileNotFoundException(
                     "The resource on the classpath given by \"" + uriuri + "\" doesn't seem to exist.");
-            return buffer(is, isGzipped);
+            return new BufferedInputStream(is);
         }
 
         @Override
@@ -138,12 +130,7 @@ public class ClasspathFileSystem extends FileSystem {
         }
 
         @Override
-        public boolean handlesUngzipping() {
-            return true;
-        }
-
-        @Override
-        public Path[] list() throws IOException {
+        public Path[] list(final OpContext ctx) throws IOException {
             if(!exists())
                 throw new FileNotFoundException("Directory \"" + this.uri() + "\" doesn't seem to exist.");
 
@@ -181,7 +168,7 @@ public class ClasspathFileSystem extends FileSystem {
             final Path[] ret = new Path[resources.length];
 
             for(int i = 0; i < ret.length; i++)
-                ret[i] = vfs.toPath(resources[i].getURI());
+                ret[i] = ctx.toPath(resources[i].getURI());
 
             return ret;
         }

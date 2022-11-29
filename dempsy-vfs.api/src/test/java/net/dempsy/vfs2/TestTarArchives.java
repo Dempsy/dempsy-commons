@@ -20,6 +20,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import net.dempsy.util.UriUtils;
+import net.dempsy.vfs.OpContext;
+import net.dempsy.vfs.Path;
+import net.dempsy.vfs.Vfs;
 
 @RunWith(Parameterized.class)
 public class TestTarArchives extends BaseTest {

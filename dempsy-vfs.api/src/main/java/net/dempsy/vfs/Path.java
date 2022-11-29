@@ -6,21 +6,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.util.function.Supplier;
+
+import net.dempsy.util.QuietCloseable;
 
 public abstract class Path {
     protected Vfs vfs = null;
 
-    void setVfs(final Vfs vfs) {
+    protected OpContext ctx;
+
+    protected void setVfs(final Vfs vfs, final OpContext ctx) {
         this.vfs = vfs;
+        this.ctx = ctx;
     }
 
     public abstract URI uri();
 
     public abstract boolean exists() throws IOException;
-
-    public abstract InputStream read() throws IOException;
-
-    public abstract OutputStream write() throws IOException;
 
     public abstract boolean delete() throws IOException;
 
@@ -28,19 +30,23 @@ public abstract class Path {
 
     public abstract long length() throws IOException;
 
+    public abstract InputStream read() throws IOException;
+
+    public abstract OutputStream write() throws IOException;
+
     /**
      * This should return {@code null} if the {@link Path} isn't a directory/folder.
      * An empty folder will be an array with no elements. A {@link FileNotFoundException}
      * will be thrown if the path doesn't exist at all.
      */
-    public abstract Path[] list() throws IOException;
+    protected abstract Path[] list(OpContext ctx) throws IOException;
+
+    public Path[] list() throws IOException {
+        return list(ctx);
+    }
 
     public boolean isDirectory() throws IOException {
         return list() != null;
-    }
-
-    public boolean handlesUngzipping() {
-        return false;
     }
 
     /**
@@ -61,8 +67,13 @@ public abstract class Path {
     /**
      * Helper for allowing implementors to set the vfs on newly create Paths
      */
-    protected <T extends Path> T setVfs(final T p) {
-        p.setVfs(vfs);
+    protected <T extends Path> T setVfs(final T p, final OpContext ctx) {
+        p.setVfs(vfs, ctx);
         return p;
     }
+
+    protected <T extends QuietCloseable> T getContext(final String key, final Supplier<T> computeIfAbsent) {
+        return ctx.get(this, key, computeIfAbsent);
+    }
+
 }

@@ -14,6 +14,7 @@ import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.apache.commons.compress.compressors.xz.XZCompressorInputStream;
 
 import net.dempsy.vfs.EncArchiveFileSystem;
+import net.dempsy.vfs.OpContext;
 import net.dempsy.vfs.internal.DempsyArchiveInputStream;
 
 public class TarFileSystem extends EncArchiveFileSystem {
@@ -27,15 +28,16 @@ public class TarFileSystem extends EncArchiveFileSystem {
 
     @SuppressWarnings("resource")
     @Override
-    public DempsyArchiveInputStream createArchiveInputStream(final String scheme, final URI archiveUri, final boolean listingOnly) throws IOException {
-        InputStream ret = new BufferedInputStream(vfs.toPath(archiveUri).read());
+    public DempsyArchiveInputStream createArchiveInputStream(final String scheme, final URI archiveUri, final boolean listingOnly, final OpContext ctx)
+        throws IOException {
+        InputStream ret = new BufferedInputStream(ctx.toPath(archiveUri).read());
         if("tgz".equals(scheme))
             ret = new GZIPInputStream(ret);
         else if("tbz2".equals(scheme))
             ret = new BZip2CompressorInputStream(ret);
         else if("txz".equals(scheme))
             ret = new XZCompressorInputStream(ret);
-        return wrap(new TarArchiveInputStream(ret,TarConstants.DEFAULT_BLKSIZE,TarConstants.DEFAULT_RCDSIZE, "UTF-8", true));
+        return wrap(new TarArchiveInputStream(ret, TarConstants.DEFAULT_BLKSIZE, TarConstants.DEFAULT_RCDSIZE, "UTF-8", true));
     }
 
     @Override

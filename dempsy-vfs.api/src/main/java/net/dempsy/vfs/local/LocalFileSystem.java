@@ -22,6 +22,7 @@ import net.dempsy.util.io.MegaByteBuffer;
 import net.dempsy.util.io.MegaByteBufferInputStream;
 import net.dempsy.util.io.MessageBufferOutput;
 import net.dempsy.vfs.FileSystem;
+import net.dempsy.vfs.OpContext;
 import net.dempsy.vfs.Path;
 
 public class LocalFileSystem extends FileSystem {
@@ -69,13 +70,23 @@ public class LocalFileSystem extends FileSystem {
         }
 
         @Override
-        public OutputStream write() throws IOException {
-            return new FileOutputStream(file);
+        public URI uri() {
+            return file.toURI();
         }
 
         @Override
-        public URI uri() {
-            return file.toURI();
+        public boolean exists() throws IOException {
+            return file.exists();
+        }
+
+        @Override
+        public boolean delete() throws IOException {
+            return file.delete();
+        }
+
+        @Override
+        public OutputStream write() throws IOException {
+            return new FileOutputStream(file);
         }
 
         @Override
@@ -113,10 +124,10 @@ public class LocalFileSystem extends FileSystem {
         }
 
         @Override
-        public Path[] list() throws IOException {
+        public Path[] list(final OpContext ctx) throws IOException {
             return file.isDirectory() ? Optional.ofNullable(file.list()).map(l -> Arrays.stream(l)
                 .map(subdir -> new File(file, subdir))
-                .map(f -> setVfs(new LocalFile(f)))
+                .map(f -> setVfs(new LocalFile(f), ctx))
                 .toArray(Path[]::new)).orElse(null) : null;
         }
 
@@ -131,16 +142,6 @@ public class LocalFileSystem extends FileSystem {
         }
 
         @Override
-        public boolean exists() throws IOException {
-            return file.exists();
-        }
-
-        @Override
-        public boolean delete() throws IOException {
-            return file.delete();
-        }
-
-        @Override
         public boolean isDirectory() throws IOException {
             return file.isDirectory();
         }
@@ -152,6 +153,11 @@ public class LocalFileSystem extends FileSystem {
                     throw new IOException("The path \"" + file.getAbsolutePath() + "\" exists already but isn't a directory.");
             } else if(!file.mkdirs())
                 throw new IOException("Failed to create the directory \"" + file.getAbsolutePath() + "\" for unknown reasons.");
+        }
+
+        @Override
+        public File toFile() {
+            return file;
         }
 
         private static class ByteBufferResource implements Closeable {
@@ -196,7 +202,7 @@ public class LocalFileSystem extends FileSystem {
     public final static String[] SCHEMES = {"file"};
 
     @Override
-    protected Path doCreatePath(final URI uri) throws IOException {
+    protected Path doCreatePath(final URI uri, final OpContext ctx) throws IOException {
         return new LocalFile(Paths.get(uri).toFile());
     }
 

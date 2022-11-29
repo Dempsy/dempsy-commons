@@ -17,12 +17,12 @@ public abstract class CompressedFileSystem extends RecursiveFileSystem {
     protected abstract OutputStream wrap(OutputStream os) throws IOException;
 
     @Override
-    protected Path doCreatePath(final URI uri) throws IOException {
+    protected Path doCreatePath(final URI uri, final OpContext ctx) throws IOException {
 
         final URI hackedUri = uri;
         final String otherThanScheme = hackedUri.getSchemeSpecificPart();
         final URI otherThanSchemeUri = uncheck(() -> UriUtils.sanitize(otherThanScheme));
-        final Path innerPath = vfs.toPath(otherThanSchemeUri);
+        final Path innerPath = ctx.toPath(otherThanSchemeUri);
 
         return setVfs(new Path() {
 
@@ -43,7 +43,7 @@ public abstract class CompressedFileSystem extends RecursiveFileSystem {
 
             // compressed filesystems paths are never directories. Think gzip, not zip or tar.
             @Override
-            public Path[] list() throws IOException {
+            public Path[] list(final OpContext junk) throws IOException {
                 return null;
             }
 
@@ -66,7 +66,7 @@ public abstract class CompressedFileSystem extends RecursiveFileSystem {
             public long length() throws IOException {
                 return innerPath.length();
             }
-        });
+        }, ctx);
     }
 
 }

@@ -1,4 +1,4 @@
-package net.dempsy.vfs2;
+package net.dempsy.vfs;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -15,7 +15,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 import net.dempsy.util.QuietCloseable;
-import net.dempsy.vfs2.internal.TempSpace;
+import net.dempsy.vfs.internal.TempSpace;
 
 public class CopyingCompressedFileSystem extends RecursiveFileSystem {
     // private static final Logger LOGGER = LoggerFactory.getLogger(CopyingCompressedFileSystem.class);
@@ -54,7 +54,7 @@ public class CopyingCompressedFileSystem extends RecursiveFileSystem {
             }
 
             @Override
-            public URI uri() throws IOException {
+            public URI uri() {
                 return upath.uri();
             }
 

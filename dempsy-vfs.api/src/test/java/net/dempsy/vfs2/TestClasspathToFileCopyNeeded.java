@@ -17,6 +17,10 @@ import org.junit.Test;
 import org.junit.rules.ExternalResource;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+import net.dempsy.vfs.OpContext;
+import net.dempsy.vfs.Path;
+import net.dempsy.vfs.Vfs;
+
 public class TestClasspathToFileCopyNeeded {
 
     @Rule public ExternalResource fakeDirOnClasspath = new ExternalResource() {
@@ -48,7 +52,7 @@ public class TestClasspathToFileCopyNeeded {
 
     @Test
     public void testCopyRequired() throws Exception {
-        try(ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("spring/vfs2.xml");) {
+        try(ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("spring/vfs.xml");) {
             final Vfs vfs = ctx.getBean(Vfs.class);
             // each Apache jar file has this file, but it doesn't exist in anything we're likely to be
             // loading up the source for.
@@ -77,7 +81,7 @@ public class TestClasspathToFileCopyNeeded {
 
     @Test
     public void testEmptyDirectoryOnFilesystem() throws Exception {
-        try(ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("spring/vfs2.xml");) {
+        try(ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("spring/vfs.xml");) {
             final Vfs vfs = ctx.getBean(Vfs.class);
             try(OpContext oc = vfs.operation();) {
 
@@ -94,7 +98,7 @@ public class TestClasspathToFileCopyNeeded {
     @Test
     public void testMissingDirectory() throws Exception {
         assertThrows(FileNotFoundException.class, () -> {
-            try(ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("spring/vfs2.xml");) {
+            try(ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("spring/vfs.xml");) {
                 final Vfs vfs = ctx.getBean(Vfs.class);
                 try(OpContext oc = vfs.operation();) {
 

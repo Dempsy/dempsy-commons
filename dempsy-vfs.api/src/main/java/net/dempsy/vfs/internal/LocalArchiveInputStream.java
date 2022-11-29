@@ -22,11 +22,13 @@ public class LocalArchiveInputStream extends DempsyArchiveInputStream {
         public final File file;
         public final long lastModified;
         public final long length;
+        public final boolean isDir;
 
-        public FileDetails(final File file, final long lastModified, final long length) {
+        public FileDetails(final File file, final long lastModified, final long length, final boolean isDir) {
             this.file = file;
             this.lastModified = lastModified;
             this.length = length;
+            this.isDir = isDir;
         }
     }
 
@@ -41,7 +43,7 @@ public class LocalArchiveInputStream extends DempsyArchiveInputStream {
         cur = iter.hasNext() ? iter.next() : null;
         if(curIs != null)
             curIs.close();
-        curIs = (cur == null || cur.isDirectory()) ? null : new BufferedInputStream(new FileInputStream(cur.file));
+        curIs = (cur == null || cur.isDirectory()) ? null : new BufferedInputStream(new FileInputStream(cur.details.file));
         return cur;
     }
 
@@ -64,29 +66,27 @@ public class LocalArchiveInputStream extends DempsyArchiveInputStream {
 
     private static class LocalArchiveEntry implements DempsyArchiveEntry {
         final private String name;
-        final private File file;
         final private FileDetails details;
-
-        private LocalArchiveEntry(final String name, final File cur) {
-            this.name = name;
-            this.file = cur;
-            this.details = null;
-        }
 
         private LocalArchiveEntry(final String name, final FileDetails cur) {
             this.name = name;
-            this.file = cur.file;
             this.details = cur;
+            if(details == null)
+                throw new NullPointerException("Cannot have null FileDetails in a LocalArchiveEntry");
+            if(details.file == null && !details.isDir)
+                throw new IllegalArgumentException("A FileDetails with a missing file MUST be a directory.");
         }
 
         @Override
         public boolean isDirectory() {
-            return file.isDirectory();
+            return details.isDir;
         }
 
         @Override
         public long getSize() {
-            return details == null ? file.length() : (details.length < 0 ? file.length() : details.length);
+            if(details.isDir)
+                return 0;
+            return details.length < 0 ? details.file.length() : details.length;
         }
 
         @Override
@@ -96,13 +96,12 @@ public class LocalArchiveInputStream extends DempsyArchiveInputStream {
 
         @Override
         public Date getLastModifiedDate() {
-            return details == null ? new Date(file.lastModified())
-                : (details.lastModified < 0 ? new Date(file.lastModified()) : new Date(details.lastModified));
+            return(details.lastModified < 0 ? new Date(details.file.lastModified()) : new Date(details.lastModified));
         }
 
         @Override
         public File direct() {
-            return file;
+            return details.file;
         }
     }
 }

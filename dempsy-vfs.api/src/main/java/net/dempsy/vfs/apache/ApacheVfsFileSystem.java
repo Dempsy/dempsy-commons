@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import net.dempsy.vfs.FileSystem;
+import net.dempsy.vfs.OpContext;
 import net.dempsy.vfs.Path;
 
 public class ApacheVfsFileSystem extends FileSystem {
@@ -123,7 +124,7 @@ public class ApacheVfsFileSystem extends FileSystem {
     }
 
     @Override
-    protected Path doCreatePath(final URI uriuri) throws IOException {
+    protected Path doCreatePath(final URI uriuri, final OpContext ctx) throws IOException {
         final String uri = uriuri.toString();
         return new ApacheVfsPath(getApacheVfs2FileSystem().resolveFile(uri));
     }
@@ -173,7 +174,7 @@ public class ApacheVfsFileSystem extends FileSystem {
         }
 
         @Override
-        public Path[] list() throws IOException {
+        public Path[] list(final OpContext oc) throws IOException {
             if(!fileObject.isFolder())
                 return null;
 
@@ -187,7 +188,7 @@ public class ApacheVfsFileSystem extends FileSystem {
 
             final Path[] ret = new Path[rets.length];
             for(int i = 0; i < rets.length; i++)
-                ret[i] = setVfs(new ApacheVfsPath(rets[i]));
+                ret[i] = setVfs(new ApacheVfsPath(rets[i]), oc);
 
             return ret;
         }

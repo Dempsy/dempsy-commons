@@ -17,8 +17,8 @@ public abstract class EncArchiveFileSystem extends ArchiveFileSystem {
     }
 
     @Override
-    protected URI makeUriForArchiveEntry(final String scheme, final URI uri, final String pathInsideTarFile) throws IOException {
-        return uncheck(() -> new URI(scheme + ":" + resolve(uri, pathInsideTarFile, enc)));
+    protected URI makeUriForArchiveEntry(final String scheme, final URI uri, final String DECODEDpathInsideTarFile) throws IOException {
+        return uncheck(() -> new URI(scheme + ":" + resolve(uri, DECODEDpathInsideTarFile, enc)));
     }
 
     @Override
@@ -52,11 +52,11 @@ public abstract class EncArchiveFileSystem extends ArchiveFileSystem {
         return new SplitUri(new URI(newUriStr), outerEnc, newRemainder);
     }
 
-    private static URI resolve(final URI base, final String child, final String enc) {
+    private static URI resolve(final URI base, final String DECODEDChild, final String enc) {
         final String path = base.toString();
         final String parentPath = path.endsWith(SEP) ? path.substring(0, path.length() - 1) : path;
 
-        final String newpath = parentPath + enc + UriUtils.encodePath(child);
+        final String newpath = parentPath + enc + UriUtils.encodePath(DECODEDChild);
         return uncheck(() -> new URI(newpath));
     }
 }

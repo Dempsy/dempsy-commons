@@ -1,4 +1,4 @@
-package net.dempsy.vfs2;
+package net.dempsy.vfs;
 
 import static net.dempsy.util.Functional.uncheck;
 

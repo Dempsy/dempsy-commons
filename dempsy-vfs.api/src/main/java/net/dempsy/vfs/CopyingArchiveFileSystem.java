@@ -1,4 +1,4 @@
-package net.dempsy.vfs2;
+package net.dempsy.vfs;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -17,10 +17,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import net.dempsy.util.QuietCloseable;
-import net.dempsy.vfs2.internal.DempsyArchiveInputStream;
-import net.dempsy.vfs2.internal.LocalArchiveInputStream;
-import net.dempsy.vfs2.internal.LocalArchiveInputStream.FileDetails;
-import net.dempsy.vfs2.internal.TempSpace;
+import net.dempsy.vfs.internal.DempsyArchiveInputStream;
+import net.dempsy.vfs.internal.LocalArchiveInputStream;
+import net.dempsy.vfs.internal.TempSpace;
+import net.dempsy.vfs.internal.LocalArchiveInputStream.FileDetails;
 
 public class CopyingArchiveFileSystem extends EncArchiveFileSystem {
     private static final Logger LOGGER = LoggerFactory.getLogger(CopyingArchiveFileSystem.class);

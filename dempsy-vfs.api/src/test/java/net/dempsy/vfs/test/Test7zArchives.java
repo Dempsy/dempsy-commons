@@ -17,8 +17,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import net.dempsy.vfs2.Path;
-import net.dempsy.vfs2.Vfs;
+import net.dempsy.vfs.Path;
+import net.dempsy.vfs.Vfs;
 
 @RunWith(Parameterized.class)
 public class Test7zArchives extends BaseTest {

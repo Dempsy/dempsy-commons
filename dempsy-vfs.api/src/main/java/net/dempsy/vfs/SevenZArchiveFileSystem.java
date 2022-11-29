@@ -16,6 +16,7 @@ import java.io.RandomAccessFile;
 import java.net.URI;
 import java.nio.channels.FileChannel;
 import java.nio.file.FileSystemNotFoundException;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -24,6 +25,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -32,9 +34,14 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.dempsy.util.Functional;
+import net.dempsy.util.HexStringUtil;
+import net.dempsy.util.QuietCloseable;
 import net.dempsy.util.UriUtils;
 import net.dempsy.vfs.internal.DempsyArchiveEntry;
 import net.dempsy.vfs.internal.DempsyArchiveInputStream;
+import net.dempsy.vfs.internal.LocalArchiveInputStream;
+import net.dempsy.vfs.internal.TempSpace;
 import net.dempsy.vfs.internal.LocalArchiveInputStream.FileDetails;
 import net.sf.sevenzipjbinding.ArchiveFormat;
 import net.sf.sevenzipjbinding.ExtractAskMode;
@@ -51,8 +58,12 @@ import net.sf.sevenzipjbinding.SevenZip;
 import net.sf.sevenzipjbinding.SevenZipException;
 import net.sf.sevenzipjbinding.impl.RandomAccessFileInStream;
 
-public class SevenZArchiveFileSystem extends CopiedArchiveFileSystem {
+public class SevenZArchiveFileSystem extends EncArchiveFileSystem {
     private static final Logger LOGGER = LoggerFactory.getLogger(SevenZArchiveFileSystem.class);
+
+    private static final String CTX_KEY = SevenZArchiveFileSystem.class.getSimpleName();
+
+    private static final File TMP = TempSpace.get();
 
     public final static String SCHEME_RAR = "rar";
     public final static String[] SCHEMES = {"sevenz",SCHEME_RAR};
@@ -133,13 +144,52 @@ public class SevenZArchiveFileSystem extends CopiedArchiveFileSystem {
 
     }
 
-    @Override
-    public DempsyArchiveInputStream listingStream(final String scheme, final URI archiveUri) throws IOException {
-        final boolean isRar = SCHEME_RAR.equals(scheme);
+    private static class Context implements QuietCloseable {
+        private final File directory;
 
-        final ForcedFile ff = forceToFile(scheme, archiveUri);
-        final File archiveFile = ff.file;
-        final boolean deleteArchiveFile = ff.deleteArchiveFile;
+        private File forcedFile = null;
+
+        private final File extractDir;
+        private boolean isExtracted = false;
+        private LinkedHashMap<String, FileDetails> results = null;
+
+        Context(final Vfs vfs, final OpContext ctx) throws IOException {
+            this.directory = new File(TMP, UUID.randomUUID().toString());
+            ctx.toPath(directory.toURI()).mkdirs();
+            extractDir = new File(directory, "extract");
+            ctx.toPath(extractDir.toURI()).mkdirs();
+        }
+
+        @Override
+        public void close() {
+            LOGGER.debug("Cleaning {}", directory);
+            FileUtils.deleteQuietly(directory);
+        }
+    }
+
+    @Override
+    public DempsyArchiveInputStream createArchiveInputStream(final String scheme, final URI archiveUri, final boolean listingOnly, final OpContext ctx)
+        throws IOException {
+
+        final Path archivePath = ctx.toPath(archiveUri);
+        final Context c = Functional.<Context, IOException>recheck(() -> archivePath.getContext(CTX_KEY, () -> uncheck(() -> new Context(vfs, ctx))));
+
+        if(c.forcedFile == null)
+            c.forcedFile = forceToFile(scheme, archiveUri, ctx, c.directory);
+
+        if(listingOnly)
+            return listingStream(scheme, archiveUri, ctx, c.forcedFile);
+
+        if(!c.isExtracted) {
+            c.results = extract(scheme, archiveUri, c.extractDir, c.forcedFile);
+            c.isExtracted = true;
+        }
+
+        return new LocalArchiveInputStream(c.extractDir, c.results);
+    }
+
+    private DempsyArchiveInputStream listingStream(final String scheme, final URI archiveUri, final OpContext ctx, final File archiveFile) throws IOException {
+        final boolean isRar = SCHEME_RAR.equals(scheme);
 
         try(final RandomAccessFile randomAccessFile = isRar ? null : new RandomAccessFile(archiveFile, "r");
             final ArchiveOpenVolumeCallback ovcb = isRar ? new ArchiveOpenVolumeCallback() : null;
@@ -179,11 +229,7 @@ public class SevenZArchiveFileSystem extends CopiedArchiveFileSystem {
                     throw new UnsupportedOperationException("Cannot read the data from an archive entry creating for listing only");
                 }
             };
-        } finally {
-            if(deleteArchiveFile)
-                FileUtils.deleteQuietly(archiveFile);
         }
-
     }
 
     private static String outputFileName(final URI archiveUri, final String scheme) {
@@ -220,16 +266,14 @@ public class SevenZArchiveFileSystem extends CopiedArchiveFileSystem {
 
     }
 
-    @Override
-    public LinkedHashMap<String, FileDetails> extract(final String scheme, final URI archiveUri, final File destinationDirectory) throws IOException {
+    public LinkedHashMap<String, FileDetails> extract(final String scheme, final URI archiveUri, final File destinationDirectory, final File archiveFile)
+        throws IOException {
+
+        LOGGER.debug("Extracting {} which is at {} to {}", archiveUri, archiveFile, destinationDirectory);
 
         final boolean isRar = SCHEME_RAR.equals(scheme);
 
         final LinkedHashMap<String, FileDetails> ret = new LinkedHashMap<>();
-
-        final ForcedFile ff = forceToFile(scheme, archiveUri);
-        final File archiveFile = ff.file;
-        final boolean deleteArchiveFile = ff.deleteArchiveFile;
 
         try(final RandomAccessFile randomAccessFile = isRar ? null : new RandomAccessFile(archiveFile, "r");
             final ArchiveOpenVolumeCallback ovcb = isRar ? new ArchiveOpenVolumeCallback() : null;
@@ -255,7 +299,9 @@ public class SevenZArchiveFileSystem extends CopiedArchiveFileSystem {
                 final Long sizeObj = (Long)inArchive.getProperty(i, PropID.SIZE);
                 final long size = sizeObj == null ? -1 : sizeObj;
 
-                ret.put(name, new FileDetails(file, lastModTime, size));
+                final boolean isFolder = (Boolean)inArchive.getProperty(i, PropID.IS_FOLDER);
+
+                ret.put(name, new FileDetails(file, lastModTime, size, isFolder));
 
                 { // make sure the parent dirs exist.
                     final File parent = file.getParentFile();
@@ -264,7 +310,7 @@ public class SevenZArchiveFileSystem extends CopiedArchiveFileSystem {
                 }
                 files[i] = file;
 
-                if(!((Boolean)inArchive.getProperty(i, PropID.IS_FOLDER))) {
+                if(!isFolder) {
                     if(file.exists())
                         file.delete();
 
@@ -298,11 +344,7 @@ public class SevenZArchiveFileSystem extends CopiedArchiveFileSystem {
                 }
             }
 
-        } finally {
-            if(deleteArchiveFile)
-                FileUtils.deleteQuietly(archiveFile);
         }
-
         return ret;
     }
 
@@ -311,43 +353,40 @@ public class SevenZArchiveFileSystem extends CopiedArchiveFileSystem {
         return schemes;
     }
 
-    private static class ForcedFile {
-        public final File file;
-        public final boolean deleteArchiveFile;
-
-        public ForcedFile(final File file, final boolean deleteArchiveFile) {
-            this.file = file;
-            this.deleteArchiveFile = deleteArchiveFile;
-        }
-    }
-
-    private ForcedFile forceToFile(final String archiveScheme, final URI archiveUri) throws IOException {
+    private File forceToFile(final String archiveScheme, final URI archiveUri, final OpContext ctx, final File parentDir) throws IOException {
         final Path archivePath;
         File archiveFile;
-        boolean deleteArchiveFile = false;
         {
             if(!compositeSchemes.containsKey(archiveScheme)) {
-                archivePath = vfs.toPath(archiveUri);
+                archivePath = ctx.toPath(archiveUri);
                 try {
                     archiveFile = archivePath.toFile();
                 } catch(final FileSystemNotFoundException fsnfe) {
                     archiveFile = null;
                 }
             } else {
-                archivePath = vfs.toPath(uncheck(() -> new URI(compositeSchemes.get(archiveScheme) + ":" + archiveUri.toString())));
+                archivePath = ctx.toPath(uncheck(() -> new URI(compositeSchemes.get(archiveScheme) + ":" + archiveUri.toString())));
                 archiveFile = null;
             }
 
             if(archiveFile == null) {
-                archiveFile = new File(makeFileFromArchiveUri(archiveUri).getAbsolutePath() + ".archive");
+                LOGGER.debug("Copying file so I can work with it from {} to {}", archiveUri, archiveFile);
+                archiveFile = new File(makeFileFromArchiveUriX(archiveUri, parentDir).getAbsolutePath() + ".archive");
                 try(InputStream is = new BufferedInputStream(archivePath.read());
                     OutputStream os = new BufferedOutputStream(new FileOutputStream(archiveFile))) {
                     IOUtils.copy(is, os);
                 }
-                deleteArchiveFile = true;
             }
         }
-        return new ForcedFile(archiveFile, deleteArchiveFile);
+        return archiveFile;
+    }
+
+    private static File makeFileFromArchiveUriX(final URI archiveUri, final File parentDir) {
+        // generate a filename.
+        final MessageDigest md = uncheck(() -> MessageDigest.getInstance("MD5"));
+        final String fname = HexStringUtil.bytesToHex(md.digest(archiveUri.toString().getBytes()));
+
+        return new File(parentDir, fname);
     }
 
     private static class ArchiveOpenVolumeCallback implements IArchiveOpenVolumeCallback, IArchiveOpenCallback, Closeable {
