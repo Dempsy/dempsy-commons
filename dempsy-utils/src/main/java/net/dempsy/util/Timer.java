@@ -2,6 +2,7 @@ package net.dempsy.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 
 public class Timer {
@@ -9,11 +10,8 @@ public class Timer {
     private final long NANOS_PER_SECOND = 1000000000L;
 
     private final String name;
-    private long startTime = 0;
-    private long dur = 0;
-    private long count = 0;
-
-    private final QuietCloseable ctx = () -> cap();
+    private final AtomicLong dur = new AtomicLong(0);
+    private final AtomicLong count = new AtomicLong(0);
 
     private static final List<Timer> registered = new ArrayList<>();
 
@@ -22,13 +20,13 @@ public class Timer {
     }
 
     public QuietCloseable open() {
-        startTime = System.nanoTime();
-        return ctx;
+        final long startTime = System.nanoTime();
+        return () -> cap(startTime);
     }
 
-    public void cap() {
-        dur += (System.nanoTime() - startTime);
-        count++;
+    private void cap(final long startTime) {
+        dur.addAndGet(System.nanoTime() - startTime);
+        count.incrementAndGet();
     }
 
     public <T> T time(final Supplier<T> supplied) {
@@ -45,13 +43,21 @@ public class Timer {
 
     @Override
     public String toString() {
-        return String.format("   %s - time spent nanos/millis: %d/%d over %d calls. calls per second: %.2f",
-            name, dur, dur / NANOS_PER_MILLI, count, (double)count * (double)NANOS_PER_SECOND / dur);
+        final long ldur = dur.get();
+        final long lcount = count.get();
+        return String.format("   %s - time spent millis: %d over %d calls. calls per second: %.2f",
+            name, ldur / NANOS_PER_MILLI, lcount, (double)(lcount * NANOS_PER_SECOND) / ldur);
     }
 
     public static Timer register(final Timer timer) {
         registered.add(timer);
         return timer;
+    }
+
+    public static String displayString() {
+        final StringBuilder sb = new StringBuilder();
+        registered.forEach(t -> sb.append(t.toString() + System.lineSeparator()));
+        return sb.toString();
     }
 
     public static void display() {
