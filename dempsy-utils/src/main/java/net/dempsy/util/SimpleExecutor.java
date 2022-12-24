@@ -26,13 +26,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * This is an executor with a priority queue allowing priority jobs to be
+ * inserted in the front of the queue. It also allows access to the queue
+ * itself, usually hidden in most other implementations. it can optionally
+ * have a limited capacity.
+ */
 public class SimpleExecutor {
     private static final Logger LOGGER = LoggerFactory.getLogger(SimpleExecutor.class);
 
     private static final int NUM_POLL_TRIES_ON_SHUTDOWN = 100;
 
     private final ThreadFactory threadFactory;
-    private final LinkedBlockingDeque<Runnable> jobQueue = new LinkedBlockingDeque<>();
+    private final LinkedBlockingDeque<Runnable> jobQueue;
     private final int numThreads;
     private final Thread[] threads;
     private final AtomicBoolean stop = new AtomicBoolean(false);
@@ -42,6 +48,15 @@ public class SimpleExecutor {
         this.threadFactory = threadFactory;
         this.numThreads = numThreads;
         this.threads = new Thread[numThreads];
+        jobQueue = new LinkedBlockingDeque<>();
+        start();
+    }
+
+    public SimpleExecutor(final int numThreads, final ThreadFactory threadFactory, final int queueLimit) {
+        this.threadFactory = threadFactory;
+        this.numThreads = numThreads;
+        this.threads = new Thread[numThreads];
+        jobQueue = new LinkedBlockingDeque<>(queueLimit);
         start();
     }
 
