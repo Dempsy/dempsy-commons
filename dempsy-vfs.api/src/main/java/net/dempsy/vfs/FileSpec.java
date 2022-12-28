@@ -139,7 +139,7 @@ public class FileSpec {
         this.uriX = null;
     }
 
-    public URI uri() throws IOException {
+    public URI uri() {
 
         if(uriX == null) {
             uriX = path.uri();
