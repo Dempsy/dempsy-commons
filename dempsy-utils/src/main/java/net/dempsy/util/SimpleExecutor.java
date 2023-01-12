@@ -130,9 +130,8 @@ public class SimpleExecutor {
                             LOGGER.warn("Retrieved a null job from the queue.");
                         }
                     } catch(final InterruptedException ie) {
-                        if(!stop.get()) {
+                        if(!stop.get())
                             LOGGER.warn("Worker interrupted but we're not stopping.");
-                        }
                     } catch(final RuntimeException rte) {
                         LOGGER.info("Job threw exception", rte);
                     }
