@@ -16,28 +16,32 @@ public class TestExecutor {
     public static final int NUM_THREADS = 10;
 
     @Test
-    public void testSimple() {
-        final AtomicLong tcount = new AtomicLong(0);
-        final SimpleExecutor executor = new SimpleExecutor(NUM_THREADS, r -> new Thread(r, "testSimple-" + tcount.getAndIncrement()));
-        final AtomicLong count = new AtomicLong();
-        try(QuietCloseable qc = () -> executor.shutdown();) {
-            for(int i = 0; i < 10000; i++)
-                executor.submit(() -> count.incrementAndGet());
+    public void testSimple() throws Exception {
+        for(int c = 0; c < 500; c++) {
+            final AtomicLong tcount = new AtomicLong(0);
+            final SimpleExecutor executor = new SimpleExecutor(NUM_THREADS, r -> new Thread(r, "testSimple-" + tcount.getAndIncrement()));
+            final AtomicLong count = new AtomicLong();
+            try(QuietCloseable qc = () -> executor.shutdown();) {
+                for(int i = 0; i < 10000; i++)
+                    executor.submit(() -> count.incrementAndGet());
+            }
+            assertTrue(ConditionPoll.poll(1000, null, o -> 10000 == count.get()));
         }
-        assertEquals(10000, count.get());
     }
 
     @Test
-    public void testSimpleGroup() {
-        final AtomicLong tcount = new AtomicLong(0);
-        final GroupExecutor group = new GroupExecutor(NUM_THREADS, r -> new Thread(r, "testSimple-" + tcount.getAndIncrement()));
-        final GroupExecutor.Queue executor = group.newExecutor();
-        final AtomicLong count = new AtomicLong();
-        try(QuietCloseable qc = () -> group.shutdown();) {
-            for(int i = 0; i < 10000; i++)
-                executor.submit(() -> count.incrementAndGet());
+    public void testSimpleGroup() throws Exception {
+        for(int c = 0; c < 500; c++) {
+            final AtomicLong tcount = new AtomicLong(0);
+            final GroupExecutor group = new GroupExecutor(NUM_THREADS, r -> new Thread(r, "testSimple-" + tcount.getAndIncrement()));
+            final GroupExecutor.Queue executor = group.newExecutor();
+            final AtomicLong count = new AtomicLong();
+            try(QuietCloseable qc = () -> group.shutdown();) {
+                for(int i = 0; i < 10000; i++)
+                    executor.submit(() -> count.incrementAndGet());
+            }
+            assertTrue(ConditionPoll.poll(1000, null, o -> 10000 == count.get()));
         }
-        assertEquals(10000, count.get());
     }
 
     @Test
