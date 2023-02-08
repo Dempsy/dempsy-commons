@@ -140,46 +140,57 @@ public class GroupExecutor {
         Arrays.stream(threads).forEach(t -> t.start());
     }
 
-    private class PrimaryWorker implements Runnable {
-        private final GroupWorker next;
+    // this is the inner core of the runnable used in both GroupWorker and PrimaryWorker.
+    // it returns true if any work was done.
+    private class WorkGuts {
+        protected final GroupWorker next;
+
+        protected WorkGuts(final GroupWorker next) {
+            this.next = next;
+        }
+
+        protected boolean work() throws InterruptedException {
+            boolean workDone = false;
+            final int numQueues = jobQueues.size();
+            for(int i = 0; i < numQueues && !workDone; i++) {
+                LinkedBlockingDeque<Runnable> cur = null;
+                try {
+                    cur = jobQueues.takeFirst();
+                    final Runnable job = cur == null ? null : cur.poll();
+                    if(job != null) {
+                        workDone = true;
+                        final GroupWorker n = next;
+                        if(n != null) {
+                            synchronized(n.waiter) {
+                                n.waiter.notify();
+                            }
+                        }
+
+                        job.run();
+                        break;
+                    }
+                } finally {
+                    if(cur != null)
+                        jobQueues.putLast(cur);
+                }
+            }
+            return workDone;
+        }
+    }
+
+    private class PrimaryWorker extends WorkGuts implements Runnable {
 
         public PrimaryWorker(final GroupWorker next) {
-            this.next = next;
+            super(next);
         }
 
         @Override
         public void run() {
             try {
-                boolean workDone = false;
                 startingLatch.countDown();
                 while(!stop.get()) {
                     try {
-                        workDone = false;
-                        final int numQueues = jobQueues.size();
-                        for(int i = 0; i < numQueues && !workDone; i++) {
-                            LinkedBlockingDeque<Runnable> cur = null;
-                            try {
-                                cur = jobQueues.takeFirst();
-                                final Runnable job = cur == null ? null : cur.poll();
-                                if(job != null) {
-                                    workDone = true;
-                                    final GroupWorker n = next;
-                                    if(n != null) {
-                                        synchronized(n.waiter) {
-                                            n.waiter.notify();
-                                        }
-                                    }
-
-                                    job.run();
-                                    break;
-                                }
-                            } finally {
-                                if(cur != null)
-                                    jobQueues.putLast(cur);
-                            }
-                        }
-
-                        if(!workDone)
+                        if(!work())
                             Thread.sleep(1);
                     } catch(final RuntimeException rte) {
                         LOGGER.info("Job threw exception", rte);
@@ -224,13 +235,12 @@ public class GroupExecutor {
         }
     }
 
-    private class GroupWorker implements Runnable {
+    private class GroupWorker extends WorkGuts implements Runnable {
 
-        private final GroupWorker next;
         private final Object waiter = new Object();
 
         private GroupWorker(final GroupWorker next) {
-            this.next = next;
+            super(next);
         }
 
         @Override
@@ -248,30 +258,7 @@ public class GroupExecutor {
                             }
                         }
 
-                        workDone = false;
-                        final int numQueues = jobQueues.size();
-                        for(int i = 0; i < numQueues && !workDone; i++) {
-                            LinkedBlockingDeque<Runnable> cur = null;
-                            try {
-                                cur = jobQueues.takeFirst();
-                                final Runnable job = cur == null ? null : cur.poll();
-                                if(job != null) {
-                                    workDone = true;
-                                    final GroupWorker n = next;
-                                    if(n != null) {
-                                        synchronized(n.waiter) {
-                                            n.waiter.notify();
-                                        }
-                                    }
-
-                                    job.run();
-                                    break;
-                                }
-                            } finally {
-                                if(cur != null)
-                                    jobQueues.putLast(cur);
-                            }
-                        }
+                        workDone = work();
                     } catch(final RuntimeException rte) {
                         LOGGER.info("Job threw exception", rte);
                     } catch(final InterruptedException ie) {
