@@ -10,11 +10,6 @@
   <description>Dempsy Commons Global Settings</description>
   <packaging>pom</packaging>
 
-  <properties>
-    <dempsy.distribution.repo.id>ossrh</dempsy.distribution.repo.id>
-    <dempsy.distribution.repo.url>https://oss.sonatype.org/content/repositories/snapshots/</dempsy.distribution.repo.url>
-  </properties>
-  
   <url>git@github.com:Dempsy/dempsy-commons.git</url>
   <developers>
     <developer>
@@ -46,9 +41,9 @@
 
   <distributionManagement>
     <snapshotRepository>
-      <id>${dempsy.distribution.repo.id}</id>
+      <id>${dempsy.distribution.snapshot.repo.id}</id>
       <name>Sonatype Nexus Snapshots</name>
-      <url>${dempsy.distribution.repo.url}</url>
+      <url>${dempsy.distribution.snapshot.repo.url}</url>
     </snapshotRepository>
   </distributionManagement>
 
@@ -83,7 +78,7 @@
         <plugin>
           <groupId>org.sonatype.plugins</groupId>
           <artifactId>nexus-staging-maven-plugin</artifactId>
-          <version>1.6.8</version>
+          <version>1.6.13</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
