@@ -22,7 +22,7 @@
     <jackson.version>2.13.4.2</jackson.version>
     <sevenzipbinding.version>16.02-2.01</sevenzipbinding.version>
 
-    <spring-framework.version>5.3.20</spring-framework.version>
+    <spring-framework.version>5.3.26</spring-framework.version>
   </properties>
 
   <!-- This section provides some uniformity of dependencies for all dempsy-commons projects -->
