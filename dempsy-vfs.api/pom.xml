@@ -6,11 +6,12 @@
   <parent>
     <groupId>net.dempsy</groupId>
     <artifactId>dempsy-commons</artifactId>
-    <version>2.4.1</version>
+    <version>2.4.2-SNAPSHOT</version>
     <relativePath>../dempsy-commons-parentpom/pom.xml</relativePath>
   </parent>
 
   <artifactId>dempsy-vfs.api</artifactId>
+  <version>2.4.2-SNAPSHOT</version>
   <name>Dempsy Simple Virtual File System api with default impls.</name>
 
   <dependencies>

@@ -64,6 +64,11 @@ public abstract class Path {
         return vfs.toFile(uri());
     }
 
+    @Override
+    public String toString() {
+        return uri().toString();
+    }
+
     /**
      * Helper for allowing implementors to set the vfs on newly create Paths
      */
