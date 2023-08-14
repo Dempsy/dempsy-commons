@@ -25,6 +25,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -142,6 +143,10 @@ public class KryoSerializer extends Serializer {
                 return k.kryo.readObject(input, clazz);
             }
         };
+    }
+
+    public List<Registration> getConfiguredRegistrations() {
+        return Collections.unmodifiableList(registrations);
     }
 
     /**
