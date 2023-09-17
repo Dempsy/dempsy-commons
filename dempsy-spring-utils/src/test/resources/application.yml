@@ -1,0 +1,7 @@
+
+app:
+  properties:
+    property1: simply here
+    property2: ${app.property2.source}
+    
+    

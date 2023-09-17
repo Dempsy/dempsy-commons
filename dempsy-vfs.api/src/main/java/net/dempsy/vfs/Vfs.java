@@ -5,6 +5,7 @@ import static net.dempsy.util.Functional.uncheck;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Set;
@@ -14,10 +15,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import net.dempsy.util.QuietCloseable;
+import net.dempsy.util.io.UriOpener;
 import net.dempsy.vfs.apache.ApacheVfsFileSystem;
 import net.dempsy.vfs.local.LocalFileSystem;
 
-public class Vfs implements QuietCloseable {
+public class Vfs implements QuietCloseable, UriOpener {
     private static final Logger LOGGER = LoggerFactory.getLogger(Vfs.class);
 
     private final ConcurrentHashMap<String, FileSystem> fileSystems = new ConcurrentHashMap<>();
@@ -65,6 +67,14 @@ public class Vfs implements QuietCloseable {
         if(fs == null)
             throw new IOException("Unsupported scheme \"" + uri.getScheme() + "\" for URI " + uri);
         return fs.toFile(uri);
+    }
+
+    @Override
+    public InputStream open(final URI uri) throws IOException {
+        final var path = toPath(uri);
+        if(path == null)
+            throw new IOException("Failed to convert URI \"" + uri + "\" to a Vfs.Path. Maybe the scheme is unsupported.");
+        return path.read();
     }
 
     @Override
