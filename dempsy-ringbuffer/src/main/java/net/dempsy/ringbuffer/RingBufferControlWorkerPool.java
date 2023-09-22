@@ -22,7 +22,7 @@
  * 
  * For more information on the LMAX Disruptor, see:
  * 
- * http://lmax-exchange.github.com/disruptor/
+ * https://lmax-exchange.github.io/disruptor/
  */
 
 package net.dempsy.ringbuffer;
