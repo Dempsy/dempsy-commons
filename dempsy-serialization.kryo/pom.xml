@@ -6,13 +6,12 @@
   <parent>
     <groupId>net.dempsy</groupId>
     <artifactId>dempsy-commons</artifactId>
-    <version>2.4.0</version>
+    <version>2.4.2-SNAPSHOT</version>
     <relativePath>../dempsy-commons-parentpom/pom.xml</relativePath>
   </parent>
 
   <artifactId>dempsy-serialization.kryo</artifactId>
-  <version>2.4.2-SNAPSHOT</version>
-  <name>Dempsy Serialization implementation using Kryo.</name>
+  <description>Dempsy Serialization implementation using Kryo.</description>
 
   <dependencies>
     <dependency>

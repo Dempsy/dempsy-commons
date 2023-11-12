@@ -11,8 +11,7 @@
   </parent>
 
   <artifactId>dempsy-vfs.api</artifactId>
-  <version>2.4.2-SNAPSHOT</version>
-  <name>Dempsy Simple Virtual File System api with default impls.</name>
+  <description>Dempsy Simple Virtual File System api with default impls.</description>
 
   <dependencies>
     <!-- Internal  -->
