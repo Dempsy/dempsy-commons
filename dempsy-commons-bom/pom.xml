@@ -32,11 +32,11 @@
 
     <!-- ===================================================================== -->
     <!-- Dist config is deprecated. It will be removed in a subsequent version -->
-    <dempsy-distconfig.api.version>2.4.2-SNAPSHOT</dempsy-distconfig.api.version>
-    <dempsy-distconfig.clusterinfo.version>2.4.2-SNAPSHOT</dempsy-distconfig.clusterinfo.version>
-    <dempsy-distconfig.apachevfs.version>2.4.2-SNAPSHOT</dempsy-distconfig.apachevfs.version>
-    <dempsy-distconfig.main.version>2.4.2-SNAPSHOT</dempsy-distconfig.main.version>
-    <dempsy-distconfig.classpath.version>2.4.2-SNAPSHOT</dempsy-distconfig.classpath.version>
+    <dempsy-distconfig.api.version>2.4.0</dempsy-distconfig.api.version>
+    <dempsy-distconfig.clusterinfo.version>2.4.0</dempsy-distconfig.clusterinfo.version>
+    <dempsy-distconfig.apachevfs.version>2.4.0</dempsy-distconfig.apachevfs.version>
+    <dempsy-distconfig.main.version>2.4.1</dempsy-distconfig.main.version>
+    <dempsy-distconfig.classpath.version>2.4.0</dempsy-distconfig.classpath.version>
     <!-- ===================================================================== -->
     
     <dempsy-vfs.api.version>2.4.2-SNAPSHOT</dempsy-vfs.api.version>
