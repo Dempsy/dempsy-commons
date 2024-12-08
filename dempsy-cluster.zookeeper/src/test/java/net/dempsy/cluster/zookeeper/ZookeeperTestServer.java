@@ -24,7 +24,6 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.BindException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.Properties;
@@ -108,10 +107,10 @@ public class ZookeeperTestServer implements AutoCloseable {
 
     private static int findNextPort() throws IOException {
         // find an unused ehpemeral port
-        final InetSocketAddress inetSocketAddress = new InetSocketAddress(InetAddress.getLocalHost(), 0);
+        final InetSocketAddress serverSocketAddress = new InetSocketAddress("0.0.0.0", 0);
         final ServerSocket serverSocket = new ServerSocket();
         serverSocket.setReuseAddress(true); // this allows the server port to be bound to even if it's in TIME_WAIT
-        serverSocket.bind(inetSocketAddress);
+        serverSocket.bind(serverSocketAddress);
         final int port = serverSocket.getLocalPort();
         serverSocket.close();
         return port;
