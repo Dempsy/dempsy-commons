@@ -31,7 +31,7 @@ import net.dempsy.util.io.MegaByteBufferInputStream;
 public class FileSpec {
 
     private final Path path;
-    private URI uriX = null;
+    private URI uri = null;
     private String mime = null;
 
     private Header curHeader = null;
@@ -117,10 +117,10 @@ public class FileSpec {
         private final MegaByteBuffer mbb;
         private final RandomAccessFile raf;
 
-        private ByteBufferResource(final File file, final long sizeToMap) throws IOException {
-            raf = new RandomAccessFile(file, "r");
+        private ByteBufferResource(final File file, final long sizeToMap, final boolean writable) throws IOException {
+            raf = new RandomAccessFile(file, writable ? "rw" : "r");
             final FileChannel channel = raf.getChannel();
-            mbb = MegaByteBuffer.allocateMaped(0L, sizeToMap, channel, FileChannel.MapMode.READ_ONLY);
+            mbb = MegaByteBuffer.allocateMaped(0L, sizeToMap, channel, writable ? FileChannel.MapMode.READ_WRITE : FileChannel.MapMode.READ_ONLY);
         }
 
         public MegaByteBuffer getBuffer() {
@@ -136,15 +136,15 @@ public class FileSpec {
 
     public FileSpec(final Path path) {
         this.path = path;
-        this.uriX = null;
+        this.uri = null;
     }
 
     public URI uri() {
 
-        if(uriX == null) {
-            uriX = path.uri();
+        if(uri == null) {
+            uri = path.uri();
         }
-        return uriX;
+        return uri;
     }
 
     public boolean exists() throws IOException {
@@ -172,51 +172,37 @@ public class FileSpec {
     }
 
     public long lastModifiedTime() throws IOException {
-
         return path.lastModifiedTime();
     }
 
     public long size() throws IOException {
-
         return path.length();
     }
 
     public boolean supportsMemoryMap() throws IOException {
-
         File file;
         try {
-            file = path.toFile();
-        } catch(final IOException ioe) {
-            file = null;
-        } catch(final FileSystemNotFoundException fsnfe) {
-            file = null;
-        } catch(final UnsupportedOperationException uoe) {
-            file = null;
-        } // any RTE?
-        catch(final RuntimeException rte) {
+            file = path.exists() ? path.toFile() : null;
+        } catch(final IOException | RuntimeException rte) {
             file = null;
         }
 
-        return file != null;
+        return file != null && !file.isDirectory();
     }
 
-    @SuppressWarnings("resource")
     public InputStream getStandardInputStream() throws IOException {
-
         if(curHeader != null)
             return curHeader.wrap(new BufferedInputStream(path.read()));
         return new BufferedInputStream(path.read());
     }
 
     public InputStream getEfficientInputStream() throws IOException {
-
         return getEfficientInputStream(path.length());
     }
 
     public InputStream getEfficientInputStream(final long numBytes) throws IOException {
-
         if(supportsMemoryMap()) {
-            final ByteBufferResource resource = mapFile(numBytes);
+            final ByteBufferResource resource = mapFile(numBytes, false);
             return new MegaByteBufferInputStream(resource.mbb) {
 
                 @Override
@@ -229,16 +215,22 @@ public class FileSpec {
             return getStandardInputStream();
     }
 
-    public ByteBufferResource mapFile() throws IOException {
+    public ByteBufferResource mapFile(final boolean writable) throws IOException {
+        return mapFile(path.length(), writable);
+    }
 
-        return mapFile(path.length());
+    public ByteBufferResource mapFile() throws IOException {
+        return mapFile(path.length(), false);
     }
 
     public ByteBufferResource mapFile(final long bytesToMap) throws IOException {
+        return mapFile(bytesToMap, false);
+    }
 
+    public ByteBufferResource mapFile(final long bytesToMap, final boolean writable) throws IOException {
         if(!supportsMemoryMap())
             throw new UnsupportedOperationException("The file system \"" + uri().getScheme() + "\" doesn't support memory mapping.");
-        return new ByteBufferResource(toFile(), Math.min(path.length(), bytesToMap));
+        return new ByteBufferResource(toFile(), Math.min(path.length(), bytesToMap), writable);
     }
 
     /**
@@ -247,12 +239,10 @@ public class FileSpec {
      *     built in java Paths functionality.
      */
     public File toFile() throws IOException {
-
         return path.toFile();
     }
 
     public String mimeType() throws IOException {
-
         return mimeType(DEFAULT_MIME);
     }
 
@@ -346,10 +336,12 @@ public class FileSpec {
     }
 
     public BasicFileAttributes getAttr() throws IOException {
-        if(!supportsMemoryMap())
+        try {
+            return Files.readAttributes(
+                toFile().toPath(), BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+        } catch(IOException | RuntimeException e) {
             return null;
-        return Files.readAttributes(
-            toFile().toPath(), BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+        }
     }
 
     @Override
