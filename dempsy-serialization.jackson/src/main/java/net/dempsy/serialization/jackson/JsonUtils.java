@@ -25,6 +25,8 @@ import org.apache.commons.lang3.tuple.Pair;
 public class JsonUtils {
     private JsonUtils() {}
 
+    private static final ObjectMapper MAPPER = makeStandardObjectMapper();
+
     /**
      * Convert the given object to a json string.
      */
@@ -36,31 +38,29 @@ public class JsonUtils {
      * Convert the given object to a json string optionally with human readable formatting
      */
     public static String pojoToJsonString(final Object pojo, final boolean prettyPrint) throws JsonProcessingException {
-        final ObjectMapper mapper = makeStandardObjectMapper();
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         if(prettyPrint) {
-            mapper.enable(SerializationFeature.INDENT_OUTPUT);
+            MAPPER.enable(SerializationFeature.INDENT_OUTPUT);
         }
-        return mapper.writeValueAsString(pojo);
+        return MAPPER.writeValueAsString(pojo);
     }
 
     /**
      * Convert a string with json to the given object type.
      */
     public static <T> T jsonStringToPojo(final String json, final Class<T> pojoType) throws IOException {
-        final ObjectMapper mapper = makeStandardObjectMapper();
-        return mapper.readValue(json, pojoType);
+        return MAPPER.readValue(json, pojoType);
     }
 
     /**
      * Convert object type using a standard json mapper.
      */
     public static <T> T objectToClassThroughJson(final Object serializableObject, final Class<T> clazz) throws IOException {
-        return makeStandardObjectMapper().convertValue(serializableObject, clazz);
+        return MAPPER.convertValue(serializableObject, clazz);
     }
 
     /**
-     * Kognition standard object mapper.
+     * Standard object mapper.
      */
     public static ObjectMapper makeStandardObjectMapper() {
         ObjectMapper objectMapper;
