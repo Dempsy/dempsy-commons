@@ -26,6 +26,11 @@ import net.dempsy.cluster.ClusterInfoSessionFactory;
 import net.dempsy.serialization.Serializer;
 import net.dempsy.util.SafeString;
 
+/**
+ * A {@link ClusterInfoSessionFactory} implementation that creates
+ * {@link ZookeeperSession} instances connected to a ZooKeeper ensemble
+ * using the provided connect string, session timeout, and serializer.
+ */
 public class ZookeeperSessionFactory implements ClusterInfoSessionFactory {
     private final String connectString;
     private final int sessionTimeout;

@@ -28,6 +28,11 @@ import net.dempsy.util.UriUtils;
 import net.dempsy.util.io.MegaByteBuffer;
 import net.dempsy.util.io.MegaByteBufferInputStream;
 
+/**
+ * Rich wrapper around a {@link Path} that adds MIME type detection (via Apache Tika),
+ * memory-mapped file access, efficient input stream creation, and the ability to
+ * determine whether a file is recursable (e.g., an archive that can be traversed).
+ */
 public class FileSpec {
 
     private final Path path;

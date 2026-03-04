@@ -10,6 +10,11 @@ import java.util.function.Supplier;
 
 import net.dempsy.util.QuietCloseable;
 
+/**
+ * Abstract representation of a file or directory within the virtual file system.
+ * Subclasses implement scheme-specific operations such as reading, writing,
+ * listing directory contents, and querying file metadata.
+ */
 public abstract class Path {
     protected Vfs vfs = null;
 

@@ -19,6 +19,11 @@ package net.dempsy.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Utility class for safely converting objects to string representations
+ * without risking exceptions. Methods catch any {@link Throwable} thrown
+ * by {@code toString()} or {@code getClass()} and return a fallback value.
+ */
 public class SafeString {
     private static Logger logger = LoggerFactory.getLogger(SafeString.class);
 

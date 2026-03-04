@@ -16,6 +16,11 @@
 
 package net.dempsy.util;
 
+/**
+ * A simple mutable container for holding a reference to an object of type {@code T}.
+ * Useful in lambdas and anonymous classes where a final or effectively-final
+ * variable is required but the value needs to change.
+ */
 public class MutableRef<T> {
     public T ref;
 

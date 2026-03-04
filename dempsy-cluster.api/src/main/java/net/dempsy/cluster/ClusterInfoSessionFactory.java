@@ -16,6 +16,10 @@
 
 package net.dempsy.cluster;
 
+/**
+ * Factory for creating {@link ClusterInfoSession} instances. Implementations
+ * provide sessions backed by specific cluster management systems (e.g., ZooKeeper, local).
+ */
 public interface ClusterInfoSessionFactory {
     public ClusterInfoSession createSession() throws ClusterInfoException;
 }

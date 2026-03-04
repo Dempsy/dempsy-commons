@@ -19,6 +19,11 @@ import net.dempsy.util.io.UriOpener;
 import net.dempsy.vfs.apache.ApacheVfsFileSystem;
 import net.dempsy.vfs.local.LocalFileSystem;
 
+/**
+ * Virtual file system facade that manages a registry of {@link FileSystem}
+ * implementations keyed by URI scheme. Provides methods to resolve URIs
+ * to {@link Path} instances, open input streams, and convert URIs to local files.
+ */
 public class Vfs implements QuietCloseable, UriOpener {
     private static final Logger LOGGER = LoggerFactory.getLogger(Vfs.class);
 

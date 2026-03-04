@@ -19,6 +19,12 @@ package net.dempsy.util;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 
+/**
+ * A lightweight spin lock backed by an {@link java.util.concurrent.atomic.AtomicInteger}.
+ * Spins for a configurable number of attempts before falling back to
+ * {@link java.util.concurrent.locks.LockSupport#parkNanos(long)}. Provides a
+ * {@link Guard} inner class for use in try-with-resources blocks.
+ */
 public class SpinLock {
     public static final int SPIN_TRIES = 100;
     private final AtomicInteger mine = new AtomicInteger(1);

@@ -25,6 +25,11 @@ import net.dempsy.serialization.Serializer;
 import net.dempsy.util.io.MessageBufferInput;
 import net.dempsy.util.io.MessageBufferOutput;
 
+/**
+ * A {@link Serializer} implementation that uses standard Java object serialization
+ * ({@link java.io.ObjectOutputStream} / {@link java.io.ObjectInputStream}) to
+ * serialize and deserialize objects.
+ */
 public class JavaSerializer extends Serializer {
 
     @Override

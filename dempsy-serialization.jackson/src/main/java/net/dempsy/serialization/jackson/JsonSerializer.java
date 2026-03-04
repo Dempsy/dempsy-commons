@@ -17,6 +17,11 @@ import net.dempsy.serialization.Serializer;
 import net.dempsy.util.io.MessageBufferInput;
 import net.dempsy.util.io.MessageBufferOutput;
 
+/**
+ * A {@link Serializer} implementation that uses Jackson's {@link ObjectMapper}
+ * for JSON-based serialization and deserialization. Objects are wrapped in a
+ * single-element array during serialization to preserve polymorphic type information.
+ */
 public class JsonSerializer extends Serializer {
     ObjectMapper objectMapper;
 

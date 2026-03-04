@@ -18,6 +18,12 @@ import org.slf4j.LoggerFactory;
 import net.dempsy.util.Functional;
 import net.dempsy.util.QuietCloseable;
 
+/**
+ * Scoped context for VFS operations that caches resolved {@link Path} instances
+ * and manages per-path closeable resources. Supports a parent-child hierarchy
+ * so that sub-operations can share or inherit cached state, and all resources
+ * are released when the context is closed.
+ */
 public class OpContext implements QuietCloseable {
     private static final Logger LOGGER = LoggerFactory.getLogger(OpContext.class);
 

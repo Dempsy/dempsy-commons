@@ -32,6 +32,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * Utility methods for manipulating {@link java.net.URI} instances, including
+ * parsing query strings, extracting and encoding/decoding path components,
+ * resolving child paths against recursive URIs, and sanitizing URI strings.
+ */
 public class UriUtils {
 
     public static final String SEP = "/";
