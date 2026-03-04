@@ -19,7 +19,7 @@ This project contains a set of APIs and useful utilities that were generated as 
 
 ### [General Requirements](#general-requirements)
 
-### [API docs](https://dempsy.github.io/dempsy-commons/site-2.1.2/apidocs/)
+### [API source](https://github.com/Dempsy/dempsy-commons)
 
 # <a name="apis"></a>APIs, interfaces and implementations
 
@@ -55,7 +55,7 @@ Not all functionality that Zookeeper provides is available in this API. The foll
 
 #### The main abstraction
 
-See the [API docs](https://dempsy.github.io/dempsy-commons/site-2.1.2/apidocs/index.html) for the [ClusterInfoSession](https://dempsy.github.io/dempsy-commons/site-2.1.2/apidocs/net/dempsy/cluster/ClusterInfoSession.html). It's a simple api wrapper that lets you interact with ZooKeeper but has more resilience than the standard ZooKeeper client and you can plug in a local implementation for testing.
+See the [ClusterInfoSession](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-cluster.api/src/main/java/net/dempsy/cluster/ClusterInfoSession.java) source. It's a simple api wrapper that lets you interact with ZooKeeper but has more resilience than the standard ZooKeeper client and you can plug in a local implementation for testing.
 
 #### Selecting the implementation
 
@@ -103,13 +103,13 @@ These dependencies are represented as Maven `pom.xml` file dependencies but, of 
       <dependency>
         <groupId>net.dempsy</groupId>
         <artifactId>dempsy-commons-bom</artifactId>
-        <version>2.1.2</version> <!-- or whatever overall version you want -->
+        <version>2.4.2-SNAPSHOT</version> <!-- or whatever overall version you want -->
         <type>pom</type>
         <scope>import</scope>
       </dependency>
 ```
 
-Then the versions of each of the libraries will be automatically selected from a self-consistent set that coresponds to the overall version of the BOM pom (in the above example, version 2.1.2).
+Then the versions of each of the libraries will be automatically selected from a self-consistent set that corresponds to the overall version of the BOM pom (in the above example, version 2.4.2-SNAPSHOT).
 
 * API dependency.
 
@@ -175,7 +175,7 @@ Serialization abstractions are a dime-a-dozen. This one exists to support the ab
 1. Native Java serialization - artifactId=*dempsy-serialization.java*
 1. Kryo based serialization - artifactId=*dempsy-serialization.kryo*
 
-See the [API docs](https://dempsy.github.io/dempsy-commons/site-2.1.2/apidocs) for more details.
+See the [Serializer](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-serialization.api/src/main/java/net/dempsy/serialization/Serializer.java) source for more details.
 
 ## <a name="tools"></a>Tools and Utilities
 
@@ -183,17 +183,17 @@ See the [API docs](https://dempsy.github.io/dempsy-commons/site-2.1.2/apidocs) f
 
 Several of the utilities are simple reusalbe components meant for internal (to dempsy-commons) use. You can use them if you want. The following is a brief description of each:
 
-* [SafeString](https://dempsy.github.io/dempsy-commons/site-2.1.2/apidocs/net/dempsy/util/SafeString.html) is a utility for dempsy-commons librarys to uniformly and safely represent objects in log messages and exceptions.
-* [AutoDisposeSingleThreadScheduler](https://dempsy.github.io/dempsy-commons/site-2.1.2/apidocs/net/dempsy/util/executor/AutoDisposeSingleThreadScheduler.html) is a self contained *one-shot* scheduler for a future task. It cleans itself up once the task executes. It's useful for scheduling retries without worrying about cleaning up threads afterward.
-* [MessageBufferInput](https://dempsy.github.io/dempsy-commons/site-2.1.2/apidocs/net/dempsy/util/io/MessageBufferInput.html)/[MessageBufferOutput](https://dempsy.github.io/dempsy-commons/site-2.1.2/apidocs/net/dempsy/util/io/MessageBufferOutput.html) are java.io Input/Output Streams that can be used for *zero-copy* messaging. That is, you can serialize/deserialize directly to/from a network buffer (or other intermediary) without copying bytes around. These classes are used in the *dempsy-serialization.api*.
-* [Java 8 Functional programming support](https://dempsy.github.io/dempsy-commons/site-2.1.2/apidocs/net/dempsy/util/Functional.html) is a set of utilities that make up for some of the lack of functionality in Java 8.
+* [SafeString](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-utils/src/main/java/net/dempsy/util/SafeString.java) is a utility for dempsy-commons libraries to uniformly and safely represent objects in log messages and exceptions.
+* [AutoDisposeSingleThreadScheduler](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-utils/src/main/java/net/dempsy/util/executor/AutoDisposeSingleThreadScheduler.java) is a self contained *one-shot* scheduler for a future task. It cleans itself up once the task executes. It's useful for scheduling retries without worrying about cleaning up threads afterward.
+* [MessageBufferInput](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-utils/src/main/java/net/dempsy/util/io/MessageBufferInput.java)/[MessageBufferOutput](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-utils/src/main/java/net/dempsy/util/io/MessageBufferOutput.java) are java.io Input/Output Streams that can be used for *zero-copy* messaging. That is, you can serialize/deserialize directly to/from a network buffer (or other intermediary) without copying bytes around. These classes are used in the *dempsy-serialization.api*.
+* [Functional programming support](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-utils/src/main/java/net/dempsy/util/Functional.java) is a set of utilities that make up for some of the lack of functionality in Java's standard library.
 *    * Chaining method calls. There is support for the ability to chain calls and create "Builder" like functionality from existing classes that were never meant to be used this way. For example:
 
 ```java
 Properties properties = chain(new Properties(), p -> p.setProperty("name1", "value1"), p -> p.setProperty("name2", "value2"));
 ```
 
-There's also the ability to chain calls where the lambda's may throw exceptions. See [chainThrows](https://dempsy.github.io/dempsy-commons/site-2.1.2/apidocs/net/dempsy/util/Functional.html#chainThrows-T-net.dempsy.util.Functional.ConsumerThrows...-)
+There's also the ability to chain calls where the lambda's may throw exceptions. See [Functional.chainThrows](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-utils/src/main/java/net/dempsy/util/Functional.java)
 
 *    * Exception handling in Lambda's.
 
@@ -212,7 +212,7 @@ There's an alternate form of <em>recheck</em> that allows for the use of a stati
 recheck(() -> classnames.stream().forEach(cn -> uncheck(() -> Class.forName(cn))), ClassNotFoundException.class);
 ```
 
-If you want to simple convert an exception from one checked type to another (checked or unchecked), you can use [Functional.mapChecked](https://dempsy.github.io/dempsy-commons/site-2.1.2/apidocs/net/dempsy/util/Functional.html#mapChecked-net.dempsy.util.Functional.SupplierThrows-java.util.function.Function-). For example:
+If you want to simply convert an exception from one checked type to another (checked or unchecked), you can use [Functional.mapChecked](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-utils/src/main/java/net/dempsy/util/Functional.java). For example:
 
 ```java
   public void myFunction() throws MyException {
@@ -223,43 +223,34 @@ If you want to simple convert an exception from one checked type to another (che
     },(final IOException e) -> new MyException(e)));
   }
 ```
-See the [Functional](https://dempsy.github.io/dempsy-commons/site-2.1.2/apidocs/net/dempsy/util/Functional.html) class for all of the details.
+See the [Functional](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-utils/src/main/java/net/dempsy/util/Functional.java) class for all of the details.
 
 ### <a name="dempsy-test-utils"></a>2. dempsy-test-utils
-* [ConditionPoll](https://dempsy.github.io/dempsy-commons/site-2.1.2/apidocs/net/dempsy/utils/test/ConditionPoll.html) is a class that helps in writing multi-threaded tests. See the [Javadoc](https://dempsy.github.io/dempsy-commons/site-2.1.2/apidocs/net/dempsy/utils/test/ConditionPoll.html) for a full description.
-* [SocketTimeout](https://dempsy.github.io/dempsy-commons/site-2.1.2/apidocs/net/dempsy/utils/test/SocketTimeout.html) is to help when testing socket code that needs to be resillient to network disruptions. It will allow the test writer to schedule a near future socket disruption and test the resulting behavior.
+* [ConditionPoll](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-test-utils/src/main/java/net/dempsy/utils/test/ConditionPoll.java) is a class that helps in writing multi-threaded tests. See the source javadoc for a full description.
+* [SocketTimeout](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-test-utils/src/main/java/net/dempsy/utils/test/SocketTimeout.java) is to help when testing socket code that needs to be resilient to network disruptions. It will allow the test writer to schedule a near future socket disruption and test the resulting behavior.
 
 ### <a name="dempsy-ringbuffer"></a>3. dempsy-ringbuffer - High performance multi-threading
 
 This work is substantially based on the ingenious work done by Martin Thompson and his conception of "Mechanical Sympathy." It is basically a refactor of the [LMAX-exchange Disruptor](http://lmax-exchange.github.com/disruptor/) in order to separate the control mechanism from what is being controlled and to simplify the API.
 
-The [RingBufferControl](https://dempsy.github.io/dempsy-commons/site-2.1.2/apidocs/net/dempsy/ringbuffer/RingBufferControl.html) is analogous to a traditional "condition variable." Just like a condition variable is the synchronization mechanism that gates concurrent access to some 'condition', but says nothing about what the 'condition' actually is, the [RingBufferControl](https://dempsy.github.io/dempsy-commons/site-2.1.2/apidocs/net/dempsy/ringbuffer/RingBufferControl.html) gates concurrent access to the publishing and consuming of data in a ring buffer.
+The [RingBufferControl](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-ringbuffer/src/main/java/net/dempsy/ringbuffer/RingBufferControl.java) is analogous to a traditional "condition variable." Just like a condition variable is the synchronization mechanism that gates concurrent access to some 'condition', but says nothing about what the 'condition' actually is, the [RingBufferControl](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-ringbuffer/src/main/java/net/dempsy/ringbuffer/RingBufferControl.java) gates concurrent access to the publishing and consuming of data in a ring buffer.
 
-The 'consumer side' control and the 'publishing side' control are broken into two separate classes. The [RingBufferControl](https://dempsy.github.io/dempsy-commons/site-2.1.2/apidocs/net/dempsy/ringbuffer/RingBufferControl.html) represents control of the publish side of the ring buffer however, it inherits from the [RingBufferConsumerControl](https://dempsy.github.io/dempsy-commons/site-2.1.2/apidocs/net/dempsy/ringbuffer/RingBufferConsumerControl.html) which represents the consumer side.
+The 'consumer side' control and the 'publishing side' control are broken into two separate classes. The [RingBufferControl](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-ringbuffer/src/main/java/net/dempsy/ringbuffer/RingBufferControl.java) represents control of the publish side of the ring buffer however, it inherits from the [RingBufferConsumerControl](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-ringbuffer/src/main/java/net/dempsy/ringbuffer/RingBufferConsumerControl.java) which represents the consumer side.
 
 NOTE: These classes are incredibly temperamental and must strictly be used the way they were intended. Misuse can easily lead to lockups, missed sequences, etc.
 
 These two base primitives can only be used with one consuming thread and one publishing thread, however, they form the building blocks for several other configurations:
 
-  * [RingBufferControlMulticaster](https://dempsy.github.io/dempsy-commons/site-2.1.2/apidocs/net/dempsy/ringbuffer/RingBufferControlMulticaster.html) is a helper class for managing a set of [RingBufferControls](https://dempsy.github.io/dempsy-commons/site-2.1.2/apidocs/net/dempsy/ringbuffer/RingBufferControl.html) for use in a "single-publisher to multi-consumer" thread configuration where everything published is "multicast" to all consumers.
-  * [RingBufferControlMultiplexor](https://dempsy.github.io/dempsy-commons/site-2.1.2/apidocs/net/dempsy/ringbuffer/RingBufferControlMultiplexor.html) is a helper class for managing a set of [RingBufferControls](https://dempsy.github.io/dempsy-commons/site-2.1.2/apidocs/net/dempsy/ringbuffer/RingBufferControl.html) for use in a "multiple-publisher to single-consumer" thread configuration.
-  * [RingBufferControlWorkerPool](https://dempsy.github.io/dempsy-commons/site-2.1.2/apidocs/net/dempsy/ringbuffer/RingBufferControlWorkerPool.html) is a helper class for managing a set of [RingBufferControls](https://dempsy.github.io/dempsy-commons/site-2.1.2/apidocs/net/dempsy/ringbuffer/RingBufferControl.html) for use in a "single-publisher to multi-consumer" thread configuration where the consumers are workers reading from the buffered data.
+  * [RingBufferControlMulticaster](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-ringbuffer/src/main/java/net/dempsy/ringbuffer/RingBufferControlMulticaster.java) is a helper class for managing a set of [RingBufferControls](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-ringbuffer/src/main/java/net/dempsy/ringbuffer/RingBufferControl.java) for use in a "single-publisher to multi-consumer" thread configuration where everything published is "multicast" to all consumers.
+  * [RingBufferControlMultiplexor](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-ringbuffer/src/main/java/net/dempsy/ringbuffer/RingBufferControlMultiplexor.java) is a helper class for managing a set of [RingBufferControls](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-ringbuffer/src/main/java/net/dempsy/ringbuffer/RingBufferControl.java) for use in a "multiple-publisher to single-consumer" thread configuration.
+  * [RingBufferControlWorkerPool](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-ringbuffer/src/main/java/net/dempsy/ringbuffer/RingBufferControlWorkerPool.java) is a helper class for managing a set of [RingBufferControls](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-ringbuffer/src/main/java/net/dempsy/ringbuffer/RingBufferControl.java) for use in a "single-publisher to multi-consumer" thread configuration where the consumers are workers reading from the buffered data.
 
 ## <a name="general-requirements"></a>General Requirements:
 
-  * Java 8 - at version (1.1), almost everything will build with java 7 except the Kryo serializer which will need to be modified slightly. The released version 1.1 was built with Java 8. Going forward (2.0.0 and beyond) there will be an assumption that Java 8 functionality is available and builds will be done using Java8.
-
-## [API docs](https://dempsy.github.io/dempsy-commons/site-2.1.2/apidocs/)
-   * version 1.1 javadocs - <b>deprecated</b>.
-   * [Javadocs for other released versions](http://dempsy.github.io/dempsy-commons/)
+  * Java 17 (Eclipse Temurin recommended)
+  * Maven 3.9+
 
 ## Current versions
 
-Overall `dempsy-commons` version (bom version) 2.2.0
-
-dempsy-serialization 2.1.x
-dempsy-cluster 2.1.x
-dempsy-ringbuffer 2.2.x
-dempsy-utils 2.2.x
-dempsy-test-utils 2.2.x
+All modules are at version **2.4.2-SNAPSHOT** (managed via the [BOM](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-commons-bom/pom.xml)).
 
