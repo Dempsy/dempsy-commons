@@ -30,15 +30,6 @@
     <dempsy-cluster.zookeeper.version>2.4.2-SNAPSHOT</dempsy-cluster.zookeeper.version>
     <dempsy-cluster.local.version>2.4.2-SNAPSHOT</dempsy-cluster.local.version>
 
-    <!-- ===================================================================== -->
-    <!-- Dist config is deprecated. It will be removed in a subsequent version -->
-    <dempsy-distconfig.api.version>2.4.0</dempsy-distconfig.api.version>
-    <dempsy-distconfig.clusterinfo.version>2.4.0</dempsy-distconfig.clusterinfo.version>
-    <dempsy-distconfig.apachevfs.version>2.4.0</dempsy-distconfig.apachevfs.version>
-    <dempsy-distconfig.main.version>2.4.1</dempsy-distconfig.main.version>
-    <dempsy-distconfig.classpath.version>2.4.0</dempsy-distconfig.classpath.version>
-    <!-- ===================================================================== -->
-    
     <dempsy-vfs.api.version>2.4.2-SNAPSHOT</dempsy-vfs.api.version>
   </properties>
 
@@ -102,41 +93,6 @@
         <type>test-jar</type>
       </dependency>
 
-      <!-- ===================================================================== -->
-      <!-- Dist config is deprecated. It will be removed in a subsequent version -->
-      <!-- distributed configuration api -->
-      <dependency>
-        <groupId>net.dempsy</groupId>
-        <artifactId>dempsy-distconfig.api</artifactId>
-        <version>${dempsy-distconfig.api.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>net.dempsy</groupId>
-        <artifactId>dempsy-distconfig.main</artifactId>
-        <version>${dempsy-distconfig.main.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>net.dempsy</groupId>
-        <artifactId>dempsy-distconfig.classpath</artifactId>
-        <version>${dempsy-distconfig.classpath.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>net.dempsy</groupId>
-        <artifactId>dempsy-distconfig.api</artifactId>
-        <type>test-jar</type>
-        <version>${dempsy-distconfig.api.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>net.dempsy</groupId>
-        <artifactId>dempsy-distconfig.apachevfs</artifactId>
-        <version>${dempsy-distconfig.apachevfs.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>net.dempsy</groupId>
-        <artifactId>dempsy-distconfig.clusterinfo</artifactId>
-        <version>${dempsy-distconfig.clusterinfo.version}</version>
-      </dependency>
-      <!-- ===================================================================== -->
 
       <!-- Vfs -->
       <dependency>
