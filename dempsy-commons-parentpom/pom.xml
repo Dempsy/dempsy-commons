@@ -134,11 +134,7 @@
         <artifactId>spring-boot-starter-websocket</artifactId>
         <version>${spring-boot.version}</version>
       </dependency>
-      <dependency>
-        <groupId>cglib</groupId>
-        <artifactId>cglib</artifactId>
-        <version>3.3.0</version>
-      </dependency>
+
 
       <!-- Testing - internal -->
 
