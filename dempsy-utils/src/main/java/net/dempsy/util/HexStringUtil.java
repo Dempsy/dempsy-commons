@@ -16,6 +16,10 @@
 
 package net.dempsy.util;
 
+/**
+ * Utility class for converting byte arrays to uppercase hexadecimal string
+ * representations.
+ */
 public class HexStringUtil {
 
     private static final char[] hexArray = "0123456789ABCDEF".toCharArray();

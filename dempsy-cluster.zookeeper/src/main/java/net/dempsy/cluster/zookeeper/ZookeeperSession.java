@@ -43,6 +43,12 @@ import net.dempsy.serialization.Serializer;
 import net.dempsy.util.SafeString;
 import net.dempsy.util.executor.AutoDisposeSingleThreadScheduler;
 
+/**
+ * A {@link ClusterInfoSession} implementation backed by Apache ZooKeeper.
+ * Manages a ZooKeeper client connection with automatic reconnection on
+ * failure, watcher proxy management, and data serialization via a
+ * pluggable {@link Serializer}.
+ */
 public class ZookeeperSession implements ClusterInfoSession, DisruptibleSession {
     private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperSession.class);
 

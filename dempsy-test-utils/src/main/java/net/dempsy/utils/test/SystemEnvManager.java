@@ -7,6 +7,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Test utility that allows setting and clearing system environment variables
+ * at runtime via reflection. Implements {@link AutoCloseable} to restore all
+ * modified variables to their original values when closed.
+ */
 public class SystemEnvManager implements AutoCloseable {
 
     private final Map<String, String> formerValues = new HashMap<>();

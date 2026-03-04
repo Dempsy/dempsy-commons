@@ -16,6 +16,11 @@
 
 package net.dempsy.cluster;
 
+/**
+ * Checked exception thrown by cluster information operations. Includes nested
+ * exception types {@link NoNodeException} and {@link NoParentException} to
+ * indicate specific node-not-found conditions in the cluster directory tree.
+ */
 public class ClusterInfoException extends Exception {
     private static final long serialVersionUID = 1L;
 

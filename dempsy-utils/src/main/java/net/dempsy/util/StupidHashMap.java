@@ -26,6 +26,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Supplier;
 
+/**
+ * A lock-free, fixed-capacity hash map that uses compare-and-swap spin locks
+ * at the bucket level for concurrency. Supports {@code get}, {@code remove},
+ * {@code putIfAbsent}, and {@code computeIfAbsent}; the capacity must be a
+ * power of two and cannot grow after construction.
+ */
 public class StupidHashMap<K, V> implements Map<K, V> {
     private static final int DEFAULT_INITAL_TABLE_SIZE = 2048;
     private static final int SPIN_TRIES = 100;

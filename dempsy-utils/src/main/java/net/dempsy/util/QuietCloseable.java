@@ -16,6 +16,11 @@
 
 package net.dempsy.util;
 
+/**
+ * An {@link AutoCloseable} variant whose {@link #close()} method does not
+ * declare any checked exceptions, allowing use in try-with-resources blocks
+ * without requiring a catch clause.
+ */
 public interface QuietCloseable extends AutoCloseable {
 
     @Override
