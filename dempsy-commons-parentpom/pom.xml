@@ -42,7 +42,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
-        <version>3.12.0</version>
+        <version>3.17.0</version>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>
@@ -77,12 +77,17 @@
       <dependency> <!-- Required if using the tar utils.vfs -->
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-compress</artifactId>
-        <version>1.21</version>
+        <version>1.27.1</version>
       </dependency>
       <dependency><!-- Required if using the xz utils.vfs file system -->
         <groupId>org.tukaani</groupId>
         <artifactId>xz</artifactId>
-        <version>1.8</version>
+        <version>1.10</version>
+      </dependency>
+      <dependency><!-- Required by commons-compress for Zstandard support -->
+        <groupId>com.github.luben</groupId>
+        <artifactId>zstd-jni</artifactId>
+        <version>1.5.7-7</version>
       </dependency>
       <dependency><!-- Required if using the 7zip utils.vfs file system (includes RAR)-->
         <groupId>net.sf.sevenzipjbinding</groupId>
@@ -102,7 +107,7 @@
       <dependency><!-- used in the VariablePropertiesReader in dempsy-spring-utils -->
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-text</artifactId>
-        <version>1.10.0</version>
+        <version>1.12.0</version>
       </dependency>
       <dependency>
        <groupId>org.springframework</groupId>
@@ -152,12 +157,12 @@
       <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
-        <version>2.9.0</version>
+        <version>2.18.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.tika</groupId>
         <artifactId>tika-core</artifactId>
-        <version>2.2.1</version>
+        <version>2.9.2</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
