@@ -29,7 +29,7 @@ public class TestClasspathToFileCopyNeeded {
         protected void before() throws IOException, URISyntaxException {
             // when building from maven or running in eclipse, this is in the target/test-classes directory
             try(Vfs vfs = new Vfs()) {
-                final File tempFileLocation = vfs.toFile(new URI("classpath:///log4j.properties"));
+                final File tempFileLocation = vfs.toFile(new URI("classpath:///logback-test.xml"));
                 final File classpathDirectory = tempFileLocation.getParentFile();
                 final File fakeDirOnClasspath = new File(classpathDirectory, "fakedir");
                 if(!fakeDirOnClasspath.exists()) fakeDirOnClasspath.mkdir();
@@ -39,7 +39,7 @@ public class TestClasspathToFileCopyNeeded {
         @Override
         protected void after() {
             try(Vfs vfs = new Vfs()) {
-                final File tempFileLocation = vfs.toFile(new URI("classpath:///log4j.properties"));
+                final File tempFileLocation = vfs.toFile(new URI("classpath:///logback-test.xml"));
                 final File classpathDirectory = tempFileLocation.getParentFile();
                 final File fakeDirOnClasspath = new File(classpathDirectory, "fakedir");
                 if(fakeDirOnClasspath.exists()) fakeDirOnClasspath.delete();
