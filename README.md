@@ -16,6 +16,8 @@ This project contains a set of APIs and useful utilities that were generated as 
 1. [dempsy-utils](#dempsy-utils) - A few simple reusalbe components
 1. [dempsy-test-utils](#dempsy-test-utils) - Aids in muti-threaded and more complicated network testing
 1. [dempsy-ringbuffer](#dempsy-ringbuffer) - High performance multi-threading
+1. [dempsy-vfs.api](#dempsy-vfs.api) - Pluggable virtual file system abstraction
+1. [dempsy-spring-utils](#dempsy-spring-utils) - Spring context loading utilities
 
 ### [General Requirements](#general-requirements)
 
@@ -244,6 +246,39 @@ These two base primitives can only be used with one consuming thread and one pub
   * [RingBufferControlMulticaster](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-ringbuffer/src/main/java/net/dempsy/ringbuffer/RingBufferControlMulticaster.java) is a helper class for managing a set of [RingBufferControls](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-ringbuffer/src/main/java/net/dempsy/ringbuffer/RingBufferControl.java) for use in a "single-publisher to multi-consumer" thread configuration where everything published is "multicast" to all consumers.
   * [RingBufferControlMultiplexor](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-ringbuffer/src/main/java/net/dempsy/ringbuffer/RingBufferControlMultiplexor.java) is a helper class for managing a set of [RingBufferControls](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-ringbuffer/src/main/java/net/dempsy/ringbuffer/RingBufferControl.java) for use in a "multiple-publisher to single-consumer" thread configuration.
   * [RingBufferControlWorkerPool](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-ringbuffer/src/main/java/net/dempsy/ringbuffer/RingBufferControlWorkerPool.java) is a helper class for managing a set of [RingBufferControls](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-ringbuffer/src/main/java/net/dempsy/ringbuffer/RingBufferControl.java) for use in a "single-publisher to multi-consumer" thread configuration where the consumers are workers reading from the buffered data.
+
+### <a name="dempsy-vfs.api"></a>4. dempsy-vfs.api - Virtual File System
+
+A pluggable virtual file system abstraction that provides unified access to local files, classpath resources, and compressed/archived content through a single API. Supported formats include tar, zip, gzip, bzip2, xz, and 7-zip.
+
+Key classes:
+
+* [Vfs](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-vfs.api/src/main/java/net/dempsy/vfs/Vfs.java) is the main entry point. It manages a registry of `FileSystem` implementations keyed by URI scheme and provides methods to resolve URIs to paths and open input streams.
+* [Path](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-vfs.api/src/main/java/net/dempsy/vfs/Path.java) represents a file or directory within the VFS. It provides methods for reading, listing, and querying file metadata.
+* [FileSystem](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-vfs.api/src/main/java/net/dempsy/vfs/FileSystem.java) is the abstract base for all file system implementations. Each implementation declares which URI schemes it handles.
+
+Usage example:
+
+```java
+try (final Vfs vfs = new Vfs()) {
+    try (final InputStream is = vfs.toInputStream(new URI("file:///tmp/data.txt"))) {
+        // read from the input stream
+    }
+}
+```
+
+The `Vfs` constructor automatically registers local file and Apache VFS file systems. Additional file systems (e.g., for archive formats) can be passed to the constructor or registered afterward.
+
+### <a name="dempsy-spring-utils"></a>5. dempsy-spring-utils - Spring Context Utilities
+
+Utilities for loading and configuring Spring application contexts with externalized properties. Supports both traditional XML-based and Spring Boot contexts.
+
+Key classes:
+
+* [SpringContextLoader](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-spring-utils/src/main/java/net/dempsy/util/spring/SpringContextLoader.java) loads `ClassPathXmlApplicationContext` instances with properties injected from configurable sources. It supports dependency injection of pre-existing objects into the context.
+* [SpringBootContextLoader](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-spring-utils/src/main/java/net/dempsy/util/spring/SpringBootContextLoader.java) bridges XML property contexts with Spring Boot applications, setting the XML context as the parent of the Boot context.
+* [PropertiesReader](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-spring-utils/src/main/java/net/dempsy/util/spring/PropertiesReader.java) is a functional interface for reading properties from arbitrary sources (files, classpath, VFS, etc.).
+* [VariableSubstituterPropertiesReader](https://github.com/Dempsy/dempsy-commons/blob/master/dempsy-spring-utils/src/main/java/net/dempsy/util/spring/VariableSubstituterPropertiesReader.java) wraps another `PropertiesReader` and performs `${variable}` substitution on property values.
 
 ## <a name="general-requirements"></a>General Requirements:
 
