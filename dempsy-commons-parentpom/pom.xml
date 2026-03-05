@@ -23,7 +23,7 @@
     <sevenzipbinding.version>16.02-2.01</sevenzipbinding.version>
 
     <spring-framework.version>6.2.3</spring-framework.version>
-    <spring-boot.version>3.4.3</spring-boot.version>
+    <spring-boot.version>3.4.5</spring-boot.version>
   </properties>
 
   <!-- This section provides some uniformity of dependencies for all dempsy-commons projects -->
