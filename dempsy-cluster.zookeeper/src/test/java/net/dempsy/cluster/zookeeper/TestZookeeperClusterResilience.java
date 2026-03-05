@@ -19,9 +19,9 @@ package net.dempsy.cluster.zookeeper;
 import static net.dempsy.cluster.TestClusterImpls.recurseCreate;
 import static net.dempsy.utils.test.ConditionPoll.baseTimeoutMillis;
 import static net.dempsy.utils.test.ConditionPoll.poll;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.zookeeper.ZooKeeper;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,82 +1,65 @@
 package net.dempsy.vfs.test;
 
 import static net.dempsy.util.UriUtils.uriCompliantAbsPath;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.util.Arrays;
-import java.util.Collection;
+import java.nio.file.Files;
+import java.util.stream.Stream;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import net.dempsy.vfs.Path;
 import net.dempsy.vfs.Vfs;
 
-@RunWith(Parameterized.class)
 public class PathImplTest {
-
-    @Rule public TemporaryFolder tmpdir = new TemporaryFolder();
 
     public static ClassPathXmlApplicationContext nfsctx;
     public static Vfs vfs;
 
-    @BeforeClass
+    @BeforeAll
     public static void setupClass() {
         nfsctx = new ClassPathXmlApplicationContext("spring/vfs.xml");
         vfs = nfsctx.getBean(Vfs.class);
     }
 
-    @AfterClass
+    @AfterAll
     public static void afterClass() {
         nfsctx.close();
     }
 
-    @Parameters
-    public static Collection<Object[]> setup() throws IOException {
-
-        return Arrays.<Object[]>asList(
-
-            new Object[] {"ram",null},
-            new Object[] {"classpath","classpathReading/"},
-            new Object[] {"classpath","//classpathReading/"},
-            new Object[] {"classpath","///classpathReading/"},
-            new Object[] {"file",null}
-
+    public static Stream<Object[]> setup() throws IOException {
+        return Stream.of(
+            new Object[] {"ram", null},
+            new Object[] {"classpath", "classpathReading/"},
+            new Object[] {"classpath", "//classpathReading/"},
+            new Object[] {"classpath", "///classpathReading/"},
+            new Object[] {"file", null}
         );
     }
 
-    private final String scheme;
-    private final String prefix;
-
-    public PathImplTest(final String scheme, final String prefix) {
-        this.scheme = scheme;
-        this.prefix = prefix;
-    }
-
-    private String getPrefix() throws IOException {
+    private String getPrefix(final String scheme, final String prefix) throws IOException {
         if(prefix == null)
-            return "//" + uriCompliantAbsPath(tmpdir.newFolder().getAbsolutePath()) + "/";
+            return "//" + uriCompliantAbsPath(Files.createTempDirectory("pathimpltest").toFile().getAbsolutePath()) + "/";
         return prefix;
     }
 
-    @Test
-    public void testToFile() throws Exception {
-        final URI uri = new URI(scheme + ":" + getPrefix() + "test.txt");
+    @ParameterizedTest
+    @MethodSource("setup")
+    public void testToFile(final String scheme, final String prefix) throws Exception {
+        final URI uri = new URI(scheme + ":" + getPrefix(scheme, prefix) + "test.txt");
         if(!"ram".equals(scheme))
             assertNotNull(vfs.toFile(uri));
         else { // expect FileSystemNotFoundException
@@ -84,9 +67,10 @@ public class PathImplTest {
         }
     }
 
-    @Test
-    public void testFileWriteAndReadbackAndDelete() throws Exception {
-        final URI uri = new URI(scheme + ":" + getPrefix() + "test.txt");
+    @ParameterizedTest
+    @MethodSource("setup")
+    public void testFileWriteAndReadbackAndDelete(final String scheme, final String prefix) throws Exception {
+        final URI uri = new URI(scheme + ":" + getPrefix(scheme, prefix) + "test.txt");
         final Path path = vfs.toPath(uri);
 
         assertEquals(uri, path.uri());
@@ -115,15 +99,16 @@ public class PathImplTest {
             path.delete();
     }
 
-    @Test
-    public void testListContents() throws Exception {
+    @ParameterizedTest
+    @MethodSource("setup")
+    public void testListContents(final String scheme, final String prefix) throws Exception {
         final byte[] strBytes = "Hello World".getBytes();
-        final String prefix = getPrefix();
+        final String resolvedPrefix = getPrefix(scheme, prefix);
 
         boolean canWrite = true;
         try {
             for(int i = 0; i < 10; i++) {
-                final Path path = vfs.toPath(new URI(scheme + ":" + prefix + "test" + i + ".txt"));
+                final Path path = vfs.toPath(new URI(scheme + ":" + resolvedPrefix + "test" + i + ".txt"));
 
                 try(final OutputStream os = path.write();) {
                     os.write(strBytes);
@@ -135,7 +120,7 @@ public class PathImplTest {
                 }
             }
 
-            final Path[] contents = vfs.toPath(new URI(scheme + ":" + prefix)).list();
+            final Path[] contents = vfs.toPath(new URI(scheme + ":" + resolvedPrefix)).list();
             assertTrue(contents.length >= 10); // it's 11 for classpath
             for(final Path path: contents) {
                 final byte[] retBytes = new byte[strBytes.length];
@@ -151,7 +136,7 @@ public class PathImplTest {
             if(canWrite) {
                 Exception excep = null;
                 for(int i = 0; i < 10; i++) {
-                    final Path path = vfs.toPath(new URI(scheme + ":" + prefix + "test" + i + ".txt"));
+                    final Path path = vfs.toPath(new URI(scheme + ":" + resolvedPrefix + "test" + i + ".txt"));
                     try {
                         path.delete();
                     } catch(final Exception e) {

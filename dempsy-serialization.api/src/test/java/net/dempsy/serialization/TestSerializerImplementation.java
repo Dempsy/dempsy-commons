@@ -18,25 +18,29 @@ package net.dempsy.serialization;
 
 import static net.dempsy.utils.test.ConditionPoll.baseTimeoutMillis;
 import static net.dempsy.utils.test.ConditionPoll.poll;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.Serializable;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public abstract class TestSerializerImplementation {
     private static final int TEST_NUMBER = 42;
     private static final String TEST_STRING = "life, the universe and everything";
     private static final int numThreads = 5;
 
-    protected final Serializer underTest;
-    protected final boolean requiresDefaultConstructor;
-    protected final boolean canDeserializeSubclasses;
+    protected Serializer underTest;
+    protected boolean requiresDefaultConstructor;
+    protected boolean canDeserializeSubclasses;
+
+    protected TestSerializerImplementation() {
+        // default constructor for parameterized subclasses
+    }
 
     protected TestSerializerImplementation(final Serializer underTest, final boolean requiresDefaultConstructor,
             final boolean canDeserializeSubclasses) {
@@ -53,10 +57,20 @@ public abstract class TestSerializerImplementation {
         this(underTest, false, true);
     }
 
+    protected void init(final Serializer underTest, final boolean requiresDefaultConstructor, final boolean canDeserializeSubclasses) {
+        this.underTest = underTest;
+        this.requiresDefaultConstructor = requiresDefaultConstructor;
+        this.canDeserializeSubclasses = canDeserializeSubclasses;
+    }
+
     private final MockClass o1 = new MockClass(TEST_NUMBER, TEST_STRING);
 
     @Test
     public void testJavaSerializeDeserialize() throws Throwable {
+        doTestJavaSerializeDeserialize();
+    }
+
+    protected void doTestJavaSerializeDeserialize() throws Throwable {
         runSerializer(underTest);
     }
 
@@ -70,6 +84,10 @@ public abstract class TestSerializerImplementation {
 
     @Test
     public void testMultithreadedSerialization() throws Throwable {
+        doTestMultithreadedSerialization();
+    }
+
+    protected void doTestMultithreadedSerialization() throws Throwable {
         final Thread[] threads = new Thread[numThreads];
 
         final Object latch = new Object();
@@ -209,6 +227,10 @@ public abstract class TestSerializerImplementation {
 
     @Test
     public void testWithFinalFields() throws Throwable {
+        doTestWithFinalFields();
+    }
+
+    protected void doTestWithFinalFields() throws Throwable {
         final Mock2 o = new Mock2(1, new MockClass(2, "Hello"));
         final byte[] data = underTest.serialize(o);
         final Mock2 o2 = underTest.deserialize(data, Mock2.class);
@@ -218,6 +240,10 @@ public abstract class TestSerializerImplementation {
 
     @Test
     public void testChildClassSerialization() throws Throwable {
+        doTestChildClassSerialization();
+    }
+
+    protected void doTestChildClassSerialization() throws Throwable {
         if (!requiresDefaultConstructor) {
             final Mock2 o = new Mock3(1, new MockClass(2, "Hello"));
             final byte[] data = underTest.serialize(o);

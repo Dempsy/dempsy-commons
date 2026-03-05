@@ -1,10 +1,10 @@
 package net.dempsy.vfs2;
 
 import static net.dempsy.util.UriUtils.uriCompliantAbsPath;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.net.URI;
@@ -12,25 +12,19 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import net.dempsy.vfs.OpContext;
 import net.dempsy.vfs.Path;
 import net.dempsy.vfs.Vfs;
 
-@RunWith(Parameterized.class)
 public class Test7zArchives extends BaseTest {
 
-    public Test7zArchives(final Vfs vfs) {
-        super(vfs);
-    }
-
-    @Test
-    public void test7zEntryDirectToFile() throws Exception {
-        try(final Vfs vfs = getVfs();
-            OpContext oc = vfs.operation();) {
+    @ParameterizedTest
+    @MethodSource("vfsConfigs")
+    public void test7zEntryDirectToFile(final Vfs vfs) throws Exception {
+        try(OpContext oc = vfs.operation();) {
             final Path p = oc
                 .toPath(new URI("sevenz:file://" + uriCompliantAbsPath(vfs.toFile(new URI("classpath:///7z.7z")).getAbsolutePath()) + "!log4j.properties"));
             assertFalse(p.isDirectory());
@@ -40,16 +34,16 @@ public class Test7zArchives extends BaseTest {
         }
     }
 
-    @Test
-    public void test7zEntryDirectToDirectory() throws Exception {
-        test7zEntryDirectToDirectory("classpathReading");
-        test7zEntryDirectToDirectory("classpathReading/");
+    @ParameterizedTest
+    @MethodSource("vfsConfigs")
+    public void test7zEntryDirectToDirectory(final Vfs vfs) throws Exception {
+        test7zEntryDirectToDirectory(vfs, "classpathReading");
+        test7zEntryDirectToDirectory(vfs, "classpathReading/");
     }
 
-    private void test7zEntryDirectToDirectory(final String pathToDir) throws Exception {
+    private void test7zEntryDirectToDirectory(final Vfs vfs, final String pathToDir) throws Exception {
 
-        try(final Vfs vfs = getVfs();
-            OpContext oc = vfs.operation();) {
+        try(OpContext oc = vfs.operation();) {
             final Path p = oc
                 .toPath(new URI("sevenz:file://" + uriCompliantAbsPath(vfs.toFile(new URI("classpath:///7z.7z")).getAbsolutePath()) + "!" + pathToDir));
             assertTrue(p.isDirectory());
@@ -71,10 +65,10 @@ public class Test7zArchives extends BaseTest {
         }
     }
 
-    @Test
-    public void test7z() throws Exception {
-        try(final Vfs vfs = getVfs();
-            OpContext oc = vfs.operation();) {
+    @ParameterizedTest
+    @MethodSource("vfsConfigs")
+    public void test7z(final Vfs vfs) throws Exception {
+        try(OpContext oc = vfs.operation();) {
             final Path p = oc.toPath(new URI("sevenz://" + uriCompliantAbsPath(vfs.toFile(new URI("classpath:///7z.7z")).getAbsolutePath())));
             assertTrue(p.isDirectory());
             Arrays.stream(p.list())
@@ -103,10 +97,10 @@ public class Test7zArchives extends BaseTest {
         }
     }
 
-    @Test
-    public void test7zInTar() throws Exception {
-        try(final Vfs vfs = getVfs();
-            OpContext oc = vfs.operation();) {
+    @ParameterizedTest
+    @MethodSource("vfsConfigs")
+    public void test7zInTar(final Vfs vfs) throws Exception {
+        try(OpContext oc = vfs.operation();) {
             final Path p = oc
                 .toPath(new URI("sevenz:tar://" + uriCompliantAbsPath(vfs.toFile(new URI("classpath:///7z.7z.tar")).getAbsolutePath()) + "!./7z.7z"));
             assertTrue(p.isDirectory());

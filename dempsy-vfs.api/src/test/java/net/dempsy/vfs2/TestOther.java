@@ -4,10 +4,10 @@ import static net.dempsy.util.Functional.uncheck;
 import static net.dempsy.util.UriUtils.encodePath;
 import static net.dempsy.util.UriUtils.prependScheme;
 import static net.dempsy.util.UriUtils.resolve;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.net.URI;
@@ -16,9 +16,8 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import net.dempsy.util.UriUtils;
 import net.dempsy.vfs.OpContext;
@@ -26,18 +25,13 @@ import net.dempsy.vfs.Path;
 import net.dempsy.vfs.Vfs;
 import net.dempsy.vfs.zip.ZipFileSystem;
 
-@RunWith(Parameterized.class)
 public class TestOther extends BaseTest {
 
-    public TestOther(final Vfs vfs) {
-        super(vfs);
-    }
+    @ParameterizedTest
+    @MethodSource("vfsConfigs")
+    public void testCrazyNestedWithBadChars(final Vfs vfs) throws Exception {
 
-    @Test
-    public void testCrazyNestedWithBadChars() throws Exception {
-
-        try(final Vfs vfs = getVfs();
-            final OpContext oc = vfs.operation();) {
+        try(final OpContext oc = vfs.operation();) {
             final File tDir = vfs.toFile(new URI("classpath:///"));
 
             final String fn = "tar In Bla Bla Bla.tar.bz2";
@@ -140,12 +134,6 @@ public class TestOther extends BaseTest {
                 p = p.list()[0];
                 assertTrue(p.exists());
                 assertFalse(p.isDirectory());
-
-                // resolve doesn't work because the resulting uri contains a / between the
-                // uri and the "tarInZip.zip"
-                // ... tar.bz2!./tar%20In%20Zip%20In%20%60tar.tar!/tarInZip.zip
-                // where the tar file is constructed without the slash like this:
-                // ... tar.bz2!./tar%20In%20Zip%20In%20%60tar.tar!tarInZip.zip
             }
 
             {
@@ -182,12 +170,6 @@ public class TestOther extends BaseTest {
                 assertFalse(p.isDirectory());
 
                 assertEquals(expected, p.uri());
-
-                // resolve doesn't work because the resulting uri contains a / between the
-                // uri and the "tarInZip.zip"
-                // ... tar.bz2!./tar%20In%20Zip%20In%20%60tar.tar!/tarInZip.zip
-                // where the tar file is constructed without the slash like this:
-                // ... tar.bz2!./tar%20In%20Zip%20In%20%60tar.tar!tarInZip.zip
             }
 
             {
@@ -238,8 +220,8 @@ public class TestOther extends BaseTest {
                 testBadCharsPath(vfs, p, "dir with back`tick", p.uri(), oc);
                 testBadCharsPath(vfs, tmp, "dir with back`tick", tmp.uri(), oc);
 
-                testBadCharsPath(vfs, p, "Ichiban no Takaramono `Yui final ver.`", p.uri(), oc);
-                testBadCharsPath(vfs, tmp, "Ichiban no Takaramono `Yui final ver.`", tmp.uri(), oc);
+                testBadCharsPath(vfs, p, "Ichiban no Takaramono \u0081`Yui final ver.\u0081`", p.uri(), oc);
+                testBadCharsPath(vfs, tmp, "Ichiban no Takaramono \u0081`Yui final ver.\u0081`", tmp.uri(), oc);
 
                 p = Arrays.stream(p.list())
                     .filter(pa -> UriUtils.getName(uncheck(() -> pa.uri())).startsWith("files"))
@@ -260,14 +242,10 @@ public class TestOther extends BaseTest {
 
     }
 
-    // This fails using the Apache virtual file system. It appears if you
-    // get a FileObject by listing a directory, and that directory contains
-    // a file with a square bracket in the name, then you try to get the
-    // URI from that file object, it fails in the java URI conversion
-    @Test
-    public void testBadCharsName() throws Exception {
-        try(final Vfs vfs = getVfs();
-            final OpContext oc = vfs.operation();) {
+    @ParameterizedTest
+    @MethodSource("vfsConfigs")
+    public void testBadCharsName(final Vfs vfs) throws Exception {
+        try(final OpContext oc = vfs.operation();) {
             final File otherTestFile = vfs.toFile(new URI("classpath:///other.tar"));
             assertTrue(otherTestFile.exists());
 
@@ -293,8 +271,8 @@ public class TestOther extends BaseTest {
             testBadCharsDir(vfs, otherTestDir, "dir with back`tick", oc);
             testBadCharsPath(vfs, otherTestTar, "dir with back`tick", parentInTar, oc);
 
-            testBadCharsDir(vfs, otherTestDir, "Ichiban no Takaramono `Yui final ver.`", oc);
-            testBadCharsPath(vfs, otherTestTar, "Ichiban no Takaramono `Yui final ver.`", parentInTar, oc);
+            testBadCharsDir(vfs, otherTestDir, "Ichiban no Takaramono \u0081`Yui final ver.\u0081`", oc);
+            testBadCharsPath(vfs, otherTestTar, "Ichiban no Takaramono \u0081`Yui final ver.\u0081`", parentInTar, oc);
 
             final File dirWithFiles = new File(otherTestDir, "files with bad chars");
             testBadCharsFile(vfs, dirWithFiles, "file with back`tick.txt", oc);
@@ -303,10 +281,10 @@ public class TestOther extends BaseTest {
         }
     }
 
-    @Test
-    public void testArchiveWithDoubleEntry() throws Exception {
-        try(final Vfs vfs = getVfs();
-            final OpContext oc = vfs.operation();) {
+    @ParameterizedTest
+    @MethodSource("vfsConfigs")
+    public void testArchiveWithDoubleEntry(final Vfs vfs) throws Exception {
+        try(final OpContext oc = vfs.operation();) {
             final File otherTestFile = vfs.toFile(new URI("classpath:///TimeZoneUtility.zip"));
             assertTrue(otherTestFile.exists());
 
@@ -330,8 +308,6 @@ public class TestOther extends BaseTest {
             assertTrue(p.exists());
             assertTrue(p.isDirectory());
 
-            // some implementations of the filesystem can't handle duplicates and some can.
-            // so the number of children is going to be 1, if it can't handle dups. 2 otherwise.
             final int len = p.list().length;
             assertTrue(len == 1 || len == 2);
         }
@@ -375,8 +351,6 @@ public class TestOther extends BaseTest {
             .findAny()
             .get();
 
-        // this throws an IllegalArgumentException because of the square bracket. Fixed in
-        // ApacheVfsFileSystem.uri()
         testBadCharNameDir(vfs, indirectUnderTest, oc);
 
         final File underTestFile = new File(dirAbove.toFile(), subdirToTest);
@@ -386,8 +360,6 @@ public class TestOther extends BaseTest {
     }
 
     private void testBadCharNameDir(final Vfs vfs, final Path path, final OpContext oc) throws Exception {
-        // this throws an IllegalArgumentException because of the square bracket. Fixed in
-        // ApacheVfsFileSystem.uri()
         final URI indirectUnderTestUri = path.uri();
         assertNotNull(indirectUnderTestUri);
         Path p = oc.toPath(indirectUnderTestUri);

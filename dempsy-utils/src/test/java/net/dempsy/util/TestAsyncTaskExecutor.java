@@ -19,8 +19,8 @@ package net.dempsy.util;
 import static net.dempsy.util.Functional.chain;
 import static net.dempsy.util.Functional.ignore;
 import static net.dempsy.util.Functional.uncheck;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import net.dempsy.util.executor.AsyncTaskExecutorWithMonitor;
 import net.dempsy.utils.test.ConditionPoll;

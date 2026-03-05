@@ -2,10 +2,10 @@ package net.dempsy.vfs.test;
 
 import static net.dempsy.util.Functional.uncheck;
 import static net.dempsy.util.UriUtils.uriCompliantAbsPath;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,24 +16,19 @@ import java.util.function.Supplier;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.Tika;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import net.dempsy.util.UriUtils;
 import net.dempsy.vfs.Path;
 import net.dempsy.vfs.Vfs;
 
-@RunWith(Parameterized.class)
 public class TestTarArchives extends BaseTest {
 
-    public TestTarArchives(final Supplier<Vfs> vfs) {
-        super(vfs);
-    }
-
-    @Test
-    public void testTarEntryDirectToFile() throws Exception {
-        try(final Vfs vfs = getVfs();) {
+    @ParameterizedTest
+    @MethodSource("vfsConfigs")
+    public void testTarEntryDirectToFile(final Supplier<Vfs> vfsSupplier) throws Exception {
+        try(final Vfs vfs = vfsSupplier.get();) {
             final Path p = vfs
                 .toPath(new URI("tar:file://" + uriCompliantAbsPath(vfs.toFile(new URI("classpath:///tar.tar")).getAbsolutePath()) + "!./log4j.properties"));
             assertFalse(p.isDirectory());
@@ -43,15 +38,16 @@ public class TestTarArchives extends BaseTest {
         }
     }
 
-    @Test
-    public void testTarEntryDirectToDirectory() throws Exception {
-        testTarEntryDirectToDirectory("./classpathReading");
-        testTarEntryDirectToDirectory("./classpathReading/");
+    @ParameterizedTest
+    @MethodSource("vfsConfigs")
+    public void testTarEntryDirectToDirectory(final Supplier<Vfs> vfsSupplier) throws Exception {
+        testTarEntryDirectToDirectory(vfsSupplier, "./classpathReading");
+        testTarEntryDirectToDirectory(vfsSupplier, "./classpathReading/");
     }
 
-    private void testTarEntryDirectToDirectory(final String pathToDir) throws Exception {
+    private void testTarEntryDirectToDirectory(final Supplier<Vfs> vfsSupplier, final String pathToDir) throws Exception {
 
-        try(final Vfs vfs = getVfs();) {
+        try(final Vfs vfs = vfsSupplier.get();) {
             final Path p = vfs
                 .toPath(new URI("tar:file://" + uriCompliantAbsPath(vfs.toFile(new URI("classpath:///tar.tar")).getAbsolutePath()) + "!" + pathToDir));
             assertTrue(p.isDirectory());
@@ -71,10 +67,11 @@ public class TestTarArchives extends BaseTest {
         }
     }
 
-    @Test
-    public void testTar() throws Exception {
+    @ParameterizedTest
+    @MethodSource("vfsConfigs")
+    public void testTar(final Supplier<Vfs> vfsSupplier) throws Exception {
 
-        try(final Vfs vfs = getVfs();) {
+        try(final Vfs vfs = vfsSupplier.get();) {
             final Path p = vfs.toPath(new URI("tar://" + uriCompliantAbsPath(vfs.toFile(new URI("classpath:///tar.tar")).getAbsolutePath())));
             assertTrue(p.isDirectory());
             Arrays.stream(p.list())
@@ -92,9 +89,10 @@ public class TestTarArchives extends BaseTest {
         }
     }
 
-    @Test
-    public void testTarInTarInTar() throws Exception {
-        try(final Vfs vfs = getVfs();) {
+    @ParameterizedTest
+    @MethodSource("vfsConfigs")
+    public void testTarInTarInTar(final Supplier<Vfs> vfsSupplier) throws Exception {
+        try(final Vfs vfs = vfsSupplier.get();) {
             final String tarFile = UriUtils.uriCompliantAbsPath(vfs.toFile(new URI("classpath:///trippleTarInTar.tar")).getAbsolutePath());
             Path p = vfs.toPath(new URI("tar:file://" + tarFile));
             assertTrue(p.isDirectory());
@@ -119,9 +117,10 @@ public class TestTarArchives extends BaseTest {
         }
     }
 
-    @Test
-    public void testTarInTar() throws Exception {
-        try(final Vfs vfs = getVfs();) {
+    @ParameterizedTest
+    @MethodSource("vfsConfigs")
+    public void testTarInTar(final Supplier<Vfs> vfsSupplier) throws Exception {
+        try(final Vfs vfs = vfsSupplier.get();) {
             testTarInTar(vfs, uriCompliantAbsPath(vfs.toFile(new URI("classpath:///simpleTarInTar.tar")).getAbsolutePath()), "./", 0);
             testTarInTar(vfs, uriCompliantAbsPath(vfs.toFile(new URI("classpath:///simpleTarInTar2.tar")).getAbsolutePath()), "", 0);
             testTarInTar(vfs, uriCompliantAbsPath(vfs.toFile(new URI("classpath:///simpleTarInTar3.tar")).getAbsolutePath()), "/tmp/junk/", 2);
@@ -220,9 +219,10 @@ public class TestTarArchives extends BaseTest {
 
     }
 
-    @Test
-    public void testTarInTarDirect() throws Exception {
-        try(final Vfs vfs = getVfs();) {
+    @ParameterizedTest
+    @MethodSource("vfsConfigs")
+    public void testTarInTarDirect(final Supplier<Vfs> vfsSupplier) throws Exception {
+        try(final Vfs vfs = vfsSupplier.get();) {
             testTarInTarDirect(vfs, uriCompliantAbsPath(vfs.toFile(new URI("classpath:///simpleTarInTar.tar")).getAbsolutePath()), "./", 0);
             testTarInTarDirect(vfs, uriCompliantAbsPath(vfs.toFile(new URI("classpath:///simpleTarInTar2.tar")).getAbsolutePath()), "", 0);
             testTarInTarDirect(vfs, uriCompliantAbsPath(vfs.toFile(new URI("classpath:///simpleTarInTar3.tar")).getAbsolutePath()), "/tmp/junk/", 2);
@@ -295,9 +295,10 @@ public class TestTarArchives extends BaseTest {
         }
     }
 
-    @Test
-    public void testTarInGzTar() throws Exception {
-        try(final Vfs vfs = getVfs();) {
+    @ParameterizedTest
+    @MethodSource("vfsConfigs")
+    public void testTarInGzTar(final Supplier<Vfs> vfsSupplier) throws Exception {
+        try(final Vfs vfs = vfsSupplier.get();) {
             final String file = uriCompliantAbsPath(vfs.toFile(new URI("classpath:///simpleTarInTar.tar")).getAbsolutePath());
             Path p = vfs.toPath(new URI("gz:tar://" + file + "!./tar.tar.gz"));
             assertFalse(p.isDirectory());
@@ -310,9 +311,10 @@ public class TestTarArchives extends BaseTest {
         }
     }
 
-    @Test
-    public void testCompressedTar() throws Exception {
-        try(final Vfs vfs = getVfs();) {
+    @ParameterizedTest
+    @MethodSource("vfsConfigs")
+    public void testCompressedTar(final Supplier<Vfs> vfsSupplier) throws Exception {
+        try(final Vfs vfs = vfsSupplier.get();) {
             testCompressedTar(vfs, uriCompliantAbsPath(vfs.toFile(new URI("classpath:///tar.tar.gz")).getAbsolutePath()), "tar:gz", "tgz");
             testCompressedTar(vfs, uriCompliantAbsPath(vfs.toFile(new URI("classpath:///tar.tar.bz2")).getAbsolutePath()), "tar:bz2", "tbz2");
             testCompressedTar(vfs, uriCompliantAbsPath(vfs.toFile(new URI("classpath:///tar.tar.xz")).getAbsolutePath()), "tar:xz", "txz");

@@ -1,10 +1,10 @@
 package net.dempsy.vfs.test;
 
 import static net.dempsy.util.UriUtils.uriCompliantAbsPath;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.net.URI;
@@ -13,23 +13,18 @@ import java.util.Arrays;
 import java.util.function.Supplier;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import net.dempsy.vfs.Path;
 import net.dempsy.vfs.Vfs;
 
-@RunWith(Parameterized.class)
 public class Test7zArchives extends BaseTest {
 
-    public Test7zArchives(final Supplier<Vfs> vfs) {
-        super(vfs);
-    }
-
-    @Test
-    public void test7zEntryDirectToFile() throws Exception {
-        try(final Vfs vfs = getVfs();) {
+    @ParameterizedTest
+    @MethodSource("vfsConfigs")
+    public void test7zEntryDirectToFile(final Supplier<Vfs> vfsSupplier) throws Exception {
+        try(final Vfs vfs = vfsSupplier.get();) {
             final Path p = vfs
                 .toPath(new URI("sevenz:file://" + uriCompliantAbsPath(vfs.toFile(new URI("classpath:///7z.7z")).getAbsolutePath()) + "!log4j.properties"));
             assertFalse(p.isDirectory());
@@ -39,15 +34,16 @@ public class Test7zArchives extends BaseTest {
         }
     }
 
-    @Test
-    public void test7zEntryDirectToDirectory() throws Exception {
-        test7zEntryDirectToDirectory("classpathReading");
-        test7zEntryDirectToDirectory("classpathReading/");
+    @ParameterizedTest
+    @MethodSource("vfsConfigs")
+    public void test7zEntryDirectToDirectory(final Supplier<Vfs> vfsSupplier) throws Exception {
+        test7zEntryDirectToDirectory(vfsSupplier, "classpathReading");
+        test7zEntryDirectToDirectory(vfsSupplier, "classpathReading/");
     }
 
-    private void test7zEntryDirectToDirectory(final String pathToDir) throws Exception {
+    private void test7zEntryDirectToDirectory(final Supplier<Vfs> vfsSupplier, final String pathToDir) throws Exception {
 
-        try(final Vfs vfs = getVfs();) {
+        try(final Vfs vfs = vfsSupplier.get();) {
             final Path p = vfs
                 .toPath(new URI("sevenz:file://" + uriCompliantAbsPath(vfs.toFile(new URI("classpath:///7z.7z")).getAbsolutePath()) + "!" + pathToDir));
             assertTrue(p.isDirectory());
@@ -69,9 +65,10 @@ public class Test7zArchives extends BaseTest {
         }
     }
 
-    @Test
-    public void test7z() throws Exception {
-        try(final Vfs vfs = getVfs();) {
+    @ParameterizedTest
+    @MethodSource("vfsConfigs")
+    public void test7z(final Supplier<Vfs> vfsSupplier) throws Exception {
+        try(final Vfs vfs = vfsSupplier.get();) {
             final Path p = vfs.toPath(new URI("sevenz://" + uriCompliantAbsPath(vfs.toFile(new URI("classpath:///7z.7z")).getAbsolutePath())));
             assertTrue(p.isDirectory());
             Arrays.stream(p.list())
@@ -100,9 +97,10 @@ public class Test7zArchives extends BaseTest {
         }
     }
 
-    @Test
-    public void test7zInTar() throws Exception {
-        try(final Vfs vfs = getVfs();) {
+    @ParameterizedTest
+    @MethodSource("vfsConfigs")
+    public void test7zInTar(final Supplier<Vfs> vfsSupplier) throws Exception {
+        try(final Vfs vfs = vfsSupplier.get();) {
             final Path p = vfs
                 .toPath(new URI("sevenz:tar://" + uriCompliantAbsPath(vfs.toFile(new URI("classpath:///7z.7z.tar")).getAbsolutePath()) + "!./7z.7z"));
             assertTrue(p.isDirectory());
