@@ -17,11 +17,12 @@
 package net.dempsy.cluster;
 
 import static net.dempsy.utils.test.ConditionPoll.poll;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
@@ -29,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public abstract class TestClusterImpls {
     private final ClusterInfoSessionFactory[] clusterFactories;
@@ -72,20 +73,20 @@ public abstract class TestClusterImpls {
             final String cid = "/test-app1/test-cluster";
 
             try(final ClusterInfoSession session = factory.createSession();) {
-                assertNotNull(pass, session);
+                assertNotNull(session, pass);
                 final String clusterPath = recurseCreate(cid, session);
 
                 assertEquals(clusterPath, cid);
 
-                assertNotNull(pass, clusterPath);
-                assertTrue(pass, session.exists(clusterPath, null));
+                assertNotNull(clusterPath, pass);
+                assertTrue(session.exists(clusterPath, null), pass);
 
                 // there should be nothing currently registered
                 final Collection<String> slots = session.getSubdirs(clusterPath, null);
-                assertNotNull(pass, slots);
-                assertEquals(pass, 0, slots.size());
+                assertNotNull(slots, pass);
+                assertEquals(0, slots.size(), pass);
 
-                assertNull(pass, session.getData(clusterPath, null));
+                assertNull(session.getData(clusterPath, null), pass);
             }
         });
     }
@@ -96,14 +97,14 @@ public abstract class TestClusterImpls {
             final String cid = "/test-app2/test-cluster";
 
             try(final ClusterInfoSession session = factory.createSession();) {
-                assertNotNull(pass, session);
+                assertNotNull(session, pass);
                 final String clusterPath = recurseCreate(cid, session);
-                assertNotNull(pass, clusterPath);
+                assertNotNull(clusterPath, pass);
 
                 final String data = "HelloThere";
                 session.setData(clusterPath, data);
                 final String cdata = (String)session.getData(clusterPath, null);
-                assertEquals(pass, data, cdata);
+                assertEquals(data, cdata, pass);
             }
         });
     }
@@ -115,20 +116,20 @@ public abstract class TestClusterImpls {
             final String dir = "testSimpleClusterLevelDataThroughApplication";
 
             try(final ClusterInfoSession session = factory.createSession();) {
-                assertNotNull(pass, session);
+                assertNotNull(session, pass);
                 final String mpapp = recurseCreate(cid, session);
                 final String clusterPath = mpapp + "/" + dir;
-                assertNotNull(pass, session.mkdir(clusterPath, "YoDude", DirMode.PERSISTENT));
-                assertNotNull(pass, clusterPath);
+                assertNotNull(session.mkdir(clusterPath, "YoDude", DirMode.PERSISTENT), pass);
+                assertNotNull(clusterPath, pass);
                 final Collection<String> clusterPaths = session.getSubdirs(mpapp, null);
-                assertNotNull(pass, clusterPaths);
+                assertNotNull(clusterPaths, pass);
                 assertEquals(1, clusterPaths.size());
                 assertEquals(dir, clusterPaths.iterator().next());
 
                 final String data = "HelloThere";
                 session.setData(clusterPath, data);
                 final String cdata = (String)session.getData(clusterPath, null);
-                assertEquals(pass, data, cdata);
+                assertEquals(data, cdata, pass);
             }
         });
     }
@@ -139,9 +140,9 @@ public abstract class TestClusterImpls {
             final String cid = "/test-app4/test-cluster";
 
             try(final ClusterInfoSession session = factory.createSession();) {
-                assertNotNull(pass, session);
+                assertNotNull(session, pass);
                 final String cluster = recurseCreate(cid, session);
-                assertNotNull(pass, cluster);
+                assertNotNull(cluster, pass);
 
                 final String node = cluster + "/Test";
                 assertNotNull(session.mkdir(node, null, DirMode.EPHEMERAL));
@@ -149,18 +150,18 @@ public abstract class TestClusterImpls {
 
                 final String data = "testSimpleJoinTest-data";
                 session.setData(node, data);
-                assertEquals(pass, data, session.getData(node, null));
+                assertEquals(data, session.getData(node, null), pass);
 
                 session.rmdir(node);
 
                 // wait for no more than ten seconds
-                assertTrue(pass, poll(10000, cluster, c -> {
+                assertTrue(poll(10000, cluster, c -> {
                     try {
                         return session.getSubdirs(c, null).size() == 0;
                     } catch(final ClusterInfoException e) {
                         throw new RuntimeException(e);
                     }
-                }));
+                }), pass);
             }
         });
     }
@@ -189,7 +190,7 @@ public abstract class TestClusterImpls {
 
             final TestWatcher dirWatcher = new TestWatcher(1);
             try(final ClusterInfoSession mainSession = factory.createSession();) {
-                assertNotNull(pass, mainSession);
+                assertNotNull(mainSession, pass);
 
                 final String mpapp = recurseCreate(app, mainSession);
                 assertTrue(mainSession.exists(mpapp, null));
@@ -197,21 +198,21 @@ public abstract class TestClusterImpls {
                 assertEquals(0, mainSession.getSubdirs(mpapp, null).size());
 
                 try(final ClusterInfoSession otherSession = factory.createSession();) {
-                    assertNotNull(pass, otherSession);
+                    assertNotNull(otherSession, pass);
 
-                    assertFalse(pass, mainSession.equals(otherSession));
+                    assertFalse(mainSession.equals(otherSession), pass);
 
                     final String clusterHandle = mpapp + "/" + dir;
                     mainSession.mkdir(clusterHandle, "YoDude", DirMode.PERSISTENT);
-                    assertTrue(pass, mainSession.exists(clusterHandle, null));
+                    assertTrue(mainSession.exists(clusterHandle, null), pass);
 
                     assertTrue(poll(5000, dirWatcher, o -> o.recdUpdate));
 
                     dirWatcher.recdUpdate = false;
 
                     final String otherCluster = checkPathExists(clusterHandle, otherSession);
-                    assertNotNull(pass, otherCluster);
-                    assertEquals(pass, clusterHandle, otherCluster);
+                    assertNotNull(otherCluster, pass);
+                    assertEquals(clusterHandle, otherCluster, pass);
 
                     // in case the mainAppWatcher wrongly receives an update, let's give it a chance.
                     Thread.sleep(500);
@@ -227,19 +228,19 @@ public abstract class TestClusterImpls {
                     mainSession.setData(clusterHandle, data);
 
                     // this should have affected otherWatcher
-                    assertTrue(pass, otherWatcher.latch.await(5, TimeUnit.SECONDS));
-                    assertTrue(pass, otherWatcher.recdUpdate);
+                    assertTrue(otherWatcher.latch.await(5, TimeUnit.SECONDS), pass);
+                    assertTrue(otherWatcher.recdUpdate, pass);
 
                     // we do expect an update here also
-                    assertTrue(pass, mainWatcher.latch.await(5, TimeUnit.SECONDS));
-                    assertTrue(pass, mainWatcher.recdUpdate);
+                    assertTrue(mainWatcher.latch.await(5, TimeUnit.SECONDS), pass);
+                    assertTrue(mainWatcher.recdUpdate, pass);
 
                     // now check access through both sessions and we should see the update.
                     String cdata = (String)mainSession.getData(clusterHandle, null);
-                    assertEquals(pass, data, cdata);
+                    assertEquals(data, cdata, pass);
 
                     cdata = (String)otherSession.getData(otherCluster, null);
-                    assertEquals(pass, data, cdata);
+                    assertEquals(data, cdata, pass);
 
                 }
             }
@@ -259,27 +260,27 @@ public abstract class TestClusterImpls {
             final TestWatcher dataWatcher = new TestWatcher(0);
             final TestWatcher dirWatcher = new TestWatcher(0);
             try(final ClusterInfoSession mainSession = factory.createSession();) {
-                assertNotNull(pass, mainSession);
+                assertNotNull(mainSession, pass);
 
                 final String mpapp = recurseCreate(app, mainSession);
                 assertTrue(mainSession.exists(mpapp, dataWatcher));
                 assertEquals(0, mainSession.getSubdirs(mpapp, dirWatcher).size());
 
                 try(final ClusterInfoSession otherSession = factory.createSession();) {
-                    assertNotNull(pass, otherSession);
+                    assertNotNull(otherSession, pass);
 
-                    assertFalse(pass, mainSession.equals(otherSession));
+                    assertFalse(mainSession.equals(otherSession), pass);
 
                     final String clusterHandle = mpapp + "/" + dir;
                     otherSession.mkdir(clusterHandle, "YoDude", DirMode.PERSISTENT);
-                    assertTrue(pass, otherSession.exists(clusterHandle, null));
+                    assertTrue(otherSession.exists(clusterHandle, null), pass);
 
                     // First wait for the dir update.
-                    assertTrue(pass, poll(5000, dirWatcher, o -> o.recdUpdate));
+                    assertTrue(poll(5000, dirWatcher, o -> o.recdUpdate), pass);
 
                     // this is really what we care about. We want to make sure this DOESN"T happen.
                     Thread.sleep(500); // Yes .. I HATE this but I don't know how else to check for an event NOT happening.
-                    assertFalse(pass, dataWatcher.recdUpdate); // check we DIDN'T get a message
+                    assertFalse(dataWatcher.recdUpdate, pass); // check we DIDN'T get a message
                 }
             }
         });
@@ -293,38 +294,38 @@ public abstract class TestClusterImpls {
             final TestWatcher dataWatcher = new TestWatcher(0);
             final TestWatcher dirWatcher = new TestWatcher(0);
             try(final ClusterInfoSession mainSession = factory.createSession();) {
-                assertNotNull(pass, mainSession);
+                assertNotNull(mainSession, pass);
 
                 final String mpapp = recurseCreate(app, mainSession);
                 assertTrue(mainSession.exists(mpapp, dataWatcher));
                 assertEquals(0, mainSession.getSubdirs(mpapp, dirWatcher).size());
 
                 try(final ClusterInfoSession otherSession = factory.createSession();) {
-                    assertNotNull(pass, otherSession);
+                    assertNotNull(otherSession, pass);
 
-                    assertFalse(pass, mainSession.equals(otherSession));
+                    assertFalse(mainSession.equals(otherSession), pass);
 
                     // Update data in that directory
 
                     otherSession.setData(mpapp, "YoDude");
 
                     // First wait for the data update.
-                    assertTrue(pass, poll(5000, dataWatcher, o -> o.recdUpdate));
+                    assertTrue(poll(5000, dataWatcher, o -> o.recdUpdate), pass);
 
                     // this is really what we care about. We want to make sure this DOESN"T happen.
                     Thread.sleep(500); // Yes .. I HATE this but I don't know how else to check for an event NOT happening.
-                    assertFalse(pass, dirWatcher.recdUpdate); // check we DIDN'T get a message
+                    assertFalse(dirWatcher.recdUpdate, pass); // check we DIDN'T get a message
 
                     // now reregister the data watch
-                    assertEquals(pass, "YoDude", mainSession.getData(mpapp, dataWatcher));
+                    assertEquals("YoDude", mainSession.getData(mpapp, dataWatcher), pass);
                     // now remove the data.
                     otherSession.setData(mpapp, null);
                     // watch for the message
-                    assertTrue(pass, poll(5000, dataWatcher, o -> o.recdUpdate));
+                    assertTrue(poll(5000, dataWatcher, o -> o.recdUpdate), pass);
 
                     // do the non-even check again.
                     Thread.sleep(500); // Yes .. I HATE this but I don't know how else to check for an event NOT happening.
-                    assertFalse(pass, dirWatcher.recdUpdate); // check we DIDN'T get a message
+                    assertFalse(dirWatcher.recdUpdate, pass); // check we DIDN'T get a message
                 }
             }
         });
@@ -371,8 +372,8 @@ public abstract class TestClusterImpls {
                     t1.join(30000);
                     t2.join(30000); // use a timeout just in case. A failure should be indicated below if the thread never finishes.
 
-                    assertTrue(pass, thread1Passed);
-                    assertTrue(pass, thread2Passed);
+                    assertTrue(thread1Passed, pass);
+                    assertTrue(thread2Passed, pass);
 
                 }
             }
@@ -385,9 +386,9 @@ public abstract class TestClusterImpls {
             final String cid = "/test-app7/test-cluster";
 
             try(final ClusterInfoSession session = factory.createSession();) {
-                assertNotNull(pass, session);
+                assertNotNull(session, pass);
                 final String cluster = recurseCreate(cid, session);
-                assertNotNull(pass, cluster);
+                assertNotNull(cluster, pass);
 
                 final String node = cluster + "/Test";
                 final String data = "testSimpleJoinTest-data";
@@ -397,7 +398,7 @@ public abstract class TestClusterImpls {
                 } catch(final ClusterInfoException e) {
                     gotExpectedException = true;
                 }
-                assertTrue(pass, gotExpectedException);
+                assertTrue(gotExpectedException, pass);
 
                 gotExpectedException = false;
                 try {
@@ -405,7 +406,7 @@ public abstract class TestClusterImpls {
                 } catch(final ClusterInfoException e) {
                     gotExpectedException = true;
                 }
-                assertTrue(pass, gotExpectedException);
+                assertTrue(gotExpectedException, pass);
 
                 gotExpectedException = false;
                 try {
@@ -413,7 +414,7 @@ public abstract class TestClusterImpls {
                 } catch(final ClusterInfoException e) {
                     gotExpectedException = true;
                 }
-                assertTrue(pass, gotExpectedException);
+                assertTrue(gotExpectedException, pass);
             }
         });
     }
@@ -425,9 +426,9 @@ public abstract class TestClusterImpls {
             final AtomicBoolean processCalled = new AtomicBoolean(false);
             try(final ClusterInfoSession session = factory.createSession();) {
 
-                assertNotNull(pass, session);
+                assertNotNull(session, pass);
                 final String clusterPath = recurseCreate(cid, session);
-                assertNotNull(pass, clusterPath);
+                assertNotNull(clusterPath, pass);
 
                 final ClusterInfoWatcher watcher = () -> processCalled.set(true);
 
@@ -441,11 +442,11 @@ public abstract class TestClusterImpls {
                 processCalled.set(false);
 
                 String cdata = (String)session.getData(clusterPath, watcher);
-                assertEquals(pass, data, cdata);
+                assertEquals(data, cdata, pass);
 
                 // add the null watcher ...
                 cdata = (String)session.getData(clusterPath, null);
-                assertEquals(pass, data, cdata);
+                assertEquals(data, cdata, pass);
 
                 // but makes sure that it doesn't affect the callback
                 Thread.sleep(500); // just in case.
@@ -457,28 +458,32 @@ public abstract class TestClusterImpls {
                 assertTrue(poll(5000, null, o -> processCalled.get()));
 
                 cdata = (String)session.getData(clusterPath, null);
-                assertEquals(pass, data, cdata);
+                assertEquals(data, cdata, pass);
             }
         });
     }
 
-    @Test(expected = ClusterInfoException.class)
+    @Test
     public void testPersistentOnEphemeralDir() throws Throwable {
-        runAllCombinations((pass, factory) -> {
-            try(final ClusterInfoSession session = factory.createSession();) {
-                session.mkdir("/testPersistentOnEphemeralDir", null, DirMode.EPHEMERAL);
-                session.mkdir("/testPersistentOnEphemeralDir/subdir", null, DirMode.PERSISTENT);
-            }
+        assertThrows(ClusterInfoException.class, () -> {
+            runAllCombinations((pass, factory) -> {
+                try(final ClusterInfoSession session = factory.createSession();) {
+                    session.mkdir("/testPersistentOnEphemeralDir", null, DirMode.EPHEMERAL);
+                    session.mkdir("/testPersistentOnEphemeralDir/subdir", null, DirMode.PERSISTENT);
+                }
+            });
         });
     }
 
-    @Test(expected = ClusterInfoException.class)
+    @Test
     public void testEphemeralOnEphemeralDir() throws Throwable {
-        runAllCombinations((pass, factory) -> {
-            try(final ClusterInfoSession session = factory.createSession();) {
-                session.mkdir("/testPersistentOnEphemeralDir", null, DirMode.EPHEMERAL);
-                session.mkdir("/testPersistentOnEphemeralDir/subdir", null, DirMode.EPHEMERAL);
-            }
+        assertThrows(ClusterInfoException.class, () -> {
+            runAllCombinations((pass, factory) -> {
+                try(final ClusterInfoSession session = factory.createSession();) {
+                    session.mkdir("/testPersistentOnEphemeralDir", null, DirMode.EPHEMERAL);
+                    session.mkdir("/testPersistentOnEphemeralDir/subdir", null, DirMode.EPHEMERAL);
+                }
+            });
         });
     }
 
@@ -493,25 +498,27 @@ public abstract class TestClusterImpls {
                 try(ClusterInfoSession osession = factory.createSession()) {
                     osession.mkdir("/testUnregsiterWatcher/subdir", null, DirMode.EPHEMERAL);
 
-                    assertTrue(pass, poll(5000, count, c -> c.get() == 1));
+                    assertTrue(poll(5000, count, c -> c.get() == 1), pass);
 
                     osession.mkdir("/testUnregsiterWatcher/subdir2", null, DirMode.EPHEMERAL);
                     osession.mkdir("/testUnregsiterWatcher/subdir3", null, DirMode.EPHEMERAL);
                     osession.mkdir("/testUnregsiterWatcher/subdir4", null, DirMode.EPHEMERAL);
 
                     Thread.sleep(300);
-                    assertEquals(pass, 1L, count.get());
+                    assertEquals(1L, count.get(), pass);
                 }
             }
         });
     }
 
-    @Test(expected = ClusterInfoException.NoParentException.class)
+    @Test
     public void testNoParent() throws Throwable {
-        runAllCombinations((pass, factory) -> {
-            try(final ClusterInfoSession session = factory.createSession();) {
-                session.mkdir("/testNoParent/parent/path-where-parent-doesnt-exist", null, DirMode.PERSISTENT);
-            }
+        assertThrows(ClusterInfoException.NoParentException.class, () -> {
+            runAllCombinations((pass, factory) -> {
+                try(final ClusterInfoSession session = factory.createSession();) {
+                    session.mkdir("/testNoParent/parent/path-where-parent-doesnt-exist", null, DirMode.PERSISTENT);
+                }
+            });
         });
     }
 

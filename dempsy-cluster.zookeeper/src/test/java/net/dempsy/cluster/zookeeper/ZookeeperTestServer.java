@@ -17,8 +17,8 @@
 package net.dempsy.cluster.zookeeper;
 
 import static net.dempsy.utils.test.ConditionPoll.poll;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,7 +38,7 @@ import org.apache.zookeeper.server.ServerCnxnFactory;
 import org.apache.zookeeper.server.ServerConfig;
 import org.apache.zookeeper.server.ZooKeeperServerMain;
 import org.apache.zookeeper.server.quorum.QuorumPeerConfig;
-import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MarkerFactory;
@@ -46,7 +46,7 @@ import org.slf4j.MarkerFactory;
 import net.dempsy.util.SystemPropertyManager;
 import net.dempsy.utils.test.ConditionPoll.Condition;
 
-@Ignore
+@Disabled
 public class ZookeeperTestServer implements AutoCloseable {
     private final static Logger LOGGER = LoggerFactory.getLogger(ZookeeperTestServer.class);
     private File zkDir = null;

@@ -2,33 +2,28 @@ package net.dempsy.vfs2;
 
 import static net.dempsy.util.Functional.uncheck;
 import static net.dempsy.util.UriUtils.uriCompliantAbsPath;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.text.Normalizer;
 import java.util.Arrays;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.Tika;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import net.dempsy.util.UriUtils;
 import net.dempsy.vfs.OpContext;
 import net.dempsy.vfs.Path;
 import net.dempsy.vfs.Vfs;
 
-@RunWith(Parameterized.class)
 public class TestZipArchives extends BaseTest {
-
-    public TestZipArchives(final Vfs vfs) {
-        super(vfs);
-    }
 
     private void assertMime(final String mime, final Path p, final OpContext oc) throws Exception {
         final Tika tika = new Tika();
@@ -37,10 +32,10 @@ public class TestZipArchives extends BaseTest {
         }
     }
 
-    @Test
-    public void testRecursiveCompression() throws Exception {
-        try(final Vfs vfs = getVfs();
-            OpContext oc = vfs.operation();) {
+    @ParameterizedTest
+    @MethodSource("vfsConfigs")
+    public void testRecursiveCompression(final Vfs vfs) throws Exception {
+        try(OpContext oc = vfs.operation();) {
             String file = UriUtils.sanitize(uriCompliantAbsPath(vfs.toFile(new URI("classpath:///simpleTarInTar.tar.gz.bz2.Z.gz.gz.gz")).getAbsolutePath()))
                 .toString();
 
@@ -131,10 +126,10 @@ public class TestZipArchives extends BaseTest {
         }
     }
 
-    @Test
-    public void testZip() throws Exception {
-        try(final Vfs vfs = getVfs();
-            OpContext oc = vfs.operation();) {
+    @ParameterizedTest
+    @MethodSource("vfsConfigs")
+    public void testZip(final Vfs vfs) throws Exception {
+        try(OpContext oc = vfs.operation();) {
             final Path p = oc.toPath(new URI("zip://" + uriCompliantAbsPath(vfs.toFile(new URI("classpath:///simpleZip.zip")).getAbsolutePath())));
             assertTrue(p.isDirectory());
             Arrays.stream(p.list())
@@ -154,10 +149,10 @@ public class TestZipArchives extends BaseTest {
         }
     }
 
-    @Test
-    public void testZipWithNonAsciiEncodedFilename() throws Exception {
-        try(final Vfs vfs = getVfs();
-            OpContext oc = vfs.operation();) {
+    @ParameterizedTest
+    @MethodSource("vfsConfigs")
+    public void testZipWithNonAsciiEncodedFilename(final Vfs vfs) throws Exception {
+        try(OpContext oc = vfs.operation();) {
             final String file = uriCompliantAbsPath(vfs.toFile(new URI("classpath:///encoding.zip")).getAbsolutePath());
             Path p = oc.toPath(new URI("zip://" + file));
             assertTrue(p.exists());
@@ -166,7 +161,7 @@ public class TestZipArchives extends BaseTest {
             String name = UriUtils.getName(p.list()[0].uri());
             // without a root directory '/' UriUtils.getName will leave the ENC on the uri
             name = name.substring(name.indexOf('!') + 1);
-            assertEquals("Français.txt", name);
+            assertEquals("Fran\u00e7ais.txt", Normalizer.normalize(name, Normalizer.Form.NFC));
             p = oc.toPath(new URI("zip://" + file + "!" + name));
             assertTrue(p.exists());
             assertFalse(p.isDirectory());
@@ -176,10 +171,10 @@ public class TestZipArchives extends BaseTest {
         }
     }
 
-    @Test
-    public void testZipInTar() throws Exception {
-        try(final Vfs vfs = getVfs();
-            OpContext oc = vfs.operation();) {
+    @ParameterizedTest
+    @MethodSource("vfsConfigs")
+    public void testZipInTar(final Vfs vfs) throws Exception {
+        try(OpContext oc = vfs.operation();) {
             final String file = uriCompliantAbsPath(vfs.toFile(new URI("classpath:///zipInTar.tar")).getAbsolutePath());
 
             Path p;

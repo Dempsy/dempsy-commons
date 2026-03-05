@@ -1,9 +1,9 @@
 package net.dempsy.vfs2;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -11,10 +11,11 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExternalResource;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import net.dempsy.vfs.OpContext;
@@ -23,32 +24,28 @@ import net.dempsy.vfs.Vfs;
 
 public class TestClasspathToFileCopyNeeded {
 
-    @Rule public ExternalResource fakeDirOnClasspath = new ExternalResource() {
-
-        @Override
-        protected void before() throws IOException, URISyntaxException {
-            // when building from maven or running in eclipse, this is in the target/test-classes directory
-            try(Vfs vfs = new Vfs()) {
-                final File tempFileLocation = vfs.toFile(new URI("classpath:///logback-test.xml"));
-                final File classpathDirectory = tempFileLocation.getParentFile();
-                final File fakeDirOnClasspath = new File(classpathDirectory, "fakedir");
-                if(!fakeDirOnClasspath.exists()) fakeDirOnClasspath.mkdir();
-            }
+    @BeforeEach
+    public void setupFakeDirOnClasspath() throws IOException, URISyntaxException {
+        // when building from maven or running in eclipse, this is in the target/test-classes directory
+        try(Vfs vfs = new Vfs()) {
+            final File tempFileLocation = vfs.toFile(new URI("classpath:///logback-test.xml"));
+            final File classpathDirectory = tempFileLocation.getParentFile();
+            final File fakeDirOnClasspath = new File(classpathDirectory, "fakedir");
+            if(!fakeDirOnClasspath.exists()) fakeDirOnClasspath.mkdir();
         }
+    }
 
-        @Override
-        protected void after() {
-            try(Vfs vfs = new Vfs()) {
-                final File tempFileLocation = vfs.toFile(new URI("classpath:///logback-test.xml"));
-                final File classpathDirectory = tempFileLocation.getParentFile();
-                final File fakeDirOnClasspath = new File(classpathDirectory, "fakedir");
-                if(fakeDirOnClasspath.exists()) fakeDirOnClasspath.delete();
-            } catch(final IOException | URISyntaxException e) {
-                throw new RuntimeException(e);
-            }
+    @AfterEach
+    public void teardownFakeDirOnClasspath() {
+        try(Vfs vfs = new Vfs()) {
+            final File tempFileLocation = vfs.toFile(new URI("classpath:///logback-test.xml"));
+            final File classpathDirectory = tempFileLocation.getParentFile();
+            final File fakeDirOnClasspath = new File(classpathDirectory, "fakedir");
+            if(fakeDirOnClasspath.exists()) fakeDirOnClasspath.delete();
+        } catch(final IOException | URISyntaxException e) {
+            throw new RuntimeException(e);
         }
-
-    };
+    }
 
     @Test
     public void testCopyRequired() throws Exception {
@@ -61,7 +58,7 @@ public class TestClasspathToFileCopyNeeded {
         }
     }
 
-    @Ignore
+    @Disabled
     @Test
     public void testEmptyDirectoryFromJar() throws Exception {
         try(

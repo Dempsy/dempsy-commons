@@ -1,7 +1,7 @@
 package net.dempsy.cluster.zookeeper;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
@@ -10,9 +10,9 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.Code;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import net.dempsy.cluster.TestClusterImpls;
 import net.dempsy.serialization.jackson.JsonSerializer;
@@ -20,12 +20,12 @@ import net.dempsy.serialization.jackson.JsonSerializer;
 public class TestZookeeperClusterImpl extends TestClusterImpls {
     public static ZookeeperTestServer server;
 
-    @BeforeClass
+    @BeforeAll
     public static void setupServer() throws IOException {
         server = new ZookeeperTestServer();
     }
 
-    @AfterClass
+    @AfterAll
     public static void shutdown() {
         if (server != null)
             server.close();

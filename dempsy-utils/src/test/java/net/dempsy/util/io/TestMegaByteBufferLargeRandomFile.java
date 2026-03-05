@@ -17,8 +17,8 @@
 package net.dempsy.util.io;
 
 import static net.dempsy.util.Functional.uncheck;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,12 +30,13 @@ import java.security.MessageDigest;
 import java.util.Random;
 
 import org.apache.commons.io.FileUtils;
-import org.junit.ClassRule;
-import org.junit.Test;
+
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import net.dempsy.util.HexStringUtil;
 import net.dempsy.util.MutableInt;
-import net.dempsy.utils.test.CloseableRule;
 
 public class TestMegaByteBufferLargeRandomFile {
 
@@ -52,71 +53,69 @@ public class TestMegaByteBufferLargeRandomFile {
     public static long expectedLongStraddleLong;
     public static File dstFile;
     public static String md5OfSequence;
+    private static RandomAccessFile openFile;
 
-    @ClassRule public static CloseableRule setupFile = new CloseableRule(() -> {
-        try {
+    @BeforeAll
+    public static void setupFile() throws Exception {
+        dstFile = new File("target/tmp.dat");
+        FileUtils.deleteQuietly(dstFile);
+        dstFile.deleteOnExit();
 
-            dstFile = new File("target/tmp.dat");
-            FileUtils.deleteQuietly(dstFile);
-            dstFile.deleteOnExit();
+        // First make the file
+        {
+            System.out.println("Building file ...");
+            final Random rand = new Random(seed);
+            final MessageDigest md = uncheck(() -> MessageDigest.getInstance("MD5"));
+            try(final RandomAccessFile f = new RandomAccessFile(dstFile, "rws");) {
+                final FileChannel channel = f.getChannel();
+                channel.truncate(FILE_SIZE);
 
-            // First make the file
-            {
-                System.out.println("Building file ...");
-                final Random rand = new Random(seed);
-                final MessageDigest md = uncheck(() -> MessageDigest.getInstance("MD5"));
-                try(final RandomAccessFile f = new RandomAccessFile(dstFile, "rws");) {
-                    final FileChannel channel = f.getChannel();
-                    channel.truncate(FILE_SIZE);
+                final MegaByteBuffer mbb = MegaByteBuffer.allocateMaped(0L, FILE_SIZE, channel, FileChannel.MapMode.READ_WRITE);
 
-                    final MegaByteBuffer mbb = MegaByteBuffer.allocateMaped(0L, FILE_SIZE, channel, FileChannel.MapMode.READ_WRITE);
+                final int numbb = (int)mbb.streamOfByteBuffers().count();
+                System.out.println("Number of byte buffers: " + numbb);
+                final int mid = numbb / 2;
+                // we want the byte count that stradles mid <-> mid+1
+                final long bblen = mbb.streamOfByteBuffers().findFirst().get().capacity();
+                posToTest = (bblen * mid) - HALF_TEST_BUF_LEN;
 
-                    final int numbb = (int)mbb.streamOfByteBuffers().count();
-                    System.out.println("Number of byte buffers: " + numbb);
-                    final int mid = numbb / 2;
-                    // we want the byte count that stradles mid <-> mid+1
-                    final long bblen = mbb.streamOfByteBuffers().findFirst().get().capacity();
-                    posToTest = (bblen * mid) - HALF_TEST_BUF_LEN;
+                final MutableInt curPos = new MutableInt(0L);
+                mbb.streamOfByteBuffers().forEach(bb -> {
+                    while(bb.hasRemaining()) {
+                        final byte val = (byte)rand.nextInt();
+                        md.update(val);
+                        bb.put(val);
+                        // pick out the byte array that straddles a couple partitions to use
+                        // as an expected value in test asserts
+                        if(curPos.val >= posToTest && (curPos.val - posToTest) < TEST_BUF_LEN)
+                            expected[(int)(curPos.val - posToTest)] = val;
+                        // pick out a long that straddles a couple partitions to use
+                        // as an expected value in test asserts
+                        if(curPos.val >= STRADDLE_LONG_ADDRESS && (curPos.val - STRADDLE_LONG_ADDRESS) < Long.BYTES)
+                            expectedLongStraddleBytes[(int)(curPos.val - STRADDLE_LONG_ADDRESS)] = val;
+                        curPos.val++;
+                    }
+                });
 
-                    final MutableInt curPos = new MutableInt(0L);
-                    mbb.streamOfByteBuffers().forEach(bb -> {
-                        while(bb.hasRemaining()) {
-                            final byte val = (byte)rand.nextInt();
-                            md.update(val);
-                            bb.put(val);
-                            // pick out the byte array that straddles a couple partitions to use
-                            // as an expected value in test asserts
-                            if(curPos.val >= posToTest && (curPos.val - posToTest) < TEST_BUF_LEN)
-                                expected[(int)(curPos.val - posToTest)] = val;
-                            // pick out a long that straddles a couple partitions to use
-                            // as an expected value in test asserts
-                            if(curPos.val >= STRADDLE_LONG_ADDRESS && (curPos.val - STRADDLE_LONG_ADDRESS) < Long.BYTES)
-                                expectedLongStraddleBytes[(int)(curPos.val - STRADDLE_LONG_ADDRESS)] = val;
-                            curPos.val++;
-                        }
-                    });
+                expectedLongStraddleLong = ByteBuffer.wrap(expectedLongStraddleBytes).getLong();
 
-                    expectedLongStraddleLong = ByteBuffer.wrap(expectedLongStraddleBytes).getLong();
-
-                    mbb.force();
-                }
-                final byte[] hash = md.digest();
-                md5OfSequence = HexStringUtil.bytesToHex(hash);
-                System.out.println("DONE! ... MD5 of sequence is " + md5OfSequence);
+                mbb.force();
             }
-
-            final RandomAccessFile f = new RandomAccessFile(dstFile, "r");
-            final FileChannel channel = f.getChannel();
-            underTest = MegaByteBuffer.allocateMaped(0L, FILE_SIZE, channel, FileChannel.MapMode.READ_ONLY);
-
-            return () -> {
-                f.close();
-                FileUtils.deleteQuietly(dstFile);
-            };
-        } catch(final Exception e) {
-            throw new RuntimeException(e);
+            final byte[] hash = md.digest();
+            md5OfSequence = HexStringUtil.bytesToHex(hash);
+            System.out.println("DONE! ... MD5 of sequence is " + md5OfSequence);
         }
-    });
+
+        openFile = new RandomAccessFile(dstFile, "r");
+        final FileChannel channel = openFile.getChannel();
+        underTest = MegaByteBuffer.allocateMaped(0L, FILE_SIZE, channel, FileChannel.MapMode.READ_ONLY);
+    }
+
+    @AfterAll
+    public static void teardownFile() throws Exception {
+        if(openFile != null) openFile.close();
+        if(dstFile != null) FileUtils.deleteQuietly(dstFile);
+    }
 
     @Test
     public void testExactlyTheSame() throws IOException {

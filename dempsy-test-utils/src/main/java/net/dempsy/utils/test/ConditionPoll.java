@@ -2,7 +2,7 @@ package net.dempsy.utils.test;
 
 import java.util.function.Supplier;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 
 /**
  * <p>
@@ -99,7 +99,7 @@ public class ConditionPoll {
     }
 
     public static void assertTrue(final Supplier<String> errMessage, final boolean value) {
-        Assert.assertTrue(value ? "" : errMessage.get(), value);
+        Assertions.assertTrue(value, value ? "" : errMessage.get());
     }
 
 }

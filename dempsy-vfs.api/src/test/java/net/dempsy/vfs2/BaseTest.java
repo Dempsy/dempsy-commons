@@ -3,10 +3,7 @@ package net.dempsy.vfs2;
 import static net.dempsy.util.Functional.uncheck;
 
 import java.net.URI;
-import java.util.Arrays;
-import java.util.Collection;
-
-import org.junit.runners.Parameterized;
+import java.util.stream.Stream;
 
 import net.dempsy.vfs.CopyingArchiveFileSystem;
 import net.dempsy.vfs.CopyingCompressedFileSystem;
@@ -23,25 +20,14 @@ public class BaseTest {
     public static final String tenc = TarFileSystem.ENC;
     public static final String zenc = ZipFileSystem.ENC;
 
-    @Parameterized.Parameters
-    public static Collection<Object[]> vfsConfigs() {
-        return Arrays.asList(new Object[][] {
-            {getCopyVfs()},
-            {getStreamVfs()},
-            {get7zPreferredVfs()},
-            {get7zPreferredAltCopyingVfs()},
+    public static Stream<Object[]> vfsConfigs() {
+        return Stream.of(
+            new Object[] {getCopyVfs()},
+            new Object[] {getStreamVfs()},
+            new Object[] {get7zPreferredVfs()},
+            new Object[] {get7zPreferredAltCopyingVfs()}
             // {getExtreme7zPreferredVfs()},
-        });
-    }
-
-    private final Vfs vfs;
-
-    public BaseTest(final Vfs vfs) {
-        this.vfs = vfs;
-    }
-
-    public Vfs getVfs() {
-        return vfs;
+        );
     }
 
     public static String removeTrailingSlash(final String str) {

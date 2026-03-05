@@ -18,10 +18,10 @@ package net.dempsy.util;
 
 import static net.dempsy.util.Functional.chain;
 import static net.dempsy.utils.test.ConditionPoll.poll;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,37 +35,29 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-// @Ignore
-@RunWith(Parameterized.class)
 public class TestStupidHashMap {
 
     public static final int NUMWRITERS = 8;
     public static final int NUMREADERS = 4;
     public static final int NUMWRITES = 50000;
 
-    Map<Integer, Integer> it;
-
-    @Parameters
-    public static Object[][] params() {
-        return new Object[][] {
-            {(Supplier<Map<Integer, Integer>>)() -> new ConcurrentHashMap<Integer, Integer>(2048)},
-            {(Supplier<Map<Integer, Integer>>)() -> new StupidHashMap<Integer, Integer>(1)},
-            {(Supplier<Map<Integer, Integer>>)() -> new StupidHashMap<Integer, Integer>()},
-        };
+    public static Stream<Object[]> params() {
+        return Stream.of(
+            new Object[] {(Supplier<Map<Integer, Integer>>)() -> new ConcurrentHashMap<Integer, Integer>(2048)},
+            new Object[] {(Supplier<Map<Integer, Integer>>)() -> new StupidHashMap<Integer, Integer>(1)},
+            new Object[] {(Supplier<Map<Integer, Integer>>)() -> new StupidHashMap<Integer, Integer>()}
+        );
     }
 
-    public TestStupidHashMap(final Supplier<Map<Integer, Integer>> supplier) {
-        this.it = supplier.get();
-    }
-
-    @Test
-    public void testPounding() throws InterruptedException {
+    @ParameterizedTest
+    @MethodSource("params")
+    public void testPounding(final Supplier<Map<Integer, Integer>> supplier) throws InterruptedException {
+        final Map<Integer, Integer> it = supplier.get();
 
         final AtomicBoolean done = new AtomicBoolean(false);
         final AtomicBoolean failedWrites = new AtomicBoolean(false);
@@ -141,8 +133,10 @@ public class TestStupidHashMap {
 
     }
 
-    @Test
-    public void testUniqueOwnershipSimple() throws InterruptedException {
+    @ParameterizedTest
+    @MethodSource("params")
+    public void testUniqueOwnershipSimple(final Supplier<Map<Integer, Integer>> supplier) throws InterruptedException {
+        final Map<Integer, Integer> it = supplier.get();
 
         final AtomicBoolean done = new AtomicBoolean(false);
         final AtomicBoolean gotWhenIOwnSlot = new AtomicBoolean(false);
@@ -196,13 +190,15 @@ public class TestStupidHashMap {
             done.set(true);
         }
 
-        assertFalse("Got it in but already had it in.", gotWhenIOwnSlot.get());
-        assertFalse("Retrieved an incorrect entry when owned", gotAnother.get());
-        assertFalse("Removed an incorrect entry when owned", removedAnother.get());
+        assertFalse(gotWhenIOwnSlot.get(), "Got it in but already had it in.");
+        assertFalse(gotAnother.get(), "Retrieved an incorrect entry when owned");
+        assertFalse(removedAnother.get(), "Removed an incorrect entry when owned");
     }
 
-    @Test
-    public void testPoundingWithRemove() throws InterruptedException {
+    @ParameterizedTest
+    @MethodSource("params")
+    public void testPoundingWithRemove(final Supplier<Map<Integer, Integer>> supplier) throws InterruptedException {
+        final Map<Integer, Integer> it = supplier.get();
 
         final List<Long> numAdded = new ArrayList<Long>();
         final List<Long> numRemoved = new ArrayList<Long>();
@@ -278,8 +274,10 @@ public class TestStupidHashMap {
         }
     }
 
-    @Test
-    public void testUniqueOwnershipRotating() throws InterruptedException {
+    @ParameterizedTest
+    @MethodSource("params")
+    public void testUniqueOwnershipRotating(final Supplier<Map<Integer, Integer>> supplier) throws InterruptedException {
+        final Map<Integer, Integer> it = supplier.get();
 
         for(int loop = 0; loop < 5; loop++) {
             final AtomicBoolean done = new AtomicBoolean(false);
@@ -345,14 +343,14 @@ public class TestStupidHashMap {
                 done.set(true);
             }
 
-            assertFalse("Got it back on an insert when I already had it.", gotWhenIOwnedObject.get());
+            assertFalse(gotWhenIOwnedObject.get(), "Got it back on an insert when I already had it.");
 
-            assertFalse("Retreived it when I already had it.", gotOne.get());
+            assertFalse(gotOne.get(), "Retreived it when I already had it.");
 
             if(it.get(toWorkWith) == null) {
-                assertEquals("There seemed to be too many owners at the end " + owners, 1, owners.size());
+                assertEquals(1, owners.size(), "There seemed to be too many owners at the end " + owners);
             } else {
-                assertEquals("There seemed to be too many owners at the end " + owners, 0, owners.size());
+                assertEquals(0, owners.size(), "There seemed to be too many owners at the end " + owners);
             }
         }
     }
@@ -362,12 +360,14 @@ public class TestStupidHashMap {
     }
 
     public class Remover implements Runnable {
+        final Map<Integer, Integer> it;
         List<Integer> removed = new ArrayList<>();
         final int i;
         final AtomicBoolean done;
         final MutableInt toRemove;
 
-        Remover(final int i, final AtomicBoolean done, final MutableInt toRemove) {
+        Remover(final Map<Integer, Integer> it, final int i, final AtomicBoolean done, final MutableInt toRemove) {
+            this.it = it;
             this.i = i;
             this.done = done;
             this.toRemove = toRemove;
@@ -395,8 +395,10 @@ public class TestStupidHashMap {
         }
     }
 
-    @Test
-    public void testUniqueRemove() throws InterruptedException {
+    @ParameterizedTest
+    @MethodSource("params")
+    public void testUniqueRemove(final Supplier<Map<Integer, Integer>> supplier) throws InterruptedException {
+        final Map<Integer, Integer> it = supplier.get();
 
         final Integer[] values = createUniqeSet(1000);
 
@@ -418,7 +420,7 @@ public class TestStupidHashMap {
 
         toRemove.value = values[removeOrder[0]]; // the first one is removed when the Runnable first runs.
         final List<RunnableThread> workers = IntStream.range(0, NUMWRITERS)
-            .mapToObj(i -> new RunnableThread(new Remover(i, done, toRemove), "UniqueRemover-" + i))
+            .mapToObj(i -> new RunnableThread(new Remover(it, i, done, toRemove), "UniqueRemover-" + i))
             .collect(Collectors.toList());
 
         try {

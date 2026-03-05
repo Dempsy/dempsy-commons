@@ -16,7 +16,7 @@
 
 package net.dempsy.util.io;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -32,11 +32,12 @@ import java.util.Random;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.junit.ClassRule;
-import org.junit.Test;
+
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import net.dempsy.util.MutableInt;
-import net.dempsy.utils.test.CloseableRule;
 
 public class TestMegaByteBufferInputStream {
 
@@ -45,53 +46,51 @@ public class TestMegaByteBufferInputStream {
     public static final long seed = 8682522807148012L ^ System.nanoTime();
 
     public static MegaByteBuffer underTest;
+    private static RandomAccessFile openFile;
 
-    @ClassRule public static CloseableRule setupFile = new CloseableRule(() -> {
-        try {
+    @BeforeAll
+    public static void setupFile() throws Exception {
+        srcFile = new File("target/tmp.dat");
+        FileUtils.deleteQuietly(srcFile);
+        srcFile.deleteOnExit();
 
-            srcFile = new File("target/tmp.dat");
-            FileUtils.deleteQuietly(srcFile);
-            srcFile.deleteOnExit();
+        // First make the file
+        {
+            System.out.println("Building file ...");
+            final Random rand = new Random(seed);
+            try(final RandomAccessFile f = new RandomAccessFile(srcFile, "rws");) {
+                final FileChannel channel = f.getChannel();
+                channel.truncate(FILE_SIZE);
 
-            // First make the file
-            {
-                System.out.println("Building file ...");
-                final Random rand = new Random(seed);
-                try(final RandomAccessFile f = new RandomAccessFile(srcFile, "rws");) {
-                    final FileChannel channel = f.getChannel();
-                    channel.truncate(FILE_SIZE);
+                final MegaByteBuffer mbb = MegaByteBuffer.allocateMaped(0L, FILE_SIZE, channel, FileChannel.MapMode.READ_WRITE);
 
-                    final MegaByteBuffer mbb = MegaByteBuffer.allocateMaped(0L, FILE_SIZE, channel, FileChannel.MapMode.READ_WRITE);
+                final int numbb = (int)mbb.streamOfByteBuffers().count();
+                System.out.println("Number of byte buffers: " + numbb);
 
-                    final int numbb = (int)mbb.streamOfByteBuffers().count();
-                    System.out.println("Number of byte buffers: " + numbb);
+                final MutableInt curPos = new MutableInt(0L);
+                mbb.streamOfByteBuffers().forEach(bb -> {
+                    while(bb.hasRemaining()) {
+                        final byte val = (byte)rand.nextInt();
+                        bb.put(val);
+                        curPos.val++;
+                    }
+                });
 
-                    final MutableInt curPos = new MutableInt(0L);
-                    mbb.streamOfByteBuffers().forEach(bb -> {
-                        while(bb.hasRemaining()) {
-                            final byte val = (byte)rand.nextInt();
-                            bb.put(val);
-                            curPos.val++;
-                        }
-                    });
-
-                    mbb.force();
-                }
-                System.out.println("DONE!");
+                mbb.force();
             }
-
-            final RandomAccessFile f = new RandomAccessFile(srcFile, "r");
-            final FileChannel channel = f.getChannel();
-            underTest = MegaByteBuffer.allocateMaped(0L, FILE_SIZE, channel, FileChannel.MapMode.READ_ONLY);
-
-            return () -> {
-                f.close();
-                FileUtils.deleteQuietly(srcFile);
-            };
-        } catch(final Exception e) {
-            throw new RuntimeException(e);
+            System.out.println("DONE!");
         }
-    });
+
+        openFile = new RandomAccessFile(srcFile, "r");
+        final FileChannel channel = openFile.getChannel();
+        underTest = MegaByteBuffer.allocateMaped(0L, FILE_SIZE, channel, FileChannel.MapMode.READ_ONLY);
+    }
+
+    @AfterAll
+    public static void teardownFile() throws Exception {
+        if(openFile != null) openFile.close();
+        if(srcFile != null) FileUtils.deleteQuietly(srcFile);
+    }
 
     @Test
     public void testExactlyTheSame() throws IOException {

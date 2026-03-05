@@ -1,69 +1,78 @@
 package net.dempsy.util;
 
-import static net.dempsy.util.Functional.ignore;
-import static net.dempsy.util.Functional.uncheck;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Stream;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
+import static net.dempsy.util.Functional.ignore;
+import static net.dempsy.util.Functional.uncheck;
 import net.dempsy.utils.test.ConditionPoll;
 
-@RunWith(Parameterized.class)
 public class TestExecutor {
 
-    @Parameters
-    public static Object[][] params() {
-        return new Object[][] {
-            {1},
-            {10},
-        };
+    public static boolean hardcore = Boolean.parseBoolean(System.getProperty("hardcore", "false"));
+
+    public static boolean production = Boolean.parseBoolean(System.getProperty("production", "false"));
+
+    public static boolean fast = Boolean.parseBoolean(System.getProperty("fast", "false"));
+
+    private final static int DEFAULT_SELECTION = 2;
+
+    private static final int[] LOOP_COUNTS = {1000, 500, 10};
+    private static final int[] ITER_COUNTS = {100000, 10000, 10};
+
+    private static final int selection = hardcore ? 0 : (production ? 1 : (fast ? 2 : DEFAULT_SELECTION));
+
+    private static final int loopCount = LOOP_COUNTS[selection];
+    private static final int iterCount = ITER_COUNTS[selection];
+    
+    public static Stream<Object[]> params() {
+        return Stream.of(
+            new Object[] {1},
+            new Object[] {10}
+        );
     }
 
-    public final int numThreads;
-
-    public TestExecutor(final int numThreads) {
-        this.numThreads = numThreads;
-    }
-
-    @Test
-    public void testSimple() throws Exception {
-        for(int c = 0; c < 500; c++) {
+    @ParameterizedTest
+    @MethodSource("params")
+    public void testSimple(final int numThreads) throws Exception {
+        for(int c = 0; c < loopCount; c++) {
             final AtomicLong tcount = new AtomicLong(0);
             final SimpleExecutor executor = new SimpleExecutor(numThreads, r -> new Thread(r, "testSimple-" + tcount.getAndIncrement()));
             final AtomicLong count = new AtomicLong();
             try(QuietCloseable qc = () -> executor.shutdown();) {
-                for(int i = 0; i < 10000; i++)
+                for(int i = 0; i < iterCount; i++)
                     executor.submit(() -> count.incrementAndGet());
             }
-            assertTrue(ConditionPoll.poll(1000, null, o -> 10000 == count.get()));
+            assertTrue(ConditionPoll.poll(1000, null, o -> iterCount == count.get()));
         }
     }
 
-    @Test
-    public void testSimpleGroup() throws Exception {
-        for(int c = 0; c < 500; c++) {
+    @ParameterizedTest
+    @MethodSource("params")
+    public void testSimpleGroup(final int numThreads) throws Exception {
+        for(int c = 0; c < loopCount; c++) {
             final AtomicLong tcount = new AtomicLong(0);
             final GroupExecutor group = new GroupExecutor(numThreads, r -> new Thread(r, "testSimple-" + tcount.getAndIncrement()));
             final GroupExecutor.Queue executor = group.newExecutor();
             final AtomicLong count = new AtomicLong();
             try(QuietCloseable qc = () -> group.shutdown();) {
-                for(int i = 0; i < 10000; i++)
+                for(int i = 0; i < iterCount; i++)
                     executor.submit(() -> count.incrementAndGet());
             }
-            assertTrue(ConditionPoll.poll(1000, null, o -> 10000 == count.get()));
+            assertTrue(ConditionPoll.poll(1000, null, o -> iterCount == count.get()));
         }
     }
 
-    @Test
-    public void testGroup() throws Exception {
-        for(int c = 0; c < 500; c++) {
+    @ParameterizedTest
+    @MethodSource("params")
+    public void testGroup(final int numThreads) throws Exception {
+        for(int c = 0; c < loopCount; c++) {
             final AtomicLong tcount = new AtomicLong(0);
             final GroupExecutor group = new GroupExecutor(numThreads, r -> new Thread(r, "testSimple-" + tcount.getAndIncrement()));
             final GroupExecutor.Queue[] queues = new GroupExecutor.Queue[8];
@@ -71,19 +80,20 @@ public class TestExecutor {
                 queues[i] = group.newExecutor();
             final AtomicLong count = new AtomicLong();
             try(QuietCloseable qc = () -> uncheck(() -> group.shutdown());) {
-                for(int i = 0; i < 10000; i++) {
+                for(int i = 0; i < iterCount; i++) {
                     final GroupExecutor.Queue executor = queues[i & 7];
                     executor.submit(() -> count.incrementAndGet());
                 }
             }
-            assertTrue(ConditionPoll.poll(o -> 10000 == count.get()));
+            assertTrue(ConditionPoll.poll(o -> iterCount == count.get()));
             Thread.sleep(10);
-            assertEquals(10000, count.get());
+            assertEquals(iterCount, count.get());
         }
     }
 
-    @Test
-    public void testGroupLongishTasks() throws Exception {
+    @ParameterizedTest
+    @MethodSource("params")
+    public void testGroupLongishTasks(final int numThreads) throws Exception {
         for(int c = 0; c < 5; c++) {
             final AtomicLong tcount = new AtomicLong(0);
             final GroupExecutor group = new GroupExecutor(numThreads, r -> new Thread(r, "testSimple-" + tcount.getAndIncrement()));
@@ -92,23 +102,24 @@ public class TestExecutor {
                 queues[i] = group.newExecutor();
             final AtomicLong count = new AtomicLong();
             try(QuietCloseable qc = () -> uncheck(() -> group.shutdown());) {
-                for(int i = 0; i < 10000; i++) {
+                for(int i = 0; i < iterCount; i++) {
                     final int curCount = i & 7;
                     final GroupExecutor.Queue executor = queues[curCount];
                     assertTrue(executor.submit(() -> {
-                        System.out.println("" + curCount + " - " + count.incrementAndGet());
+                        count.incrementAndGet();
                         ignore(() -> Thread.sleep(1));
                     }));
                 }
-                ConditionPoll.poll(o -> 10000 == count.get());
+                ConditionPoll.poll(o -> iterCount == count.get());
             }
             Thread.sleep(10);
-            assertEquals(10000, count.get());
+            assertEquals(iterCount, count.get());
         }
     }
 
-    @Test
-    public void testGroupGracefulShutdown() throws Exception {
+    @ParameterizedTest
+    @MethodSource("params")
+    public void testGroupGracefulShutdown(final int numThreads) throws Exception {
         final AtomicLong tcount = new AtomicLong(0);
         final GroupExecutor group = new GroupExecutor(numThreads, r -> new Thread(r, "testSimple-" + tcount.getAndIncrement()));
         final GroupExecutor.Queue[] queues = new GroupExecutor.Queue[8];
@@ -116,24 +127,25 @@ public class TestExecutor {
             queues[i] = group.newExecutor();
         final AtomicLong count = new AtomicLong();
         try(QuietCloseable qc = () -> uncheck(() -> group.shutdown());) {
-            for(int i = 0; i < 10000; i++) {
+            for(int i = 0; i < iterCount; i++) {
                 final int curCount = i & 7;
                 final GroupExecutor.Queue executor = queues[curCount];
                 assertTrue(executor.submit(() -> {
-                    System.out.println("" + curCount + " - " + count.incrementAndGet());
+                    count.incrementAndGet();
                     ignore(() -> Thread.sleep(1));
                 }));
             }
         }
         // we poll AFTER closing
-        ConditionPoll.poll(o -> 10000 == count.get());
+        ConditionPoll.poll(o -> iterCount == count.get());
         Thread.sleep(10);
-        assertEquals(10000, count.get());
+        assertEquals(iterCount, count.get());
     }
 
-    @Test
-    public void testGroupOrdering() throws Exception {
-        for(int c = 0; c < 500; c++) {
+    @ParameterizedTest
+    @MethodSource("params")
+    public void testGroupOrdering(final int numThreads) throws Exception {
+        for(int c = 0; c < loopCount; c++) {
             final AtomicLong tcount = new AtomicLong(0);
             final GroupExecutor group = new GroupExecutor((c % 10) + 1, r -> new Thread(r, "testSimple-" + tcount.getAndIncrement()));
             final GroupExecutor.Queue[] queues = new GroupExecutor.Queue[8];

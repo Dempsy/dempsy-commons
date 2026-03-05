@@ -7,29 +7,20 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
-import org.junit.rules.ExternalResource;
-
 /**
  * A {@link CloseableRule} can be used to manage resources for unit tests that
  * are {@link AutoCloseable}s.
- * 
- * <pre>
- * {@code
- * &#64;ClassRule
- * public static final ClosableRule closables = new ClosableRule(new ClassPathXmlApplicationContext(...));
- * }
- * </pre>
  */
-public class CloseableRule extends ExternalResource {
+public class CloseableRule implements AutoCloseable {
     private final AutoCloseable[] autoCloseables;
     private final Supplier<AutoCloseable> supplier;
 
     private final String newLine = System.getProperty("line.separator");
 
     /**
-     * Create a JUnit rule that automatically closes the {@link AutoCloseable}s
+     * Create a rule that automatically closes the {@link AutoCloseable}s
      * passed in.
-     * 
+     *
      * @param autoCloseables - {@link AutoCloseable}s to close when at the
      *            conclusion of the test scope.
      */
@@ -39,10 +30,10 @@ public class CloseableRule extends ExternalResource {
     }
 
     /**
-     * Create a JUnit rule that creates an {@link AutoCloseable} through the given
-     * {@link Supplier} during the setup phase of the test and closes the
-     * {@link AutoCloseable} during the tear-down phase of the test.
-     * 
+     * Create a rule that creates an {@link AutoCloseable} through the given
+     * {@link Supplier} during the setup phase and closes the
+     * {@link AutoCloseable} during the tear-down phase.
+     *
      * @param supplier - the source of the given {@link AutoCloseable}
      */
     public CloseableRule(final Supplier<AutoCloseable> supplier) {
@@ -58,17 +49,16 @@ public class CloseableRule extends ExternalResource {
             .orElse(null);
     }
 
-    protected void before() {
+    public void before() {
         if(supplier != null)
             autoCloseables[0] = supplier.get();
     }
 
     /**
-     * On the {@code after} test phase, close all of the {@link AutoCloseable}'s
-     * that were passed in the constructor.
+     * Close all of the {@link AutoCloseable}'s that were passed in the constructor.
      */
     @Override
-    protected void after() {
+    public void close() {
         final List<Exception> exceptions = new ArrayList<>();
         Arrays.stream(autoCloseables)
             .filter(ac -> ac != null)
